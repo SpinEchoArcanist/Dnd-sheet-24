@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.11 — 2026-03-09 -->
+<!-- dnd-sheet-v11 | version complète : 11.12 — 2026-03-09 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1006,7 +1006,7 @@ CHANGELOG entry format:
      Toutes exposées sur window.*
 -->
 
-<!-- [EX-G-F47] RPG AWESOME ICONS (v11.8)
+<!-- [EX-G-F47] RPG AWESOME ICONS (v11.12)
      15 emojis remplacés par icônes RPG Awesome 0.3.4 via <i class="ra ra-X rpa-icon">.
      Chargement : <link rel="stylesheet"> dans <head> — GitHub Pages CSP bloque @import
      depuis un <style> inline ; <link> en <head> est autorisé.
@@ -1075,7 +1075,7 @@ CHANGELOG entry format:
 
 <!-- RPG Awesome 0.3.4 — loaded via <link> (GitHub Pages CSP compatible) -->
 <!-- SCRIPTABLE_RPA_INJECT -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rpg-awesome@0.3.4/css/rpg-awesome.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css">
 
 <style>
 /* Scriptable runtime font injection point — do not remove */
@@ -4322,7 +4322,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.11';
+var FILE_VERSION = '11.12';
 
 'use strict';
 
@@ -8472,6 +8472,7 @@ v10.4 — 2026-03-08 : Mise à jour du processus IA obligatoire de 6 à 7 étape
 v10.3 — 2026-03-08 : Sprint token-reduction F6/F7/F8 — lireStr/lireChk helpers (19 double-lookups), mkFormFooter helper (3 footer blocks), formSub helper (4 subtitle ternaries). Saving : ~873 chars.
 v10.2 — 2026-03-08 : Sprint token-reduction F2/F3/F4 — inline styles → CSS class (×8), bubble groups → JS expansion (×5), sanList helper + CATS→DON_CATEGORIES dans sanitiserDonnees. Saving : ~2 015 chars.
 v10.1 — 2026-03-07 : SVG déduplication géométrie bouclier (ca-shield-outer + ca-shield-inner) ; 11 <path> remplacés par <use href>.
+v11.12 — 2026-03-09 : Fix URL CDN rpg-awesome 0.3.4→0.2.0 (seule version publiée sur npm).
 v11.11 — 2026-03-09 : Panneau diagnostic RPG Awesome ajouté (debug temporaire).
 v11.10 — 2026-03-09 : Fix commentaire HTML cassé dans [EX-G-F47] (marqueur SCRIPTABLE_RPA_INJECT imbriqué).
 v11.9 — 2026-03-09 : Fix icônes RPG Awesome — @import remplacé par <link> dans <head> (GitHub Pages CSP).
@@ -8555,7 +8556,7 @@ v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user reque
 
   // 3. Fetch CDN CSS directly
   row('inf', '⏳ Test fetch CDN CSS...');
-  fetch('https://cdn.jsdelivr.net/npm/rpg-awesome@0.3.4/css/rpg-awesome.min.css')
+  fetch('https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css')
     .then(function(r) {
       if (r.ok) {
         row('ok', '✔ CDN CSS accessible (HTTP ' + r.status + ')');
