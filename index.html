@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.10 — 2026-03-09 -->
+<!-- dnd-sheet-v11 | version complète : 11.11 — 2026-03-09 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -4322,7 +4322,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.10';
+var FILE_VERSION = '11.11';
 
 'use strict';
 
@@ -8472,6 +8472,7 @@ v10.4 — 2026-03-08 : Mise à jour du processus IA obligatoire de 6 à 7 étape
 v10.3 — 2026-03-08 : Sprint token-reduction F6/F7/F8 — lireStr/lireChk helpers (19 double-lookups), mkFormFooter helper (3 footer blocks), formSub helper (4 subtitle ternaries). Saving : ~873 chars.
 v10.2 — 2026-03-08 : Sprint token-reduction F2/F3/F4 — inline styles → CSS class (×8), bubble groups → JS expansion (×5), sanList helper + CATS→DON_CATEGORIES dans sanitiserDonnees. Saving : ~2 015 chars.
 v10.1 — 2026-03-07 : SVG déduplication géométrie bouclier (ca-shield-outer + ca-shield-inner) ; 11 <path> remplacés par <use href>.
+v11.11 — 2026-03-09 : Panneau diagnostic RPG Awesome ajouté (debug temporaire).
 v11.10 — 2026-03-09 : Fix commentaire HTML cassé dans [EX-G-F47] (marqueur SCRIPTABLE_RPA_INJECT imbriqué).
 v11.9 — 2026-03-09 : Fix icônes RPG Awesome — @import remplacé par <link> dans <head> (GitHub Pages CSP).
 v11.8 — 2026-03-09 : Retour icônes RPG Awesome ra-* via @import CDN — déployement GitHub Pages.
@@ -8485,5 +8486,170 @@ v11.1 — 2026-03-09 : Typographie globale — --font-sub et --font-corps pointe
 v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user request). Ajout système de polices double (Metamorphous / Eagle Lake) avec sélecteur dans le menu et persistance localStorage. Amendement [EX-T-F37] / [EX-G-F02] pour autoriser les polices Google Fonts avec fallback système garanti.
 ====================================================== */
 </script>
+
+<!-- ═══════════════════════════════════════════════════
+     DIAGNOSTIC RPG AWESOME — v11.11 — retirer après debug
+     ═══════════════════════════════════════════════════ -->
+<style>
+#rpa-diag {
+  position:fixed; bottom:0; left:0; right:0; z-index:99999;
+  background:#111; color:#eee; font-family:monospace; font-size:13px;
+  padding:10px 14px; border-top:2px solid #c9a84c;
+  max-height:50vh; overflow-y:auto;
+}
+#rpa-diag h3 { color:#c9a84c; margin:0 0 6px; font-size:14px; }
+#rpa-diag .ok  { color:#4caf50; }
+#rpa-diag .err { color:#f44336; }
+#rpa-diag .wrn { color:#ff9800; }
+#rpa-diag .inf { color:#64b5f6; }
+#rpa-diag .row { margin:2px 0; }
+#rpa-diag-close {
+  position:absolute; top:8px; right:12px;
+  background:none; border:1px solid #c9a84c; color:#c9a84c;
+  cursor:pointer; padding:2px 8px; font-size:12px; border-radius:3px;
+}
+#rpa-icon-test { font-size:22px; margin-top:6px; }
+#rpa-icon-test i { margin-right:6px; }
+</style>
+
+<div id="rpa-diag">
+  <h3>🔍 Diagnostic RPG Awesome</h3>
+  <button id="rpa-diag-close" onclick="document.getElementById('rpa-diag').style.display='none'">Fermer</button>
+  <div id="rpa-diag-log"><span class="inf">Démarrage...</span></div>
+  <div id="rpa-icon-test"></div>
+</div>
+
+<script>
+(function() {
+  var log = document.getElementById('rpa-diag-log');
+  var iconTest = document.getElementById('rpa-icon-test');
+
+  function row(cls, msg) {
+    var d = document.createElement('div');
+    d.className = 'row';
+    d.innerHTML = '<span class="' + cls + '">' + msg + '</span>';
+    log.appendChild(d);
+  }
+
+  // 1. Check <link> element present in DOM
+  var links = document.querySelectorAll('link[rel="stylesheet"]');
+  var rpaLink = null;
+  links.forEach(function(l) {
+    if (l.href && l.href.indexOf('rpg-awesome') !== -1) rpaLink = l;
+  });
+  if (rpaLink) {
+    row('ok', '✔ &lt;link&gt; RPG Awesome trouvé : ' + rpaLink.href);
+  } else {
+    row('err', '✘ Aucun &lt;link&gt; RPG Awesome dans le DOM');
+  }
+
+  // 2. Check @import in <style> (should NOT be there)
+  var styles = document.querySelectorAll('style');
+  var hasImport = false;
+  styles.forEach(function(s) {
+    if (s.textContent.indexOf('rpg-awesome') !== -1) hasImport = true;
+  });
+  row(hasImport ? 'wrn' : 'inf',
+    hasImport ? '⚠ @import rpg-awesome trouvé dans un <style> inline (peut être bloqué par CSP)'
+              : '✔ Pas de @import rpg-awesome dans <style> inline');
+
+  // 3. Fetch CDN CSS directly
+  row('inf', '⏳ Test fetch CDN CSS...');
+  fetch('https://cdn.jsdelivr.net/npm/rpg-awesome@0.3.4/css/rpg-awesome.min.css')
+    .then(function(r) {
+      if (r.ok) {
+        row('ok', '✔ CDN CSS accessible (HTTP ' + r.status + ')');
+        return r.text();
+      } else {
+        row('err', '✘ CDN CSS inaccessible (HTTP ' + r.status + ')');
+        return null;
+      }
+    })
+    .then(function(css) {
+      if (!css) return;
+      // Check font-face src in CSS
+      var hasFontFace = css.indexOf('@font-face') !== -1;
+      var hasWoff2 = css.indexOf('.woff2') !== -1;
+      row(hasFontFace ? 'ok' : 'err',
+        hasFontFace ? '✔ @font-face présent dans le CSS CDN' : '✘ Pas de @font-face dans le CSS CDN');
+      row(hasWoff2 ? 'ok' : 'wrn',
+        hasWoff2 ? '✔ .woff2 référencé dans @font-face' : '⚠ Pas de .woff2 dans @font-face');
+      // Extract font src URL
+      var m = css.match(/src:[^;]*url\(["']?([^"'\)]+\.woff2)["']?\)/);
+      if (m) {
+        var fontUrl = m[1];
+        // Resolve relative URL against CDN base
+        if (fontUrl.indexOf('http') !== 0) {
+          fontUrl = 'https://cdn.jsdelivr.net/npm/rpg-awesome@0.3.4/css/' + fontUrl;
+        }
+        row('inf', '⏳ URL police résolue : ' + fontUrl);
+        // 4. Fetch the actual font file
+        fetch(fontUrl)
+          .then(function(r2) {
+            if (r2.ok) {
+              row('ok', '✔ Fichier police .woff2 accessible (HTTP ' + r2.status + ', ' + (r2.headers.get('content-length')||'?') + ' bytes)');
+            } else {
+              row('err', '✘ Fichier police .woff2 inaccessible (HTTP ' + r2.status + ')');
+            }
+          })
+          .catch(function(e) { row('err', '✘ Fetch police échoué : ' + e.message); });
+      } else {
+        row('wrn', '⚠ Impossible d\'extraire l\'URL de la police depuis le CSS');
+      }
+    })
+    .catch(function(e) { row('err', '✘ Fetch CDN CSS échoué : ' + e.message); });
+
+  // 5. Check if the CSS rules are actually loaded in document stylesheets
+  setTimeout(function() {
+    var found = false;
+    try {
+      var sheets = document.styleSheets;
+      for (var i = 0; i < sheets.length; i++) {
+        try {
+          var rules = sheets[i].cssRules || sheets[i].rules || [];
+          for (var j = 0; j < rules.length; j++) {
+            if (rules[j].selectorText && rules[j].selectorText.indexOf('.ra-') !== -1) {
+              found = true; break;
+            }
+          }
+        } catch(e) { /* cross-origin stylesheet — cannot read rules */ }
+        if (found) break;
+      }
+    } catch(e) {}
+    row(found ? 'ok' : 'err',
+      found ? '✔ Règles CSS .ra-* trouvées dans document.styleSheets'
+             : '✘ Aucune règle .ra-* dans document.styleSheets (police non chargée ou CORS)');
+
+    // 6. Check computed style of a test icon
+    var testEl = document.createElement('i');
+    testEl.className = 'ra ra-cog';
+    testEl.style.visibility = 'hidden';
+    testEl.style.position = 'absolute';
+    document.body.appendChild(testEl);
+    var cs = window.getComputedStyle(testEl, '::before');
+    var ff = cs.fontFamily || '';
+    var content = cs.content || '';
+    row((ff.indexOf('RPGAwesome') !== -1 || ff.indexOf('rpg') !== -1) ? 'ok' : 'err',
+      'font-family ::before : ' + ff);
+    row(content && content !== 'none' && content !== '""' ? 'ok' : 'err',
+      'content ::before : ' + content);
+    document.body.removeChild(testEl);
+
+    // 7. Live icon render test
+    iconTest.innerHTML =
+      'Test rendu : ' +
+      '<i class="ra ra-cog"></i>' +
+      '<i class="ra ra-crossed-swords"></i>' +
+      '<i class="ra ra-book"></i>' +
+      '<i class="ra ra-shield"></i>' +
+      '<i class="ra ra-health"></i>' +
+      ' ← ces icônes doivent être visibles';
+
+    row('inf', '— Fin du diagnostic —');
+  }, 2000); // wait 2s for stylesheets to settle
+})();
+</script>
+<!-- ═══════════════════════════════════════════════════ -->
+
 </body>
 </html>
