@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v10 | version complète : 10.8 — 2026-03-08 -->
+<!-- dnd-sheet-v11 | version complète : 11.2 — 2026-03-09 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -299,8 +299,11 @@ CHANGELOG entry format:
        --parchemin-s    : #c4b49a
        --rouge-crit     : #cc2222
        --bleu           : #1a8bcc
-     Polices : 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif
-     IMPÉRATIF : polices système uniquement — ZÉRO CDN, ZÉRO import réseau
+     Polices : Metamorphous (Google Fonts, amélioration progressive) + fallback garanti.
+     Stack : 'MetamorphousGF', 'Metamorphous', 'Palatino Linotype', Georgia, serif.
+     Si Google Fonts indisponible : Palatino Linotype → Georgia → serif garantis.
+     Pas de sélecteur runtime — police fixe appliquée à tout le texte (--font-titre,
+     --font-sub, --font-corps pointent tous sur --font-metamorphous).
      Style : gothique sombre (Curse of Strahd / Diablo II-III)
              bordures dorées subtiles, lueurs focus, fond double radial-gradient
              cases à cocher custom avec symbole ✦ quand cochées
@@ -814,7 +817,9 @@ CHANGELOG entry format:
 <!-- [EX-T-F37] COMPATIBILITÉ iOS / SCRIPTABLE (WKWebView)
 
      Règles IMPÉRATIVES — ne jamais enfreindre :
-       1. Zéro CDN, zéro framework, zéro appel réseau — fichier 100% autonome
+       1. Zéro CDN, zéro framework — fichier 100% autonome sauf Metamorphous (Google
+          Fonts via @import, amélioration progressive uniquement). Fallback garanti :
+          Palatino Linotype → Georgia → serif si la police externe échoue.
        2. initApp() appelé DIRECTEMENT à la fin du script
           → JAMAIS via DOMContentLoaded ou window.onload
        3. Toutes les fonctions appelées via onclick="..." DOIVENT être
@@ -1046,6 +1051,9 @@ CHANGELOG entry format:
 -->
 
 <style>
+/* Scriptable runtime font injection point — do not remove */
+/* SCRIPTABLE_FONT_INJECT */
+@import url('https://fonts.googleapis.com/css2?family=Metamorphous&display=swap');
 /* ============================================================
    VARIABLES & RESET — Polices système, zéro dépendance externe
 v9.12 — 2026-03-07 : T1 type-switch en modification Traits/Dons/Aptitudes ; T2 Classe readonly Paladin + layout compact.
@@ -1061,10 +1069,11 @@ v9.12 — 2026-03-07 : T1 type-switch en modification Traits/Dons/Aptitudes ; T
   --parchemin-s:    #c4b49a;
   --rouge-crit:     #cc2222;
   --bleu:           #1a8bcc;
-  /* Polices système serif uniquement, zéro CDN */
-  --font-titre: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
-  --font-sub:   Georgia, 'Times New Roman', Times, serif;
-  --font-corps: Georgia, 'Times New Roman', Times, serif;
+  /* Google Fonts: Metamorphous — progressive enhancement, system fallback guaranteed */
+  --font-metamorphous: 'MetamorphousGF', 'Metamorphous', 'Palatino Linotype', Georgia, serif;
+  --font-titre: var(--font-metamorphous);
+  --font-sub:   var(--font-metamorphous);
+  --font-corps: var(--font-metamorphous);
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
@@ -1200,6 +1209,7 @@ body {
   color:var(--parchemin-s); text-transform:uppercase;
 }
 .dropdown-toggle-row:hover { color:var(--parchemin); }
+
 .vfx-toggle {
   position:relative; display:inline-block; width:28px; height:15px; flex-shrink:0;
 }
@@ -3035,7 +3045,7 @@ select.field-input optgroup {
 
     <!-- Version label — miroir symétrique du menu-wrapper, voir [EX-T-F41] -->
     <div class="version-wrapper">
-      <span id="version-label">v10.1</span>
+      <span id="version-label">v11.0</span>
     </div>
   </div>
 
@@ -4282,7 +4292,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '10.14';
+var FILE_VERSION = '11.2';
 
 'use strict';
 
@@ -8418,6 +8428,9 @@ v9.13 — 2026-03-07 : Bugfix ouvrirFormTyped (2 lignes orphelines) ; factory cr
 v9.14 — 2026-03-07 : Défauts Paladin/Aasimar/Fermier pour classe, espèce, historique.
 v9.15 — 2026-03-07 : Helpers mkActionBtns+mkDetailSpan ; refactoring updateItems/updateWeapons/updateArmors.
 v10.0 — 2026-03-07 : Version majeure — passage v9.15 → v10.0 (user request).
+v11.2 — 2026-03-09 : Typographie — suppression sélecteur de polices et Eagle Lake ; Metamorphous (Google Fonts) appliquée à tout le texte, fallback système garanti.
+v11.1 — 2026-03-09 : Typographie globale — --font-sub et --font-corps pointent vers --font-titre-active ; le sélecteur de police s'applique à tout le texte.
+v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user request). Ajout système de polices double (Metamorphous / Eagle Lake) avec sélecteur dans le menu et persistance localStorage. Amendement [EX-T-F37] / [EX-G-F02] pour autoriser les polices Google Fonts avec fallback système garanti.
 v10.14 — 2026-03-09 : Revert checkboxes Grimoire/Armures — retour accent-color:var(--or) natif (fond blanc non coché, or coché).
   v10.13 — 2026-03-09 : Checkboxes — coche blanche (\u2714) via span.cb-tick frère (input replaced element incompatible avec ::after).
   v10.12 — 2026-03-09 : Checkboxes Grimoire/Armures — état coché restauré en fond or + coche blanche (identique accent-color natif).
