@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.8 — 2026-03-09 -->
+<!-- dnd-sheet-v11 | version complète : 11.2 — 2026-03-09 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -470,7 +470,7 @@ CHANGELOG entry format:
 
      Panneau collapsible dans la colonne droite, sous le panneau Attaque Rapide.
      Structure HTML : .grimoire-header (flex row) contenant :
-       · .section-title.collapsible "📖→ra-book Grimoire" (titre seul, sans éléments inline)
+       · .section-title.collapsible "📖 Grimoire" (titre seul, sans éléments inline)
        · #grimoire-filter-bar (dans .panel-body) contient :
            .grimoire-prep-label + #grimoire-prep-counter | switch | #grimoire-add-btn
      Corps : .panel-body > #grimoire-spell-list (rendu dynamique par updateGrimoire())
@@ -533,7 +533,6 @@ CHANGELOG entry format:
 
      Sous-section collapsible dans le panneau Magie (à la suite de Imposition des mains).
      Structure HTML : <div class="section-title collapsible">🐎 Monture d&#39;outremonde</div>
-                      (emoji conservé — aucune icône RPG Awesome disponible)
                       <div class="panel-body">..contenu..</div>
      (plus de <div class="panel" id="panel-monture"> wrapper — supprimé en v8.4)
 
@@ -571,7 +570,7 @@ CHANGELOG entry format:
 <!-- [EX-M-F53] APTITUDES TYPED (v9.8)
 
      Sous-section collapsible dans le panneau Identité (colonne gauche), après les champs Classe (readonly Paladin), Espèce, Historique.
-     Titre : "ra-book Aptitudes, Traits et Dons"  (icône RPG Awesome ra-book, emoji 📖 remplacé)
+     Titre : "📖 Aptitudes, Traits et Dons"
      Bouton + header → ouvrirFormTyped() (formulaire inline dans #feats-form-area)
 
      MODELES :
@@ -818,12 +817,9 @@ CHANGELOG entry format:
 <!-- [EX-T-F37] COMPATIBILITÉ iOS / SCRIPTABLE (WKWebView)
 
      Règles IMPÉRATIVES — ne jamais enfreindre :
-       1. Zéro CDN, zéro framework — fichier 100% autonome sauf deux exceptions
-          autorisées (amélioration progressive, fallback garanti) :
-          · Metamorphous — Google Fonts via @import dans <style>
-            Fallback : Palatino Linotype → Georgia → serif
-          · RPG Awesome 0.3.4 — jsDelivr via @import dans <style> (icônes [EX-G-F47])
-            Fonctionne depuis GitHub Pages (HTTP). Fallback : <i class="ra ..."> vide, aucun tofu.
+       1. Zéro CDN, zéro framework — fichier 100% autonome sauf Metamorphous (Google
+          Fonts via @import, amélioration progressive uniquement). Fallback garanti :
+          Palatino Linotype → Georgia → serif si la police externe échoue.
        2. initApp() appelé DIRECTEMENT à la fin du script
           → JAMAIS via DOMContentLoaded ou window.onload
        3. Toutes les fonctions appelées via onclick="..." DOIVENT être
@@ -1006,33 +1002,14 @@ CHANGELOG entry format:
      Toutes exposées sur window.*
 -->
 
-<!-- [EX-G-F47] RPG AWESOME ICONS (v11.8)
-     15 emojis remplacés par icônes RPG Awesome 0.3.4 via <i class="ra ra-X rpa-icon">.
-     Chargement : @import CDN jsDelivr dans <style> — fonctionne depuis GitHub Pages
-     (origine HTTP réelle). Ne fonctionne pas en file:// local (chemins relatifs du CDN).
-     Marqueur Scriptable : /* SCRIPTABLE_RPA_INJECT */ (commentaire CSS précédant le @import).
-     Classe helper CSS .rpa-icon : font-style:normal; line-height:1; vertical-align:middle;
-       margin-right:0.28em; font-size:1em; color:inherit.
-     Mapping emoji → ra-class :
-       ⚙  → ra-cog              ✨ → ra-burning-embers
-       📖 → ra-book              ⚔ → ra-crossed-swords
-       🎲 → ra-perspective-dice-random   🤲 → ra-hand
-       🛡 → ra-shield            ⚅ → ra-perspective-dice-six
-       ⚗ → ra-fizzing-flask     🗡 → ra-plain-dagger
-       ❤ → ra-health            ☽ → ra-moon-sun
-       ⏱ → ra-stopwatch         ✏ → ra-quill-ink
-       🗑 → ra-x-mark
-     Emojis conservés (KEEP) : ✦ ✧ ❖ ▶ ▼ ♥ ✗ ⬡ 🐎 🐴 📦 🎒 ⚠️
--->
-
 <!-- [EX-G-F46] PANNEAU MAGIE PARENT (v9.6)
      Panneau parent collapsible regroupant trois sous-sections :
        1. ✧ Emplacements & Conduit Divin
-       2. ra-hand Imposition des mains  (icône RPG Awesome ra-hand, emoji 🤲 remplacé)
-       3. 🐎 Monture d'outremonde       (emoji conservé — aucune icône RPG Awesome disponible)
+       2. 🤲 Imposition des mains
+       3. 🐎 Monture d'outremonde
      Colonne droite, en tête avant Inventaire.
      Structure : <div class="panel" id="panel-magie">
-                   <div class="section-title collapsible">ra-burning-embers Magie</div>
+                   <div class="section-title collapsible">✨ Magie</div>
                    <div class="panel-body panel-magie-body">
                      <div class="section-title collapsible" style="margin-top:6px;">... sous-titre A</div>
                      <div class="panel-body">... contenu A</div>
@@ -1077,10 +1054,6 @@ CHANGELOG entry format:
 /* Scriptable runtime font injection point — do not remove */
 /* SCRIPTABLE_FONT_INJECT */
 @import url('https://fonts.googleapis.com/css2?family=Metamorphous&display=swap');
-/* Scriptable runtime RPG Awesome injection point — do not remove */
-/* SCRIPTABLE_RPA_INJECT */
-@import url('https://cdn.jsdelivr.net/npm/rpg-awesome@0.3.4/css/rpg-awesome.min.css');
-
 /* ============================================================
    VARIABLES & RESET — Polices système, zéro dépendance externe
 v9.12 — 2026-03-07 : T1 type-switch en modification Traits/Dons/Aptitudes ; T2 Classe readonly Paladin + layout compact.
@@ -1103,8 +1076,6 @@ v9.12 — 2026-03-07 : T1 type-switch en modification Traits/Dons/Aptitudes ; T
   --font-corps: var(--font-metamorphous);
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-/* RPG Awesome icon helper — see [EX-G-F47] */
-.rpa-icon { font-style:normal; line-height:1; vertical-align:middle; margin-right:0.28em; font-size:1em; color:inherit; }
 
 body {
   background-color: var(--noir);
@@ -3015,7 +2986,7 @@ select.field-input optgroup {
   <div class="header">
     <!-- C6a — Menu ⚙ à gauche du titre -->
     <div class="menu-wrapper">
-      <button class="menu-btn" id="menu-btn" onclick="toggleMenu(this)" title="Menu"><i class="ra ra-cog rpa-icon" aria-hidden="true"></i></button>
+      <button class="menu-btn" id="menu-btn" onclick="toggleMenu(this)" title="Menu">⚙</button>
       <div class="dropdown" id="dropdown">
         <!-- C6b — 5 options -->
         <button class="dropdown-item" onclick="menuReinitialiser()">
@@ -3038,7 +3009,7 @@ select.field-input optgroup {
         <div class="dropdown-sep"></div>
         <!-- Sous-menu Effets visuels — voir [EX-G-F45] -->
         <button class="dropdown-submenu-header" id="vfx-submenu-btn" onclick="toggleVfxSubmenu()">
-          <span class="di-icon"><i class="ra ra-burning-embers rpa-icon" aria-hidden="true"></i></span> Effets visuels
+          <span class="di-icon">✨</span> Effets visuels
           <span class="di-arrow">▶</span>
         </button>
         <div class="dropdown-submenu" id="vfx-submenu">
@@ -3121,7 +3092,7 @@ select.field-input optgroup {
 
           <!-- ─ Aptitudes, Traits et Dons ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:4px;">
-            <span style="flex:1;min-width:0;"><i class="ra ra-book rpa-icon" aria-hidden="true"></i>Aptitudes, Traits et Dons</span>
+            <span style="flex:1;min-width:0;">📖 Aptitudes, Traits et Dons</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormTyped()" title="Ajouter">+</button>
           </div>
           <div class="panel-body">
@@ -3214,7 +3185,7 @@ select.field-input optgroup {
       <!-- Combat -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>Combat</span>
+          <span style="flex:1;min-width:0;">⚔ Combat</span>
         </div>
         <div class="panel-body">
         <div class="field-row">
@@ -3256,7 +3227,7 @@ select.field-input optgroup {
       <!-- Bloc Aide aux Tests — voir [EX-M-F43] -->
       <div class="panel" id="panel-aide-tests">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;"><i class="ra ra-perspective-dice-random rpa-icon" aria-hidden="true"></i>Aide aux Tests</span>
+          <span style="flex:1;min-width:0;">🎲 Aide aux Tests</span>
         </div>
         <div class="panel-body">
 
@@ -3322,7 +3293,7 @@ select.field-input optgroup {
       <!-- Magie -->
       <div class="panel" id="panel-magie">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;"><i class="ra ra-burning-embers rpa-icon" aria-hidden="true"></i>Magie</span>
+          <span style="flex:1;min-width:0;">✨ Magie</span>
         </div>
         <div class="panel-body panel-magie-body">
         <!-- Emplacements &amp; Conduit Divin -->
@@ -3358,7 +3329,7 @@ select.field-input optgroup {
         <div class="sep"></div>
 
         <!-- Imposition des mains -->
-        <div class="section-title collapsible"><i class="ra ra-hand rpa-icon" aria-hidden="true"></i>Imposition des mains</div>
+        <div class="section-title collapsible">🤲 Imposition des mains</div>
         <div class="panel-body">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:0.7rem;color:var(--parchemin-s);">
             <span>PV Max (5 × niveau) :</span>
@@ -3532,7 +3503,7 @@ select.field-input optgroup {
 
           <!-- ─ Armes ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:4px;">
-            <span style="flex:1;min-width:0;"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>Armes</span>
+            <span style="flex:1;min-width:0;">⚔️ Armes</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormArme()" title="Ajouter une arme">+</button>
           </div>
           <div class="panel-body">
@@ -3543,7 +3514,7 @@ select.field-input optgroup {
 
           <!-- ─ Armures ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:4px;">
-            <span style="flex:1;min-width:0;"><i class="ra ra-shield rpa-icon" aria-hidden="true"></i>Armures</span>
+            <span style="flex:1;min-width:0;">🛡️ Armures</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormArmure()" title="Ajouter une armure">+</button>
           </div>
           <div class="panel-body">
@@ -3565,7 +3536,7 @@ select.field-input optgroup {
       <!-- ══ ATTAQUE RAPIDE ══ -->
       <div class="panel">
         <!-- Titre principal ATTAQUE RAPIDE — collapsible [EX-G-F44] -->
-        <div class="section-title collapsible section-title-rapide"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>Attaque Rapide</div>
+        <div class="section-title collapsible section-title-rapide">⚔ Attaque Rapide</div>
         <div class="panel-body" id="panel-body-attaque-rapide">
 
         <!-- Sous-titre 1 : Sorts Actifs -->
@@ -3582,7 +3553,7 @@ select.field-input optgroup {
         <div class="section-title collapsible" style="margin-top:6px;">✦ Initiative</div>
         <div class="panel-body">
         <div class="combat-block">
-          <div class="combat-title"><i class="ra ra-perspective-dice-six rpa-icon" aria-hidden="true"></i>Initiative</div>
+          <div class="combat-title">⚅ Initiative</div>
           <div class="combat-row"><span class="lbl">Jet D20</span><input class="combat-input" type="number" id="init-d20" min="1" max="20"></div>
           <div class="combat-row"><span class="lbl">Mod. DEX</span><span class="val" id="init-mod-dex">+0</span></div>
           <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="init-total">—</span></div>
@@ -3603,14 +3574,14 @@ select.field-input optgroup {
               <div class="atk-half">
                 <div class="half-title">Toucher</div>
                 <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="mnt-atk-d20" min="1" max="20" oninput="checkCritique('mnt-atk-d20','mnt-dmg')"></div>
-                <div class="crit-badge" id="mnt-atk-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>
+                <div class="crit-badge" id="mnt-atk-crit-badge">⚔ CRITIQUE !</div>
                 <div class="combat-row"><span class="lbl">Mod</span><span class="val" id="mnt-atk-mod">+7</span></div>
                 <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="mnt-atk-total">—</span></div>
               </div>
               <div class="dmg-half">
                 <div class="half-title">Dégâts</div>
                 <div class="combat-row"><span class="lbl">D8</span><input class="combat-input" type="number" id="mnt-dmg-d8" min="1" max="8"></div>
-                <div class="crit-label" id="mnt-dmg-crit-label"><i class="ra ra-perspective-dice-random rpa-icon" aria-hidden="true"></i>Critique : saisir la somme de 2d8</div>
+                <div class="crit-label" id="mnt-dmg-crit-label">🎲 Critique : saisir la somme de 2d8</div>
                 <div class="combat-row"><span class="lbl">Mod</span><span class="val" id="mnt-dmg-mod">+2</span></div>
                 <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="mnt-dmg-total">—</span><span class="dmg-type-lbl" id="mnt-dmg-type-atk"></span></div>
               </div>
@@ -3618,7 +3589,7 @@ select.field-input optgroup {
           </div>
 
           <!-- Bouton Fin du Round — à l'intérieur de la zone Round -->
-          <button class="btn-fin-round" onclick="finDuRound()"><i class="ra ra-stopwatch rpa-icon" aria-hidden="true"></i>Fin du Round</button>
+          <button class="btn-fin-round" onclick="finDuRound()">⏱ Fin du Round</button>
 
         </div><!-- fin .round-zone -->
         </div><!-- fin panel-body round -->
@@ -3629,7 +3600,7 @@ select.field-input optgroup {
       <!-- ═══ GRIMOIRE ═══ — voir [EX-M-F50] -->
       <div class="panel">
         <div class="section-title collapsible grimoire-title">
-          <span style="flex:1;min-width:0;"><i class="ra ra-book rpa-icon" aria-hidden="true"></i>Grimoire</span>
+          <span style="flex:1;min-width:0;">📖 Grimoire</span>
         </div>
         <div class="panel-body">
           <div id="grimoire-filter-bar" class="grimoire-filter-bar">
@@ -3659,7 +3630,7 @@ select.field-input optgroup {
 
       <!-- ══ RELIQUAIRE ══ -->
       <div class="panel" id="panel-reliquaire">
-        <div class="section-title"><i class="ra ra-fizzing-flask rpa-icon" aria-hidden="true"></i>Reliquaire</div>
+        <div class="section-title">⚗ Reliquaire</div>
         <div class="panel-body">
 
       <!-- Sphère Gauche — PV -->
@@ -3668,12 +3639,12 @@ select.field-input optgroup {
           <!-- Colonne gauche : saisie blessure + soin -->
           <div class="sphere-controls">
             <div class="sphere-ctrl-row">
-              <span style="font-size:1.1rem;"><i class="ra ra-plain-dagger rpa-icon" aria-hidden="true"></i></span>
+              <span style="font-size:1.1rem;">🗡️</span>
               <input class="sphere-ctrl-input sphere-ctrl-input-narrow" type="number" id="blessure-input" min="0" placeholder="Dégâts">
               <button class="btn" onclick="appliquerBlessure()">✓</button>
             </div>
             <div class="sphere-ctrl-row">
-              <span style="font-size:1.1rem;"><i class="ra ra-health rpa-icon" aria-hidden="true"></i></span>
+              <span style="font-size:1.1rem;">❤️</span>
               <input class="sphere-ctrl-input sphere-ctrl-input-narrow" type="number" id="soin-input" min="0" placeholder="Soins">
               <button class="btn btn-or" onclick="appliquerSoin()">✓</button>
             </div>
@@ -4078,7 +4049,7 @@ select.field-input optgroup {
         </div>
         <!-- Fiole Dés de Vie — voir [EX-M-F39] -->
         <div class="hd-vial-zone">
-          <div class="hd-vial-label"><i class="ra ra-perspective-dice-six rpa-icon" aria-hidden="true"></i>Dés de Vie (D10)</div>
+          <div class="hd-vial-label">⚅ Dés de Vie (D10)</div>
           <div class="potion-row" style="justify-content:center;gap:6px;">
             <button class="potion-btn" onclick="modifierHD(-1)">−</button>
             <div class="potion-flask" style="width:120px;">
@@ -4121,14 +4092,14 @@ select.field-input optgroup {
           <div class="potion-flask"><div class="flask-bg flask-bg-v3"><div class="flask-fill flask-v3" id="flask3-fill" style="width:0%"><span class="bubbles"></span></div><div class="flask-text" id="flask3-text">0/0</div></div></div>
           <button class="potion-btn" onclick="modifierSlot(3,1)">+</button>
         </div>
-        <button class="btn btn-or" style="width:100%;margin-top:4px;" onclick="confirmerReposLong()"><i class="ra ra-moon-sun rpa-icon" aria-hidden="true"></i>Repos Long</button>
+        <button class="btn btn-or" style="width:100%;margin-top:4px;" onclick="confirmerReposLong()">☽ Repos Long</button>
       </div>
 
       <!-- Sphère Droite — Imposition des mains -->
       <div class="sphere-zone">
         <div class="sphere-controls">
           <div class="sphere-ctrl-row">
-            <span style="font-size:1.1rem;"><i class="ra ra-hand rpa-icon" aria-hidden="true"></i></span>
+            <span style="font-size:1.1rem;">🤲</span>
             <input class="sphere-ctrl-input" type="number" id="soin-mains-input" min="0" placeholder="Soin">
             <button class="btn btn-bleu" onclick="appliquerSoinMains()">✓</button>
           </div>
@@ -4321,7 +4292,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.8';
+var FILE_VERSION = '11.2';
 
 'use strict';
 
@@ -4997,7 +4968,7 @@ function updateCombat() {
     if (critLbl) {
       var critDiceCount = weapon ? (weapon.diceCount * 2) : 2;
       var critDiceType  = weapon ? weapon.diceType : 'd8';
-      critLbl.innerHTML = '<i class="ra ra-perspective-dice-random rpa-icon" aria-hidden="true"></i>Critique : saisir la somme de ' + critDiceCount + critDiceType;
+      critLbl.textContent = '🎲+🎲 Critique : saisir la somme de ' + critDiceCount + critDiceType;
     }
   });
 
@@ -5327,9 +5298,9 @@ function updateGrimoire() {
           '</div>' +
           '<div class="spell-actions">' +
             '<button class="spell-action-btn spell-edit-btn" ' +
-              'onclick="editSort(\'' + safeId + '\')" title="Modifier (bient\u00f4t disponible)"><i class="ra ra-quill-ink rpa-icon" aria-hidden="true"></i></button>' +
+              'onclick="editSort(\'' + safeId + '\')" title="Modifier (bient\u00f4t disponible)">\u270f\ufe0f</button>' +
             '<button class="spell-action-btn spell-del-btn" id="spell-del-' + sp.id + '" ' +
-              'onclick="supprimerSort(\'' + safeId + '\')" title="Supprimer"><i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i></button>' +
+              'onclick="supprimerSort(\'' + safeId + '\')" title="Supprimer">\ud83d\uddd1\ufe0f</button>' +
           '</div>' +
         '</div>' +
         '<div class="spell-desc-row hidden" id="spell-desc-' + sp.id + '">' +
@@ -7292,8 +7263,8 @@ window.buildAideTestsOptions = buildAideTestsOptions;
    mkDetailSpan(cls,label,val)   : labelled detail <span> for inv grids.
    ────────────────────────────────────────────────────────────────────────── */
 function mkActionBtns(editFn,delFn,id){
-  return '<button class="inv-item-action-btn" onclick="'+editFn+'(\''+id+'\')" title="Modifier"><i class="ra ra-quill-ink rpa-icon" aria-hidden="true"></i></button>'+
-         '<button class="inv-item-action-btn" onclick="'+delFn +'(\''+id+'\')" title="Supprimer"><i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i></button>';
+  return '<button class="inv-item-action-btn" onclick="'+editFn+'(\''+id+'\')" title="Modifier">\u270f\ufe0f</button>'+
+         '<button class="inv-item-action-btn" onclick="'+delFn +'(\''+id+'\')" title="Supprimer">\ud83d\uddd1\ufe0f</button>';
 }
 function mkDetailSpan(cls,label,val){
   return '<span><span class="'+cls+'">'+label+' :</span>'+val+'</span>';
@@ -8384,7 +8355,7 @@ function injectDefaults() {
 }
 
 function makeCombatBlock(n){
-  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <div class="combat-title"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>Attaque '+n+'</div>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label"><i class="ra ra-perspective-dice-random rpa-icon" aria-hidden="true"></i>Critique : saisir la somme de 2d8</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
+  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <div class="combat-title">⚔ Attaque '+n+'</div>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge">⚔ CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">🎲 Critique : saisir la somme de 2d8</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
 }
 var HM_STARS=[
   [[98.3,55.3,1.21,320,0.52],[49.4,54.3,1,209,0.9],[94.4,133,1.05,60,0.38],[93.2,49.4,0.89,230,0.7],[97.3,42.5,1.49,260,0.54],[113,99.5,1.07,286,0.29],[105.2,63.9,0.79,123,0.68],[49.5,79.9,1.27,242,0.6],[110.9,87,1.49,163,0.59],[126.3,103.6,1.06,312,0.63],[70,58.2,1.54,286,0.54],[113.7,84,0.77,83,0.67],[125.3,55.6,1.15,121,0.75],[37.2,115.1,1.49,93,0.87],[84.3,97.5,1.15,228,0.57],[76.6,51.4,1.28,158,0.52],[59,105,1.48,340,0.86],[56.5,66.7,0.84,62,0.46],[88.2,114.5,1.18,51,0.54],[120.9,113.4,1.52,347,0.87],[94.6,29.5,1,2,0.49],[118.6,54.7,0.81,86,0.57],[82.7,29.1,1.13,295,0.33],[82.9,79.5,0.79,105,0.45],[59.9,32.2,1.12,324,0.67],[124.5,49.9,0.88,283,0.56],[31.5,58.1,1.34,168,0.62],[47.3,31.4,0.97,3,0.41]],
@@ -8457,13 +8428,16 @@ v9.13 — 2026-03-07 : Bugfix ouvrirFormTyped (2 lignes orphelines) ; factory cr
 v9.14 — 2026-03-07 : Défauts Paladin/Aasimar/Fermier pour classe, espèce, historique.
 v9.15 — 2026-03-07 : Helpers mkActionBtns+mkDetailSpan ; refactoring updateItems/updateWeapons/updateArmors.
 v10.0 — 2026-03-07 : Version majeure — passage v9.15 → v10.0 (user request).
+v11.2 — 2026-03-09 : Typographie — suppression sélecteur de polices et Eagle Lake ; Metamorphous (Google Fonts) appliquée à tout le texte, fallback système garanti.
+v11.1 — 2026-03-09 : Typographie globale — --font-sub et --font-corps pointent vers --font-titre-active ; le sélecteur de police s'applique à tout le texte.
+v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user request). Ajout système de polices double (Metamorphous / Eagle Lake) avec sélecteur dans le menu et persistance localStorage. Amendement [EX-T-F37] / [EX-G-F02] pour autoriser les polices Google Fonts avec fallback système garanti.
 v10.14 — 2026-03-09 : Revert checkboxes Grimoire/Armures — retour accent-color:var(--or) natif (fond blanc non coché, or coché).
-v10.13 — 2026-03-09 : Checkboxes — coche blanche (\u2714) via span.cb-tick frère (input replaced element incompatible avec ::after).
-v10.12 — 2026-03-09 : Checkboxes Grimoire/Armures — état coché restauré en fond or + coche blanche (identique accent-color natif).
-v10.11 — 2026-03-09 : Checkboxes Grimoire (Préparé/T. prêt) et Armures (Équiper) — fond violet gothique sombre (#1a0b2e) non coché, or+lueur au coché (appearance:none).
-v10.10 — 2026-03-09 : Grimoire — cases Préparé / T. prêt converties en native checkbox (accent-color gold, style identique à Inventaire Équiper armure).
-v10.9 — 2026-03-09 : Bugfix portrait mobile — bouton + Grimoire toujours visible (barre filter réorganisée en 2 rangées via flex-wrap + .gfb-top-row/.gfb-filter-row).
-v10.8 — 2026-03-08 : Scénario B token-reduction — ouvrirFormObjet remplacé par shim vers driver générique ouvrirFormSimple(cfg) [EX-M-F55/F56]. ouvrirFormSort restauré en createElement (WKWebView-safe — innerHTML driver incompatible). Saving net : ~350 chars.
+  v10.13 — 2026-03-09 : Checkboxes — coche blanche (\u2714) via span.cb-tick frère (input replaced element incompatible avec ::after).
+  v10.12 — 2026-03-09 : Checkboxes Grimoire/Armures — état coché restauré en fond or + coche blanche (identique accent-color natif).
+  v10.11 — 2026-03-09 : Checkboxes Grimoire (Préparé/T. prêt) et Armures (Équiper) — fond violet gothique sombre (#1a0b2e) non coché, or+lueur au coché (appearance:none).
+  v10.10 — 2026-03-09 : Grimoire — cases Préparé / T. prêt converties en native checkbox (accent-color gold, style identique à Inventaire Équiper armure).
+  v10.9 — 2026-03-09 : Bugfix portrait mobile — bouton + Grimoire toujours visible (barre filter réorganisée en 2 rangées via flex-wrap + .gfb-top-row/.gfb-filter-row).
+  v10.8 — 2026-03-08 : Scénario B token-reduction — ouvrirFormObjet remplacé par shim vers driver générique ouvrirFormSimple(cfg) [EX-M-F55/F56]. ouvrirFormSort restauré en createElement (WKWebView-safe — innerHTML driver incompatible). Saving net : ~350 chars.
 v10.7 — 2026-03-08 : UX — smite-block déplacé à l'intérieur de .dmg-half (après dmg-mastery-note) pour les 2 attaques via makeCombatBlock. [EX-M-F31] mis à jour.
 v10.6 — 2026-03-08 : Sprint token-reduction — combat-block-1/2 remplacés par makeCombatBlock(n) template + combat-blocks-container. Saving : ~4 483 chars.
 v10.5 — 2026-03-08 : Sprint token-reduction F5 — 112 SVG <use href="#sp"> étoiles remplacées par HM_STARS data array + générateur JS. Saving : ~11 121 chars.
@@ -8471,15 +8445,6 @@ v10.4 — 2026-03-08 : Mise à jour du processus IA obligatoire de 6 à 7 étape
 v10.3 — 2026-03-08 : Sprint token-reduction F6/F7/F8 — lireStr/lireChk helpers (19 double-lookups), mkFormFooter helper (3 footer blocks), formSub helper (4 subtitle ternaries). Saving : ~873 chars.
 v10.2 — 2026-03-08 : Sprint token-reduction F2/F3/F4 — inline styles → CSS class (×8), bubble groups → JS expansion (×5), sanList helper + CATS→DON_CATEGORIES dans sanitiserDonnees. Saving : ~2 015 chars.
 v10.1 — 2026-03-07 : SVG déduplication géométrie bouclier (ca-shield-outer + ca-shield-inner) ; 11 <path> remplacés par <use href>.
-v11.8 — 2026-03-09 : Retour icônes RPG Awesome ra-* via @import CDN — déployement GitHub Pages.
-v11.7 — 2026-03-09 : Remplacement RPG Awesome (CDN) par SVG inline — zéro dépendance, fonctionne offline et dans Scriptable.
-v11.6 — 2026-03-09 : Fix RPG Awesome — <link> remplacé par @import dans <style> (même pattern Google Fonts) ; [EX-T-F37] et [EX-G-F47] mis à jour.
-v11.5 — 2026-03-09 : Fix commentaire HTML cassé dans [EX-G-F47] ; contrainte WKWebView loadHTML documentée — icônes Scriptable requièrent modification launcher (sprint suivant).
-v11.4 — 2026-03-09 : Fix icônes RPG Awesome Scriptable — @import CSS remplacé par <link rel="stylesheet"> dans <head> (WKWebView loadHTML null-origin policy) ; filename corrigé (major uniquement).
-v11.3 — 2026-03-09 : Icônes RPG Awesome (CDN, amélioration progressive) — 15 emojis remplacés par ra-* ; marqueur SCRIPTABLE_RPA_INJECT ajouté ; [EX-G-F47] créé.
-v11.2 — 2026-03-09 : Typographie — suppression sélecteur de polices et Eagle Lake ; Metamorphous (Google Fonts) appliquée à tout le texte, fallback système garanti.
-v11.1 — 2026-03-09 : Typographie globale — --font-sub et --font-corps pointent vers --font-titre-active ; le sélecteur de police s'applique à tout le texte.
-v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user request). Ajout système de polices double (Metamorphous / Eagle Lake) avec sélecteur dans le menu et persistance localStorage. Amendement [EX-T-F37] / [EX-G-F02] pour autoriser les polices Google Fonts avec fallback système garanti.
 ====================================================== */
 </script>
 </body>
