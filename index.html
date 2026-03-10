@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.22 — 2026-03-10 -->
+<!-- dnd-sheet-v11 | version complète : 11.24 — 2026-03-10 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -792,7 +792,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '11.22'
+       · Valeur courante : '11.24'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -1010,28 +1010,32 @@ CHANGELOG entry format:
      Toutes exposées sur window.*
 -->
 
-<!-- [EX-G-F47] RPG AWESOME ICONS (v11.16)
+<!-- [EX-G-F47] RPG AWESOME ICONS (v11.23)
      Emojis remplacés par icônes RPG Awesome 0.3.4 via <i class="ra ra-X rpa-icon">.
-     Chargement : <link rel="stylesheet"> dans <head> — GitHub Pages CSP bloque @import
-     depuis un <style> inline ; <link> en <head> est autorisé.
+     Chargement : <link rel="stylesheet"> dans <head>.
      Marqueur Scriptable : commentaire HTML SCRIPTABLE_RPA_INJECT précédant le &lt;link&gt;.
      Classe helper CSS .rpa-icon : font-style:normal; line-height:1; vertical-align:middle;
        margin-right:0.28em; font-size:1em; color:inherit.
-     Mapping emoji → ra-class (font icon) :
+     Mapping emoji → ra-class (actifs) :
        ⚙  → ra-cog              ✨ → ra-burning-embers
-       📖 → ra-book              ⚔ → ra-crossed-swords
-       🤲 → ra-hand              🛡 → ra-shield
-       ⚅ → ra-perspective-dice-six   ⚗ → ra-fizzing-flask
-       🗡 → ra-plain-dagger      ❤ → ra-health
-       ☽ → ra-moon-sun           ⏱ → ra-stopwatch
-       ✏ → ra-quill-ink          🗑 → ra-x-mark
-       📦 → ra-hourglass
-     Emojis remplacés par SVG game-icons.net via <img class="gi-icon"> (voir [EX-G-F48]) :
+       🤲 → ra-hand              ⚅ → ra-perspective-dice-six
+       ⚗ → ra-fizzing-flask     🗡 → ra-plain-dagger
+       ❤ → ra-health             ☽ → ra-moon-sun
+       ⏱ → ra-stopwatch         ✏ → ra-quill-ink
+       🗑 → ra-x-mark            📦 → ra-hourglass
+     Remplacés par gi-icon game-icons.net (v11.23) :
+       ⚔ ra-crossed-swords → spinning-sword (delapouite)  — Attaque Rapide
+       ⚔ ra-crossed-swords → diamond-hilt (lorc)          — Armes (Inventaire)
+       🛡 ra-shield         → breastplate (delapouite)     — Armures (Inventaire)
+       📖 ra-book           → scroll-quill (lorc)          — Grimoire
+     Remplacés par gi-icon game-icons.net (v11.16) :
        🐎 🐴 → stag-head (lorc)    ❤/&#x2665; → heart-organ (lorc)
        🎒  → knapsack (lorc)       🎲 → dice-twenty-faces-twenty (delapouite)
+     Nouveaux gi-icon sans équivalent ra (v11.23) :
+       ⬡  → icicles-aura (lorc)        — Caractéristiques (icône ajoutée, ⬡ conservé)
+       ✧  → unfurling-scroll (delapouite) — Emplacements & Conduit (icône ajoutée, ✧ conservé)
      Emojis conservés (KEEP) : ✦ ✧ ❖ ▼ ♥ ✗ ⬡ ⚠️
-     Note : ▶ retiré du menu (remplacé par ra-angle-right dans di-icon et di-arrow)
-             ▶ ▼ encore utilisés par JS chevron collapsible (textContent — non remplacé)
+     Note : ▶ ▼ encore utilisés par JS chevron collapsible (textContent — non remplacé)
              ⛔ ✘ conservés dans le panneau diagnostic (usage interne, non visible en jeu)
 -->
 
@@ -3314,7 +3318,7 @@ select.field-input optgroup {
     <div>
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">⬡ Caractéristiques &amp; Compétences</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/icicles-aura.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Caractéristiques &amp; Compétences</span>
         </div>
         <div class="panel-body">
         <div id="stats-container"></div>
@@ -3394,7 +3398,7 @@ select.field-input optgroup {
         </div>
         <div class="panel-body panel-magie-body">
         <!-- Emplacements &amp; Conduit Divin -->
-        <div class="section-title collapsible" style="margin-top:6px;">✧ Emplacements &amp; Conduit Divin</div>
+        <div class="section-title collapsible" style="margin-top:6px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/unfurling-scroll.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Emplacements &amp; Conduit Divin</div>
         <div class="panel-body">
           <div id="conduit-cur-row" style="display:flex;align-items:center;gap:6px;margin-bottom:3px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.18);border-radius:3px;padding:4px 7px;">
             <span style="font-family:var(--font-sub);font-size:0.6rem;color:var(--or);letter-spacing:1px;text-transform:uppercase;flex:1;">Conduit Divin</span>
@@ -3603,7 +3607,7 @@ select.field-input optgroup {
 
           <!-- ─ Armes ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:4px;">
-            <span style="flex:1;min-width:0;"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>Armes</span>
+            <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/diamond-hilt.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Armes</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormArme()" title="Ajouter une arme">+</button>
           </div>
           <div class="panel-body">
@@ -3614,7 +3618,7 @@ select.field-input optgroup {
 
           <!-- ─ Armures ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:4px;">
-            <span style="flex:1;min-width:0;"><i class="ra ra-shield rpa-icon" aria-hidden="true"></i>Armures</span>
+            <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/breastplate.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Armures</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormArmure()" title="Ajouter une armure">+</button>
           </div>
           <div class="panel-body">
@@ -3636,7 +3640,7 @@ select.field-input optgroup {
       <!-- ══ ATTAQUE RAPIDE ══ -->
       <div class="panel">
         <!-- Titre principal ATTAQUE RAPIDE — collapsible [EX-G-F44] -->
-        <div class="section-title collapsible section-title-rapide"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>Attaque Rapide</div>
+        <div class="section-title collapsible section-title-rapide"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/spinning-sword.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Attaque Rapide</div>
         <div class="panel-body" id="panel-body-attaque-rapide">
 
         <!-- Sous-titre 1 : Sorts Actifs -->
@@ -3700,7 +3704,7 @@ select.field-input optgroup {
       <!-- ═══ GRIMOIRE ═══ — voir [EX-M-F50] -->
       <div class="panel">
         <div class="section-title collapsible grimoire-title">
-          <span style="flex:1;min-width:0;"><i class="ra ra-book rpa-icon" aria-hidden="true"></i>Grimoire</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/scroll-quill.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Grimoire</span>
         </div>
         <div class="panel-body">
           <div id="grimoire-filter-bar" class="grimoire-filter-bar">
@@ -4392,7 +4396,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.22';
+var FILE_VERSION = '11.24';
 
 'use strict';
 
@@ -8570,6 +8574,8 @@ v11.19 — 2026-03-10 : Fix icônes gi-icon disparues — URL couleur game-icons
 v11.20 — 2026-03-10 : Restauration icônes gi-icon — retour <img> + filter CSS (mask-image non fonctionnel) ; filter or ajusté : sepia(1) saturate(2.2) hue-rotate(6deg) brightness(0.92) ; filter rouge : sepia(1) saturate(8) hue-rotate(315deg) brightness(0.75) ; critDiceIcons() produit <img> identique au d20 Aide aux Tests.
 v11.21 — 2026-03-10 : Fix dés critique invisibles — <img> dans .crit-label (display:none) non chargées par WebKit ; src CDN remplacé par data URI SVG inline pour d4/d6/d8/d10 dans CRIT_DICE_ICON_MAP et img statiques ; chargement garanti avant affichage.
 v11.22 — 2026-03-10 : A) Dés critique 3D — d4 et d10 passent au style Delapouite (dice-four-faces-four / dice-ten-faces-ten) pour cohérence visuelle avec le d20 ; B) Icône d20 ajoutée à droite de chaque champ D20 dans Attaque Rapide (mnt-atk-d20 statique + atk+n-d20 template).
+v11.23 — 2026-03-10 : 6 nouvelles icônes game-icons.net (gi-icon-gold) : spinning-sword→Attaque Rapide, icicles-aura→Caractéristiques, breastplate→Armures, diamond-hilt→Armes, scroll-quill→Grimoire, unfurling-scroll→Emplacements & Conduit ; remplacement ra-crossed-swords / ra-shield / ra-book correspondants.
+v11.24 — 2026-03-10 : Suppression ⬡ et ✧ devant Caractéristiques et Emplacements — icône gi-icon suffit.
 v11.22 — 2026-03-10 : A) Dés critique 3D — remplacement SVGs 2D plats par SVGs isométriques (tétraèdre/cube/octaèdre/trapézoèdre) dans CRIT_DICE_ICON_MAP ; B) Icône d20 ajoutée à droite de chaque champ d20 du panneau Attaque Rapide : init-d20, mnt-atk-d20, atk1/2-d20 (template).
 v11.14 — 2026-03-09 : 5 corrections UI : diag plus auto-ouvert, ordre boutons aptitudes (édition avant suppression), icônes ra dans popups confirmation/édition, flèche ra-angle-right menu, label Max emplacements sorts.
 v11.13 — 2026-03-09 : 6 améliorations UI : diag accessible depuis menu+erreurs globales, icônes ra aptitudes, couleurs or/rouge boutons, icônes reliquaire or, lune popup repos long, Metamorphous sur texte sphères.
