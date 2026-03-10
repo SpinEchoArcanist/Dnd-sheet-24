@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.17 — 2026-03-10 -->
+<!-- dnd-sheet-v11 | version complète : 11.18 — 2026-03-10 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -792,7 +792,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '11.17'
+       · Valeur courante : '11.18'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -1035,32 +1035,38 @@ CHANGELOG entry format:
              ⛔ ✘ conservés dans le panneau diagnostic (usage interne, non visible en jeu)
 -->
 
-<!-- [EX-G-F48] GAME-ICONS.NET SVG ICONS (v11.17)
+<!-- [EX-G-F48] GAME-ICONS.NET SVG ICONS (v11.18)
      Icônes SVG externes via <img src="https://game-icons.net/icons/..."> pour les émojis
      sans équivalent dans RPG Awesome.
      Classe helper CSS .gi-icon : display:inline-block; vertical-align:middle;
        width:1em; height:1em; margin-right:0.3em.
-     Classes modificatrices (couleur + taille) :
-       .gi-icon-gold : filter sepia+saturate+hue → or (#c9a84c), width/height:1.3em
-       .gi-icon-red  : filter sepia+saturate+hue → bordeaux-clair, width/height:1.2em
+     Classes modificatrices (taille uniquement — couleur encodée dans l'URL) :
+       .gi-icon-lg : width/height:1.3em  (titres de section)
+       .gi-icon-md : width/height:1.2em  (combat-title, dés critique)
      URL pattern : https://game-icons.net/icons/{fg}/{bg}/1x1/{auteur}/{nom}.svg
-       fg=ffffff (blanc), bg=transparent → icône blanche filtrée via CSS.
-     Licence : CC BY 3.0 (game-icons.net). Auteur principal : Lorc / Delapouite.
+       fg = couleur hex sans # encodée directement dans l'URL (ex: c9a84c, b52a2a)
+       bg = transparent
+       → Couleur pixel-parfaite, pas de filtre CSS. Utiliser hex exact du CSS var.
+         or exact   : c9a84c  (= --or : #c9a84c)
+         rouge exact : b52a2a (= --bordeaux-clair : #b52a2a)
+     Licence : CC BY 3.0 (game-icons.net). Auteurs : Lorc, Delapouite.
      Mapping emoji → SVG game-icons.net :
        🐎 🐴 → stag-head (lorc)          — section-title Monture (or) + combat-title Monture (rouge)
        ❤/&#x2665; → heart-organ (lorc)  — span Vie + section-title Points de Vie (or)
        🎒  → knapsack (lorc)             — span Inventaire (or)
        🎲  → dice-twenty-faces-twenty (delapouite) — span Aide aux Tests (or)
      Rendu HTML :
-       <img src="[URL]" class="gi-icon [gi-icon-gold|gi-icon-red]" alt="" aria-hidden="true"
+       <img src="https://game-icons.net/icons/{hex}/transparent/1x1/{auteur}/{nom}.svg"
+            class="gi-icon [gi-icon-lg|gi-icon-md]" alt="" aria-hidden="true"
             width="1em" height="1em" style="vertical-align:middle;">
      Fallback offline : img vide invisible — aucun tofu, aucun texte perdu [EX-T-F37].
+     Dés critique : voir critDiceIcons() + CRIT_DICE_ICON_MAP [EX-G-DICE].
 -->
 
 <!-- [EX-G-DICE] DICE ICON SET — CATALOGUÉ (d20 appliqué)
      Source   : game-icons.net (CC BY 3.0)
      Delivery : <img src="https://game-icons.net/icons/ffffff/transparent/1x1/{auteur}/{nom}.svg">
-                class="gi-icon gi-icon-gold" [EX-G-F48]
+                class="gi-icon gi-icon-lg" [EX-G-F48]
      Icônes :
        d4  → skoll/d4                           (outline polygonal, sans chiffre)
        d6  → delapouite/dice-six-faces-six      (face 6 affichée)
@@ -1155,8 +1161,8 @@ v9.12 — 2026-03-07 : T1 type-switch en modification Traits/Dons/Aptitudes ; T
 /* RPG Awesome icon helper — see [EX-G-F47] */
 .rpa-icon { font-style:normal; line-height:1; vertical-align:middle; margin-right:0.28em; font-size:1em; color:inherit; }
 .gi-icon        { display:inline-block; vertical-align:middle; width:1em; height:1em; margin-right:0.3em; }
-.gi-icon-gold   { filter:sepia(1) saturate(3) hue-rotate(10deg) brightness(1.1); width:1.3em; height:1.3em; }
-.gi-icon-red    { filter:sepia(1) saturate(6) hue-rotate(310deg) brightness(0.85); width:1.2em; height:1.2em; }
+.gi-icon-lg     { width:1.3em; height:1.3em; }
+.gi-icon-md     { width:1.2em; height:1.2em; }
 
 body {
   background-color: var(--noir);
@@ -3189,12 +3195,12 @@ select.field-input optgroup {
       <!-- ═══ PANNEAU VIE — Points de Vie + Des de Vie + Jets Mort ═══ -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/heart-organ.svg" class="gi-icon gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Vie</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/c9a84c/transparent/1x1/lorc/heart-organ.svg" class="gi-icon gi-icon-lg" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Vie</span>
         </div>
         <div class="panel-body" style="padding-top:4px;">
 
           <!-- Sous-section 1 : Points de Vie -->
-          <div class="section-title collapsible" style="margin-top:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/heart-organ.svg" class="gi-icon gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Points de Vie</div>
+          <div class="section-title collapsible" style="margin-top:0;"><img src="https://game-icons.net/icons/c9a84c/transparent/1x1/lorc/heart-organ.svg" class="gi-icon gi-icon-lg" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Points de Vie</div>
           <div class="panel-body">
           <label class="custom-check" style="margin-bottom:6px;">
             <input type="checkbox" id="check-robuste">
@@ -3311,7 +3317,7 @@ select.field-input optgroup {
       <!-- Bloc Aide aux Tests — voir [EX-M-F43] -->
       <div class="panel" id="panel-aide-tests">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg" class="gi-icon gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Aide aux Tests</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/c9a84c/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg" class="gi-icon gi-icon-lg" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Aide aux Tests</span>
         </div>
         <div class="panel-body">
 
@@ -3443,7 +3449,7 @@ select.field-input optgroup {
         <div class="sep"></div>
 
         <!-- Monture d'outremonde [EX-M-F52] -->
-        <div class="section-title collapsible"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/stag-head.svg" class="gi-icon gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Monture d&#39;outremonde</div>
+        <div class="section-title collapsible"><img src="https://game-icons.net/icons/c9a84c/transparent/1x1/lorc/stag-head.svg" class="gi-icon gi-icon-lg" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Monture d&#39;outremonde</div>
         <div class="panel-body">
 
             <!-- Configuration -->
@@ -3573,7 +3579,7 @@ select.field-input optgroup {
       <!-- ══ INVENTAIRE ══ -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/knapsack.svg" class="gi-icon gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Inventaire</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/c9a84c/transparent/1x1/lorc/knapsack.svg" class="gi-icon gi-icon-lg" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Inventaire</span>
         </div>
         <div class="panel-body">
 
@@ -3656,7 +3662,7 @@ select.field-input optgroup {
 
           <!-- Monture -->
           <div class="combat-block">
-            <div class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/stag-head.svg" class="gi-icon gi-icon-red" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Monture</div>
+            <div class="combat-title"><img src="https://game-icons.net/icons/b52a2a/transparent/1x1/lorc/stag-head.svg" class="gi-icon gi-icon-md" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Monture</div>
             <div class="atk-dmg-pair">
               <div class="atk-half">
                 <div class="half-title">Toucher</div>
@@ -3668,7 +3674,7 @@ select.field-input optgroup {
               <div class="dmg-half">
                 <div class="half-title">Dégâts</div>
                 <div class="combat-row"><span class="lbl">D8</span><input class="combat-input" type="number" id="mnt-dmg-d8" min="1" max="8"></div>
-                <div class="crit-label" id="mnt-dmg-crit-label"><i class="ra ra-perspective-dice-random rpa-icon" aria-hidden="true"></i>Critique : saisir la somme de 2d8</div>
+                <div class="crit-label" id="mnt-dmg-crit-label">Critique : saisir la somme de 2d8 <img src="https://game-icons.net/icons/c9a84c/transparent/1x1/delapouite/dice-eight-faces-eight.svg" class="gi-icon gi-icon-md" alt="d8" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"><img src="https://game-icons.net/icons/c9a84c/transparent/1x1/delapouite/dice-eight-faces-eight.svg" class="gi-icon gi-icon-md" alt="d8" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"></div>
                 <div class="combat-row"><span class="lbl">Mod</span><span class="val" id="mnt-dmg-mod">+2</span></div>
                 <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="mnt-dmg-total">—</span><span class="dmg-type-lbl" id="mnt-dmg-type-atk"></span></div>
               </div>
@@ -4379,7 +4385,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.17';
+var FILE_VERSION = '11.18';
 
 'use strict';
 
@@ -5055,7 +5061,7 @@ function updateCombat() {
     if (critLbl) {
       var critDiceCount = weapon ? (weapon.diceCount * 2) : 2;
       var critDiceType  = weapon ? weapon.diceType : 'd8';
-      critLbl.innerHTML = '<i class="ra ra-perspective-dice-random rpa-icon" aria-hidden="true"></i>Critique : saisir la somme de ' + critDiceCount + critDiceType;
+      critLbl.innerHTML = 'Critique : saisir la somme de ' + critDiceCount + critDiceType + ' ' + critDiceIcons(critDiceCount, critDiceType);
     }
   });
 
@@ -7243,6 +7249,26 @@ function updateSmite(n) {
   }
 }
 
+/* ============================================================
+   CRITIQUE DICE ICONS — helper [EX-G-DICE]
+   Returns HTML string of N <img> icons matching the die type.
+   diceType : 'd4' | 'd6' | 'd8' | 'd10'  (VALID_DICE)
+   Icons from game-icons.net (c9a84c / transparent), CC BY 3.0.
+   ============================================================ */
+var CRIT_DICE_ICON_MAP = {
+  'd4':  'https://game-icons.net/icons/c9a84c/transparent/1x1/skoll/d4.svg',
+  'd6':  'https://game-icons.net/icons/c9a84c/transparent/1x1/delapouite/dice-six-faces-six.svg',
+  'd8':  'https://game-icons.net/icons/c9a84c/transparent/1x1/delapouite/dice-eight-faces-eight.svg',
+  'd10': 'https://game-icons.net/icons/c9a84c/transparent/1x1/skoll/d10.svg'
+};
+function critDiceIcons(count, diceType) {
+  var url = CRIT_DICE_ICON_MAP[diceType] || CRIT_DICE_ICON_MAP['d6'];
+  var img = '<img src="' + url + '" class="gi-icon gi-icon-md" alt="' + diceType + '" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;">';
+  var out = '';
+  for (var i = 0; i < count; i++) out += img;
+  return out;
+}
+
 function checkCritique(toucherInputId, degatsGroupId) {
   var inp = document.getElementById(toucherInputId);
   if (!inp) return;
@@ -8442,7 +8468,7 @@ function injectDefaults() {
 }
 
 function makeCombatBlock(n){
-  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <div class="combat-title"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>Attaque '+n+'</div>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label"><i class="ra ra-perspective-dice-random rpa-icon" aria-hidden="true"></i>Critique : saisir la somme de 2d8</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
+  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <div class="combat-title"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>Attaque '+n+'</div>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">Critique : saisir la somme de 2d8 <img src="https://game-icons.net/icons/c9a84c/transparent/1x1/delapouite/dice-eight-faces-eight.svg" class="gi-icon gi-icon-md" alt="d8" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"><img src="https://game-icons.net/icons/c9a84c/transparent/1x1/delapouite/dice-eight-faces-eight.svg" class="gi-icon gi-icon-md" alt="d8" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"></div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
 }
 var HM_STARS=[
   [[98.3,55.3,1.21,320,0.52],[49.4,54.3,1,209,0.9],[94.4,133,1.05,60,0.38],[93.2,49.4,0.89,230,0.7],[97.3,42.5,1.49,260,0.54],[113,99.5,1.07,286,0.29],[105.2,63.9,0.79,123,0.68],[49.5,79.9,1.27,242,0.6],[110.9,87,1.49,163,0.59],[126.3,103.6,1.06,312,0.63],[70,58.2,1.54,286,0.54],[113.7,84,0.77,83,0.67],[125.3,55.6,1.15,121,0.75],[37.2,115.1,1.49,93,0.87],[84.3,97.5,1.15,228,0.57],[76.6,51.4,1.28,158,0.52],[59,105,1.48,340,0.86],[56.5,66.7,0.84,62,0.46],[88.2,114.5,1.18,51,0.54],[120.9,113.4,1.52,347,0.87],[94.6,29.5,1,2,0.49],[118.6,54.7,0.81,86,0.57],[82.7,29.1,1.13,295,0.33],[82.9,79.5,0.79,105,0.45],[59.9,32.2,1.12,324,0.67],[124.5,49.9,0.88,283,0.56],[31.5,58.1,1.34,168,0.62],[47.3,31.4,0.97,3,0.41]],
@@ -8532,6 +8558,7 @@ v10.1 — 2026-03-07 : SVG déduplication géométrie bouclier (ca-shield-outer 
 v11.15 — 2026-03-10 : Fix UAT : panneau diagnostic masqué au chargement (display:none CSS), emplacements sorts alignés à droite (margin-left:auto sur label Max).
 v11.16 — 2026-03-10 : Icônes Sprint 2 — remplacement emoji restants : 🐎🐴→stag-head (SVG game-icons.net), ❤/&#x2665;→heart-organ (SVG), 🎒→knapsack (SVG), 📦→ra-hourglass (RPG Awesome) ; ajout CSS .gi-icon ; [EX-G-F47][EX-M-F52][EX-G-F46][EX-T-F37] mis à jour ; [EX-G-F48] et [EX-G-DICE] créés.
 v11.17 — 2026-03-10 : Couleurs et tailles icônes gi-icon : stag-head section-title→or, stag-head combat-title→rouge bordeaux, heart-organ+knapsack→or ; CSS .gi-icon-gold/.gi-icon-red ajoutés ; Aide aux Tests : ra-perspective-dice-random → d20 SVG game-icons.net (or).
+v11.18 — 2026-03-10 : A) Correction couleur gi-icon : filtre CSS remplacé par encodage couleur dans URL game-icons.net (#c9a84c or exact, #b52a2a bordeaux exact) ; CSS .gi-icon-gold/.gi-icon-red → .gi-icon-lg/.gi-icon-md (taille seule). B) Critique : icône de tête supprimée, icônes dés après le texte (N×type correspondant) via critDiceIcons() + CRIT_DICE_ICON_MAP.
 v11.14 — 2026-03-09 : 5 corrections UI : diag plus auto-ouvert, ordre boutons aptitudes (édition avant suppression), icônes ra dans popups confirmation/édition, flèche ra-angle-right menu, label Max emplacements sorts.
 v11.13 — 2026-03-09 : 6 améliorations UI : diag accessible depuis menu+erreurs globales, icônes ra aptitudes, couleurs or/rouge boutons, icônes reliquaire or, lune popup repos long, Metamorphous sur texte sphères.
 v11.12 — 2026-03-09 : Fix URL CDN rpg-awesome 0.3.4→0.2.0 (seule version publiée sur npm).
