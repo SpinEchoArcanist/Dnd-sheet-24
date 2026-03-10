@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.13 — 2026-03-09 -->
+<!-- dnd-sheet-v11 | version complète : 11.15 — 2026-03-10 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1022,7 +1022,9 @@ CHANGELOG entry format:
        ❤ → ra-health            ☽ → ra-moon-sun
        ⏱ → ra-stopwatch         ✏ → ra-quill-ink
        🗑 → ra-x-mark
-     Emojis conservés (KEEP) : ✦ ✧ ❖ ▶ ▼ ♥ ✗ ⬡ 🐎 🐴 📦 🎒 ⚠️
+     Emojis conservés (KEEP) : ✦ ✧ ❖ ▼ ♥ ✗ ⬡ 🐎 🐴 📦 🎒 ⚠️
+     Note : ▶ retiré du menu (remplacé par ra-angle-right dans di-icon et di-arrow)
+             ▶ ▼ encore utilisés par JS chevron collapsible (textContent — non remplacé)
 -->
 
 <!-- [EX-G-F46] PANNEAU MAGIE PARENT (v9.6)
@@ -3030,7 +3032,7 @@ select.field-input optgroup {
         </button>
         <div class="dropdown-sep"></div>
         <button class="dropdown-item" onclick="menuToutReplier()">
-          <span class="di-icon">▶</span> Tout replier
+          <span class="di-icon"><i class="ra ra-angle-right rpa-icon" aria-hidden="true"></i></span> Tout replier
         </button>
         <button class="dropdown-item" onclick="menuToutDeployer()">
           <span class="di-icon">▼</span> Tout déplier
@@ -3043,7 +3045,7 @@ select.field-input optgroup {
         <!-- Sous-menu Effets visuels — voir [EX-G-F45] -->
         <button class="dropdown-submenu-header" id="vfx-submenu-btn" onclick="toggleVfxSubmenu()">
           <span class="di-icon"><i class="ra ra-burning-embers rpa-icon" aria-hidden="true"></i></span> Effets visuels
-          <span class="di-arrow">▶</span>
+          <span class="di-arrow"><i class="ra ra-angle-right rpa-icon" aria-hidden="true"></i></span>
         </button>
         <div class="dropdown-submenu" id="vfx-submenu">
           <div class="dropdown-toggle-row">
@@ -3339,19 +3341,22 @@ select.field-input optgroup {
           </div>
           <div id="conduit-recovery-text" style="font-family:var(--font-corps);font-size:0.64rem;color:var(--parchemin-s);font-style:italic;margin-bottom:5px;padding:1px 4px 4px;">1 charge / Repos court · Toutes les charges / Repos long</div>
           <div id="slot-row-1" style="display:flex;align-items:center;gap:6px;margin-bottom:5px;background:rgba(123,45,139,0.08);border:1px solid rgba(123,45,139,0.22);border-radius:3px;padding:4px 7px;">
-            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#9b3dcc;letter-spacing:1px;text-transform:uppercase;flex:1;">Sort Niv. 1</span>
+            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#9b3dcc;letter-spacing:1px;text-transform:uppercase;">Sort Niv. 1</span>
+            <span style="font-size:0.64rem;color:var(--parchemin-s);margin-left:auto;">Max</span>
             <input class="field-input" type="number" id="slot1-max" min="0" max="20" readonly value="4" style="width:36px;text-align:center;padding:2px;" placeholder="Max">
             <span style="color:var(--parchemin-s);font-size:0.8rem;">/</span>
             <input class="field-input" type="number" id="slot1-cur" min="0" max="20" value="4" style="width:36px;text-align:center;padding:2px;" placeholder="Act">
           </div>
           <div id="slot-row-2" style="display:flex;align-items:center;gap:6px;background:rgba(26,107,139,0.08);border:1px solid rgba(26,139,180,0.22);border-radius:3px;padding:4px 7px;">
-            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#2aaccc;letter-spacing:1px;text-transform:uppercase;flex:1;">Sort Niv. 2</span>
+            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#2aaccc;letter-spacing:1px;text-transform:uppercase;">Sort Niv. 2</span>
+            <span style="font-size:0.64rem;color:var(--parchemin-s);margin-left:auto;">Max</span>
             <input class="field-input" type="number" id="slot2-max" min="0" max="20" readonly value="2" style="width:36px;text-align:center;padding:2px;" placeholder="Max">
             <span style="color:var(--parchemin-s);font-size:0.8rem;">/</span>
             <input class="field-input" type="number" id="slot2-cur" min="0" max="20" value="2" style="width:36px;text-align:center;padding:2px;" placeholder="Act">
           </div>
           <div id="slot-row-3" style="display:flex;align-items:center;gap:6px;margin-top:5px;background:rgba(10,80,60,0.08);border:1px solid rgba(20,160,120,0.22);border-radius:3px;padding:4px 7px;">
-            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#2acc9b;letter-spacing:1px;text-transform:uppercase;flex:1;">Sort Niv. 3</span>
+            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#2acc9b;letter-spacing:1px;text-transform:uppercase;">Sort Niv. 3</span>
+            <span style="font-size:0.64rem;color:var(--parchemin-s);margin-left:auto;">Max</span>
             <input class="field-input" type="number" id="slot3-max" min="0" max="20" readonly value="0" style="width:36px;text-align:center;padding:2px;" placeholder="Max">
             <span style="color:var(--parchemin-s);font-size:0.8rem;">/</span>
             <input class="field-input" type="number" id="slot3-cur" min="0" max="20" value="0" style="width:36px;text-align:center;padding:2px;" placeholder="Act">
@@ -4325,7 +4330,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.13';
+var FILE_VERSION = '11.15';
 
 'use strict';
 
@@ -5401,8 +5406,8 @@ function buildTypedRow(item, type, badge) {
     '<div class="inv-item-row" id="frow-' + sid + '">' +
       '<button class="inv-item-name-btn" onclick="toggleFeatExpand(\'' + sid + '\')" title="' + sname + '">' + sname + '</button>' +
       badgeHtml +
-      '<button class="inv-item-action-btn" onclick="supprimerTypedItem(\'' + type + '\',\'' + sid + '\')" title="Supprimer"><i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i></button>' +
       '<button class="inv-item-action-btn" onclick="editTypedItem(\'' + type + '\',\'' + sid + '\')" title="Modifier"><i class="ra ra-quill-ink rpa-icon" aria-hidden="true"></i></button>' +
+      '<button class="inv-item-action-btn" onclick="supprimerTypedItem(\'' + type + '\',\'' + sid + '\')" title="Supprimer"><i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i></button>' +
     '</div>' +
     '<div class="inv-desc-row hidden" id="fexp-' + sid + '">' +
       '<div class="inv-desc-text">' +
@@ -5424,10 +5429,10 @@ function supprimerTypedItem(type, id) {
   for(var i=0;i<arr.length;i++){ if(arr[i].id===id){ item=arr[i]; break; } }
   var art = type==='aptitude' ? 'l\u2019aptitude' : type==='don' ? 'le don' : 'le trait';
   ouvrirConfirmation({
-    title:    '\ud83d\uddd1\ufe0f Supprimer '+art,
+    title:    '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer '+art,
     subtitle: 'Cette action est irr\u00e9versible',
     message:  'Supprimer <strong>' + escapeHtml(item?item.name:id) + '</strong>\u00a0?',
-    labelOui: '\ud83d\uddd1\ufe0f Supprimer',
+    labelOui: '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer',
     labelNon: '\u2715 Annuler',
     onOui: function() {
       if(type==='trait')    { S.traits    = (S.traits||[]).filter(function(x){return x.id!==id;}); }
@@ -5755,10 +5760,10 @@ function supprimerSort(id) {
     if (S.spells[i].id === id) { spellName = S.spells[i].name; break; }
   }
   ouvrirConfirmation({
-    title:    '🗑️ Supprimer le sort',
+    title:    '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer le sort',
     subtitle: 'Cette action est irréversible',
     message:  'Supprimer <strong>' + escapeHtml(spellName || id) + '</strong>&nbsp;?',
-    labelOui: '🗑️ Supprimer',
+    labelOui: '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer',
     labelNon: '✕ Annuler',
     onOui: function() {
       S.spells = S.spells.filter(function(sp) { return sp.id !== id; });
@@ -5827,7 +5832,7 @@ function ouvrirFormSort(id) {
   var ov = creerOverlay({
     id: 'overlay-form-sort', maxWidth: '540px', 
     titleHtml:
-    '<p class="overlay-title">' + (isEdit ? '\u270f\ufe0f Modifier le sort' : '\u2726 Nouveau sort') + '</p>' +
+    '<p class="overlay-title">' + (isEdit ? '<i class=\"ra ra-quill-ink rpa-icon\" aria-hidden=\"true\"></i> Modifier le sort' : '\u2726 Nouveau sort') + '</p>' +
     '<p class="overlay-subtitle">' + formSub(isEdit) + '</p>',
     onFermer: fermerFormSort
   });
@@ -7347,10 +7352,10 @@ function supprimerObjet(id) {
     if (S.items[i].id === id) { itemName = S.items[i].name; break; }
   }
   ouvrirConfirmation({
-    title:    '🗑️ Supprimer l’objet',
+    title:    '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer l’objet',
     subtitle: 'Cette action est irréversible',
     message:  'Supprimer <strong>' + escapeHtml(itemName || id) + '</strong> ?',
-    labelOui: '🗑️ Supprimer',
+    labelOui: '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer',
     labelNon: '✕ Annuler',
     onOui: function() {
       S.items = (S.items || []).filter(function(it) { return it.id !== id; });
@@ -7375,7 +7380,7 @@ function ouvrirFormObjet(id) {
   }
   ouvrirFormSimple({
     overlayId: 'overlay-form-objet', maxWidth: '480px', isEdit: isEdit,
-    titleAdd:  '\u2756 Nouvel objet', titleEdit: '\u270f\ufe0f Modifier l\u2019objet',
+    titleAdd:  '\u2756 Nouvel objet', titleEdit: '<i class=\"ra ra-quill-ink rpa-icon\" aria-hidden=\"true\"></i> Modifier l\u2019objet',
     fermerFn: 'fermerFormObjet', enrFn: 'enregistrerObjet',
     hiddenId: 'iform-id', hiddenVal: isEdit ? item.id : '',
     errorId: 'iform-error', focusId: 'iform-nom',
@@ -7529,10 +7534,10 @@ function supprimerArme(id) {
     if (S.weapons[i].id === id) { weapName = S.weapons[i].name; break; }
   }
   ouvrirConfirmation({
-    title:    '🗑️ Supprimer l’arme',
+    title:    '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer l’arme',
     subtitle: 'Cette action est irréversible',
     message:  'Supprimer <strong>' + escapeHtml(weapName || id) + '</strong> ?',
-    labelOui: '🗑️ Supprimer',
+    labelOui: '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer',
     labelNon: '✕ Annuler',
     onOui: function() {
       S.weapons = (S.weapons || []).filter(function(w) { return w.id !== id; });
@@ -7562,7 +7567,7 @@ function ouvrirFormArme(id) {
   var ov = creerOverlay({
     id: 'overlay-form-arme', maxWidth: '560px', 
     titleHtml:
-    '<p class="overlay-title">' + (isEdit ? '\u270f\ufe0f Modifier l\'arme' : '\u2694\ufe0f Nouvelle arme') + '</p>' +
+    '<p class="overlay-title">' + (isEdit ? '<i class=\"ra ra-quill-ink rpa-icon\" aria-hidden=\"true\"></i> Modifier l\'arme' : '\u2694\ufe0f Nouvelle arme') + '</p>' +
     '<p class="overlay-subtitle">' + formSub(isEdit) + '</p>',
     onFermer: fermerFormArme
   });
@@ -8019,10 +8024,10 @@ function supprimerArmure(id) {
     if (S.armors[i].id === id) { armorName = S.armors[i].name; break; }
   }
   ouvrirConfirmation({
-    title:    '\ud83d\uddd1\ufe0f Supprimer l\u2019armure',
+    title:    '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer l’armure',
     subtitle: 'Cette action est irr\u00e9versible',
     message:  'Supprimer <strong>' + escapeHtml(armorName || id) + '</strong>\u00a0?',
-    labelOui: '\ud83d\uddd1\ufe0f Supprimer',
+    labelOui: '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer',
     labelNon: '\u2715 Annuler',
     onOui: function() {
       S.caManualOverride = false;
@@ -8052,7 +8057,7 @@ function ouvrirFormArmure(id) {
   var ov = creerOverlay({
     id: 'overlay-form-armure', maxWidth: '480px', 
     titleHtml:
-    '<p class="overlay-title">' + (isEdit ? '\u270f\ufe0f Modifier l\u2019armure' : '\ud83d\udee1\ufe0f Nouvelle armure') + '</p>' +
+    '<p class="overlay-title">' + (isEdit ? '<i class=\"ra ra-quill-ink rpa-icon\" aria-hidden=\"true\"></i> Modifier l\u2019armure' : '\ud83d\udee1\ufe0f Nouvelle armure') + '</p>' +
     '<p class="overlay-subtitle">' + formSub(isEdit) + '</p>',
     onFermer: fermerFormArmure
   });
@@ -8475,6 +8480,8 @@ v10.4 — 2026-03-08 : Mise à jour du processus IA obligatoire de 6 à 7 étape
 v10.3 — 2026-03-08 : Sprint token-reduction F6/F7/F8 — lireStr/lireChk helpers (19 double-lookups), mkFormFooter helper (3 footer blocks), formSub helper (4 subtitle ternaries). Saving : ~873 chars.
 v10.2 — 2026-03-08 : Sprint token-reduction F2/F3/F4 — inline styles → CSS class (×8), bubble groups → JS expansion (×5), sanList helper + CATS→DON_CATEGORIES dans sanitiserDonnees. Saving : ~2 015 chars.
 v10.1 — 2026-03-07 : SVG déduplication géométrie bouclier (ca-shield-outer + ca-shield-inner) ; 11 <path> remplacés par <use href>.
+v11.15 — 2026-03-10 : Fix UAT : panneau diagnostic masqué au chargement (display:none CSS), emplacements sorts alignés à droite (margin-left:auto sur label Max).
+v11.14 — 2026-03-09 : 5 corrections UI : diag plus auto-ouvert, ordre boutons aptitudes (édition avant suppression), icônes ra dans popups confirmation/édition, flèche ra-angle-right menu, label Max emplacements sorts.
 v11.13 — 2026-03-09 : 6 améliorations UI : diag accessible depuis menu+erreurs globales, icônes ra aptitudes, couleurs or/rouge boutons, icônes reliquaire or, lune popup repos long, Metamorphous sur texte sphères.
 v11.12 — 2026-03-09 : Fix URL CDN rpg-awesome 0.3.4→0.2.0 (seule version publiée sur npm).
 v11.11 — 2026-03-09 : Panneau diagnostic RPG Awesome ajouté (debug temporaire).
@@ -8501,6 +8508,7 @@ v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user reque
   background:#111; color:#eee; font-family:monospace; font-size:13px;
   padding:10px 14px; border-top:2px solid #c9a84c;
   max-height:50vh; overflow-y:auto;
+  display:none;
 }
 #rpa-diag h3 { color:#c9a84c; margin:0 0 6px; font-size:14px; }
 #rpa-diag .ok  { color:#4caf50; }
@@ -8533,7 +8541,6 @@ window.onerror = function(msg, src, line, col, err) {
   d.className = 'row';
   d.innerHTML = '<span class="err">⛔ JS ERROR : ' + msg + ' [' + (src||'') + ':' + line + ']</span>';
   log.appendChild(d);
-  document.getElementById('rpa-diag').style.display = 'block';
   return false;
 };
 window.onunhandledrejection = function(e) {
@@ -8543,7 +8550,6 @@ window.onunhandledrejection = function(e) {
   d.className = 'row';
   d.innerHTML = '<span class="err">⛔ PROMISE REJETÉE : ' + (e.reason||e) + '</span>';
   log.appendChild(d);
-  document.getElementById('rpa-diag').style.display = 'block';
 };
 
 function ouvrirDiagnostic() {
