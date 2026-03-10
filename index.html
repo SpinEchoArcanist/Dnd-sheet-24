@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.15 — 2026-03-10 -->
+<!-- dnd-sheet-v11 | version complète : 11.16 — 2026-03-10 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -532,9 +532,11 @@ CHANGELOG entry format:
 <!-- [EX-M-F52] MONTURE D'OUTREMONDE (Sprint 1)
 
      Sous-section collapsible dans le panneau Magie (à la suite de Imposition des mains).
-     Structure HTML : <div class="section-title collapsible">🐎 Monture d&#39;outremonde</div>
-                      (emoji conservé — aucune icône RPG Awesome disponible)
+     Structure HTML : <div class="section-title collapsible">
+                        <img class="gi-icon" src="game-icons.net/stag-head.svg"> Monture d'outremonde
+                      </div>
                       <div class="panel-body">..contenu..</div>
+     Icône : stag-head (Lorc, game-icons.net, CC BY 3.0) via <img class="gi-icon"> [EX-G-F48]
      (plus de <div class="panel" id="panel-monture"> wrapper — supprimé en v8.4)
 
      CHAMPS DE CONFIGURATION :
@@ -790,7 +792,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '10.0'
+       · Valeur courante : '11.16'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -818,12 +820,14 @@ CHANGELOG entry format:
 <!-- [EX-T-F37] COMPATIBILITÉ iOS / SCRIPTABLE (WKWebView)
 
      Règles IMPÉRATIVES — ne jamais enfreindre :
-       1. Zéro CDN, zéro framework — fichier 100% autonome sauf deux exceptions
+       1. Zéro CDN, zéro framework — fichier 100% autonome sauf trois exceptions
           autorisées (amélioration progressive, fallback garanti) :
           · Metamorphous — Google Fonts via @import dans <style>
             Fallback : Palatino Linotype → Georgia → serif
           · RPG Awesome 0.3.4 — jsDelivr via <link> dans <head> (icônes [EX-G-F47])
             Fonctionne depuis GitHub Pages. Fallback : <i class="ra ..."> vide, aucun tofu.
+          · game-icons.net SVG — <img src="https://game-icons.net/icons/..."> (icônes [EX-G-F48])
+            Fallback : img vide (alt="", aria-hidden="true"), aucun tofu, aucun texte perdu.
        2. initApp() appelé DIRECTEMENT à la fin du script
           → JAMAIS via DOMContentLoaded ou window.onload
        3. Toutes les fonctions appelées via onclick="..." DOIVENT être
@@ -1006,14 +1010,14 @@ CHANGELOG entry format:
      Toutes exposées sur window.*
 -->
 
-<!-- [EX-G-F47] RPG AWESOME ICONS (v11.12)
-     15 emojis remplacés par icônes RPG Awesome 0.3.4 via <i class="ra ra-X rpa-icon">.
+<!-- [EX-G-F47] RPG AWESOME ICONS (v11.16)
+     Emojis remplacés par icônes RPG Awesome 0.3.4 via <i class="ra ra-X rpa-icon">.
      Chargement : <link rel="stylesheet"> dans <head> — GitHub Pages CSP bloque @import
      depuis un <style> inline ; <link> en <head> est autorisé.
      Marqueur Scriptable : commentaire HTML SCRIPTABLE_RPA_INJECT précédant le &lt;link&gt;.
      Classe helper CSS .rpa-icon : font-style:normal; line-height:1; vertical-align:middle;
        margin-right:0.28em; font-size:1em; color:inherit.
-     Mapping emoji → ra-class :
+     Mapping emoji → ra-class (font icon) :
        ⚙  → ra-cog              ✨ → ra-burning-embers
        📖 → ra-book              ⚔ → ra-crossed-swords
        🎲 → ra-perspective-dice-random   🤲 → ra-hand
@@ -1021,17 +1025,54 @@ CHANGELOG entry format:
        ⚗ → ra-fizzing-flask     🗡 → ra-plain-dagger
        ❤ → ra-health            ☽ → ra-moon-sun
        ⏱ → ra-stopwatch         ✏ → ra-quill-ink
-       🗑 → ra-x-mark
-     Emojis conservés (KEEP) : ✦ ✧ ❖ ▼ ♥ ✗ ⬡ 🐎 🐴 📦 🎒 ⚠️
+       🗑 → ra-x-mark            📦 → ra-hourglass
+     Emojis remplacés par SVG game-icons.net via <img class="gi-icon"> (voir [EX-G-F48]) :
+       🐎 🐴 → stag-head (lorc)    ❤/&#x2665; → heart-organ (lorc)    🎒 → knapsack (lorc)
+     Emojis conservés (KEEP) : ✦ ✧ ❖ ▼ ♥ ✗ ⬡ ⚠️
      Note : ▶ retiré du menu (remplacé par ra-angle-right dans di-icon et di-arrow)
              ▶ ▼ encore utilisés par JS chevron collapsible (textContent — non remplacé)
+             ⛔ ✘ conservés dans le panneau diagnostic (usage interne, non visible en jeu)
 -->
 
-<!-- [EX-G-F46] PANNEAU MAGIE PARENT (v9.6)
+<!-- [EX-G-F48] GAME-ICONS.NET SVG ICONS (v11.16)
+     Icônes SVG externes via <img src="https://game-icons.net/icons/..."> pour les émojis
+     sans équivalent dans RPG Awesome.
+     Classe helper CSS .gi-icon : display:inline-block; vertical-align:middle;
+       width:1em; height:1em; margin-right:0.3em.
+     URL pattern : https://game-icons.net/icons/{fg}/{bg}/1x1/{auteur}/{nom}.svg
+       fg=ffffff (blanc), bg=transparent → icône blanche sur fond transparent.
+     Licence : CC BY 3.0 (game-icons.net). Auteur principal : Lorc.
+     Mapping emoji → SVG game-icons.net :
+       🐎 🐴 → stag-head (lorc)   — section-title Monture d'outremonde + combat-title Monture
+       ❤/&#x2665; → heart-organ (lorc) — span Vie + section-title Points de Vie
+       🎒  → knapsack (lorc)      — span Inventaire
+     Rendu HTML :
+       <img src="[URL]" class="gi-icon" alt="" aria-hidden="true" width="1em" height="1em"
+            style="vertical-align:middle;">
+     Fallback offline : img vide invisible — aucun tofu, aucun texte perdu [EX-T-F37].
+-->
+
+<!-- [EX-G-DICE] DICE ICON SET — CATALOGUÉ, NON ENCORE APPLIQUÉ
+     Source   : game-icons.net (CC BY 3.0)
+     Delivery : <img src="https://game-icons.net/icons/ffffff/transparent/1x1/{auteur}/{nom}.svg">
+                class="gi-icon" [EX-G-F48]
+     Icônes :
+       d4  → skoll/d4                           (outline polygonal, sans chiffre)
+       d6  → delapouite/dice-six-faces-six      (face 6 affichée)
+       d8  → delapouite/dice-eight-faces-eight  (face 8 affichée)
+       d10 → skoll/d10                          (outline polygonal, sans chiffre)
+       d12 → skoll/d12                          (outline polygonal, sans chiffre)
+       d20 → delapouite/dice-twenty-faces-twenty (face 20 affichée)
+     Note : Skoll (d4/d10/d12) et Delapouite (d6/d8/d20) sont stylistiquement compatibles
+            (même trait géométrique noir et blanc).
+     Statut : catalogué uniquement. À appliquer lors de la construction de l'interface dés.
+-->
+
+<!-- [EX-G-F46] PANNEAU MAGIE PARENT
      Panneau parent collapsible regroupant trois sous-sections :
        1. ✧ Emplacements & Conduit Divin
        2. ra-hand Imposition des mains  (icône RPG Awesome ra-hand, emoji 🤲 remplacé)
-       3. 🐎 Monture d'outremonde       (emoji conservé — aucune icône RPG Awesome disponible)
+       3. gi-icon stag-head Monture d'outremonde  (SVG game-icons.net, voir [EX-G-F48])
      Colonne droite, en tête avant Inventaire.
      Structure : <div class="panel" id="panel-magie">
                    <div class="section-title collapsible">ra-burning-embers Magie</div>
@@ -1108,6 +1149,7 @@ v9.12 — 2026-03-07 : T1 type-switch en modification Traits/Dons/Aptitudes ; T
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 /* RPG Awesome icon helper — see [EX-G-F47] */
 .rpa-icon { font-style:normal; line-height:1; vertical-align:middle; margin-right:0.28em; font-size:1em; color:inherit; }
+.gi-icon   { display:inline-block; vertical-align:middle; width:1em; height:1em; margin-right:0.3em; }
 
 body {
   background-color: var(--noir);
@@ -3140,12 +3182,12 @@ select.field-input optgroup {
       <!-- ═══ PANNEAU VIE — Points de Vie + Des de Vie + Jets Mort ═══ -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">&#x2665; Vie</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/heart-organ.svg" class="gi-icon" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Vie</span>
         </div>
         <div class="panel-body" style="padding-top:4px;">
 
           <!-- Sous-section 1 : Points de Vie -->
-          <div class="section-title collapsible" style="margin-top:0;">&#x2665; Points de Vie</div>
+          <div class="section-title collapsible" style="margin-top:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/heart-organ.svg" class="gi-icon" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Points de Vie</div>
           <div class="panel-body">
           <label class="custom-check" style="margin-bottom:6px;">
             <input type="checkbox" id="check-robuste">
@@ -3394,7 +3436,7 @@ select.field-input optgroup {
         <div class="sep"></div>
 
         <!-- Monture d'outremonde [EX-M-F52] -->
-        <div class="section-title collapsible">🐎 Monture d&#39;outremonde</div>
+        <div class="section-title collapsible"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/stag-head.svg" class="gi-icon" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Monture d&#39;outremonde</div>
         <div class="panel-body">
 
             <!-- Configuration -->
@@ -3524,13 +3566,13 @@ select.field-input optgroup {
       <!-- ══ INVENTAIRE ══ -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">🎒 Inventaire</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/knapsack.svg" class="gi-icon" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Inventaire</span>
         </div>
         <div class="panel-body">
 
           <!-- ─ Objets ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:0;">
-            <span style="flex:1;min-width:0;">📦 Objets</span>
+            <span style="flex:1;min-width:0;"><i class="ra ra-hourglass rpa-icon" aria-hidden="true"></i>Objets</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormObjet()" title="Ajouter un objet">+</button>
           </div>
           <div class="panel-body">
@@ -3607,7 +3649,7 @@ select.field-input optgroup {
 
           <!-- Monture -->
           <div class="combat-block">
-            <div class="combat-title">🐴 Monture</div>
+            <div class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/stag-head.svg" class="gi-icon" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Monture</div>
             <div class="atk-dmg-pair">
               <div class="atk-half">
                 <div class="half-title">Toucher</div>
@@ -4330,7 +4372,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.15';
+var FILE_VERSION = '11.16';
 
 'use strict';
 
@@ -8481,6 +8523,7 @@ v10.3 — 2026-03-08 : Sprint token-reduction F6/F7/F8 — lireStr/lireChk helpe
 v10.2 — 2026-03-08 : Sprint token-reduction F2/F3/F4 — inline styles → CSS class (×8), bubble groups → JS expansion (×5), sanList helper + CATS→DON_CATEGORIES dans sanitiserDonnees. Saving : ~2 015 chars.
 v10.1 — 2026-03-07 : SVG déduplication géométrie bouclier (ca-shield-outer + ca-shield-inner) ; 11 <path> remplacés par <use href>.
 v11.15 — 2026-03-10 : Fix UAT : panneau diagnostic masqué au chargement (display:none CSS), emplacements sorts alignés à droite (margin-left:auto sur label Max).
+v11.16 — 2026-03-10 : Icônes Sprint 2 — remplacement emoji restants : 🐎🐴→stag-head (SVG game-icons.net), ❤/&#x2665;→heart-organ (SVG), 🎒→knapsack (SVG), 📦→ra-hourglass (RPG Awesome) ; ajout CSS .gi-icon ; [EX-G-F47][EX-M-F52][EX-G-F46][EX-T-F37] mis à jour ; [EX-G-F48] et [EX-G-DICE] créés.
 v11.14 — 2026-03-09 : 5 corrections UI : diag plus auto-ouvert, ordre boutons aptitudes (édition avant suppression), icônes ra dans popups confirmation/édition, flèche ra-angle-right menu, label Max emplacements sorts.
 v11.13 — 2026-03-09 : 6 améliorations UI : diag accessible depuis menu+erreurs globales, icônes ra aptitudes, couleurs or/rouge boutons, icônes reliquaire or, lune popup repos long, Metamorphous sur texte sphères.
 v11.12 — 2026-03-09 : Fix URL CDN rpg-awesome 0.3.4→0.2.0 (seule version publiée sur npm).
