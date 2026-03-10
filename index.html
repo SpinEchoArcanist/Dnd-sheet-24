@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.12 — 2026-03-09 -->
+<!-- dnd-sheet-v11 | version complète : 11.13 — 2026-03-09 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2350,12 +2350,9 @@ select.field-input optgroup {
   opacity:1;
   background:rgba(255,255,255,0.07);
 }
-.spell-edit-btn {
-  opacity:0.55;
-}
-.spell-del-btn {
-  /* standard .spell-action-btn hover applies */
-}
+.spell-edit-btn { opacity:0.55; }
+.spell-edit-btn .ra-quill-ink { color:var(--or); }
+.spell-del-btn .ra-x-mark { color:#c0392b; }
 .spell-desc-row {
   padding:0 6px 5px 14px;
 }
@@ -2703,6 +2700,8 @@ select.field-input optgroup {
   opacity:0.7;
 }
 .inv-item-action-btn:hover { opacity:1; background:rgba(201,168,76,0.10); }
+.inv-item-action-btn .ra-quill-ink { color:var(--or); }
+.inv-item-action-btn .ra-x-mark { color:#c0392b; }
 .inv-desc-row {
   padding:0 6px 5px 10px;
 }
@@ -3035,6 +3034,10 @@ select.field-input optgroup {
         </button>
         <button class="dropdown-item" onclick="menuToutDeployer()">
           <span class="di-icon">▼</span> Tout déplier
+        </button>
+        <div class="dropdown-sep"></div>
+        <button class="dropdown-item" onclick="ouvrirDiagnostic()">
+          <span class="di-icon">🔍</span> Diagnostic
         </button>
         <div class="dropdown-sep"></div>
         <!-- Sous-menu Effets visuels — voir [EX-G-F45] -->
@@ -3669,12 +3672,12 @@ select.field-input optgroup {
           <!-- Colonne gauche : saisie blessure + soin -->
           <div class="sphere-controls">
             <div class="sphere-ctrl-row">
-              <span style="font-size:1.1rem;"><i class="ra ra-plain-dagger rpa-icon" aria-hidden="true"></i></span>
+              <span style="font-size:1.1rem;color:var(--or);"><i class="ra ra-plain-dagger rpa-icon" aria-hidden="true"></i></span>
               <input class="sphere-ctrl-input sphere-ctrl-input-narrow" type="number" id="blessure-input" min="0" placeholder="Dégâts">
               <button class="btn" onclick="appliquerBlessure()">✓</button>
             </div>
             <div class="sphere-ctrl-row">
-              <span style="font-size:1.1rem;"><i class="ra ra-health rpa-icon" aria-hidden="true"></i></span>
+              <span style="font-size:1.1rem;color:var(--or);"><i class="ra ra-health rpa-icon" aria-hidden="true"></i></span>
               <input class="sphere-ctrl-input sphere-ctrl-input-narrow" type="number" id="soin-input" min="0" placeholder="Soins">
               <button class="btn btn-or" onclick="appliquerSoin()">✓</button>
             </div>
@@ -3997,10 +4000,10 @@ select.field-input optgroup {
               </g>
               <ellipse cx="58" cy="50" rx="22" ry="12" fill="rgba(255,255,255,0.07)" transform="rotate(-22,58,50)"/>
               <ellipse cx="50" cy="46" rx="9" ry="4.5" fill="rgba(255,255,255,0.12)" transform="rotate(-22,50,46)"/>
-              <text x="81" y="85" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="rgba(0,0,0,0.75)">—/—</text>
-              <text id="pv-sphere-text" x="80" y="84" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="rgba(255,245,220,1.0)">—/—</text>
-              <text x="81" y="100" text-anchor="middle" font-family="Georgia,serif" font-size="7.5" fill="rgba(0,0,0,0.6)" letter-spacing="1">POINTS DE VIE</text>
-              <text x="80" y="99" text-anchor="middle" font-family="Georgia,serif" font-size="7.5" fill="rgba(220,180,76,0.90)" letter-spacing="1">POINTS DE VIE</text>
+              <text x="81" y="85" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="13" font-weight="700" fill="rgba(0,0,0,0.75)">—/—</text>
+              <text id="pv-sphere-text" x="80" y="84" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="13" font-weight="700" fill="rgba(255,245,220,1.0)">—/—</text>
+              <text x="81" y="100" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="7.5" fill="rgba(0,0,0,0.6)" letter-spacing="1">POINTS DE VIE</text>
+              <text x="80" y="99" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="7.5" fill="rgba(220,180,76,0.90)" letter-spacing="1">POINTS DE VIE</text>
             </svg>
           </div>
                     <template id="pv-steam-paused">
@@ -4129,7 +4132,7 @@ select.field-input optgroup {
       <div class="sphere-zone">
         <div class="sphere-controls">
           <div class="sphere-ctrl-row">
-            <span style="font-size:1.1rem;"><i class="ra ra-hand rpa-icon" aria-hidden="true"></i></span>
+            <span style="font-size:1.1rem;color:var(--or);"><i class="ra ra-hand rpa-icon" aria-hidden="true"></i></span>
             <input class="sphere-ctrl-input" type="number" id="soin-mains-input" min="0" placeholder="Soin">
             <button class="btn btn-bleu" onclick="appliquerSoinMains()">✓</button>
           </div>
@@ -4303,10 +4306,10 @@ select.field-input optgroup {
             </g>
             <ellipse cx="58" cy="50" rx="22" ry="12" fill="rgba(255,255,255,0.07)" transform="rotate(-22,58,50)"/>
             <ellipse cx="50" cy="46" rx="9" ry="4.5" fill="rgba(255,255,255,0.12)" transform="rotate(-22,50,46)"/>
-            <text x="81" y="85" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="rgba(0,0,0,0.75)">—/—</text>
-            <text id="hm-sphere-text" x="80" y="84" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="rgba(255,245,220,1.0)">—/—</text>
-            <text x="81" y="100" text-anchor="middle" font-family="Georgia,serif" font-size="7.5" fill="rgba(0,0,0,0.6)" letter-spacing="1">IMPOSITION MAINS</text>
-            <text x="80" y="99" text-anchor="middle" font-family="Georgia,serif" font-size="7.5" fill="rgba(40,200,120,0.92)" letter-spacing="1">IMPOSITION MAINS</text>
+            <text x="81" y="85" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="13" font-weight="700" fill="rgba(0,0,0,0.75)">—/—</text>
+            <text id="hm-sphere-text" x="80" y="84" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="13" font-weight="700" fill="rgba(255,245,220,1.0)">—/—</text>
+            <text x="81" y="100" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="7.5" fill="rgba(0,0,0,0.6)" letter-spacing="1">IMPOSITION MAINS</text>
+            <text x="80" y="99" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="7.5" fill="rgba(40,200,120,0.92)" letter-spacing="1">IMPOSITION MAINS</text>
           </svg>
 
         </div>
@@ -4322,7 +4325,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.12';
+var FILE_VERSION = '11.13';
 
 'use strict';
 
@@ -5398,8 +5401,8 @@ function buildTypedRow(item, type, badge) {
     '<div class="inv-item-row" id="frow-' + sid + '">' +
       '<button class="inv-item-name-btn" onclick="toggleFeatExpand(\'' + sid + '\')" title="' + sname + '">' + sname + '</button>' +
       badgeHtml +
-      '<button class="inv-item-action-btn" onclick="supprimerTypedItem(\'' + type + '\',\'' + sid + '\')" title="Supprimer">\ud83d\uddd1\ufe0f</button>' +
-      '<button class="inv-item-action-btn" onclick="editTypedItem(\'' + type + '\',\'' + sid + '\')" title="Modifier">\u270f\ufe0f</button>' +
+      '<button class="inv-item-action-btn" onclick="supprimerTypedItem(\'' + type + '\',\'' + sid + '\')" title="Supprimer"><i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i></button>' +
+      '<button class="inv-item-action-btn" onclick="editTypedItem(\'' + type + '\',\'' + sid + '\')" title="Modifier"><i class="ra ra-quill-ink rpa-icon" aria-hidden="true"></i></button>' +
     '</div>' +
     '<div class="inv-desc-row hidden" id="fexp-' + sid + '">' +
       '<div class="inv-desc-text">' +
@@ -5711,7 +5714,7 @@ function ouvrirConfirmation(opts) {
 
   var btnOui = document.createElement('button');
   btnOui.className = 'overlay-btn overlay-btn-danger';
-  btnOui.textContent = opts.labelOui || '✔ Oui';
+  btnOui.innerHTML  = opts.labelOui || '✔ Oui';
   btnOui.setAttribute('type', 'button');
   btnOui.onclick = function() {
     fermerConfirmation();
@@ -6163,10 +6166,10 @@ function restaurerMains() {
    ============================================================ */
 function confirmerReposLong() {
   ouvrirConfirmation({
-    title:    '☽ Repos Long',
+    title:    '<i class="ra ra-moon-sun rpa-icon" aria-hidden="true"></i>Repos Long',
     subtitle: 'Toutes les ressources seront restaurées',
     message:  'Effectuer un <strong>Repos Long</strong> ?<br><span style="font-size:0.8rem;color:#5a4a3a;">PV max, Imposition des mains, Conduit Divin, emplacements de sorts, dés de vie.</span>',
-    labelOui: '☽ Repos Long appliqué',
+    labelOui: '<i class="ra ra-moon-sun rpa-icon" aria-hidden="true"></i>Repos Long appliqué',
     labelNon: '✕ Non',
     onOui:    _executerReposLong
   });
@@ -8472,6 +8475,7 @@ v10.4 — 2026-03-08 : Mise à jour du processus IA obligatoire de 6 à 7 étape
 v10.3 — 2026-03-08 : Sprint token-reduction F6/F7/F8 — lireStr/lireChk helpers (19 double-lookups), mkFormFooter helper (3 footer blocks), formSub helper (4 subtitle ternaries). Saving : ~873 chars.
 v10.2 — 2026-03-08 : Sprint token-reduction F2/F3/F4 — inline styles → CSS class (×8), bubble groups → JS expansion (×5), sanList helper + CATS→DON_CATEGORIES dans sanitiserDonnees. Saving : ~2 015 chars.
 v10.1 — 2026-03-07 : SVG déduplication géométrie bouclier (ca-shield-outer + ca-shield-inner) ; 11 <path> remplacés par <use href>.
+v11.13 — 2026-03-09 : 6 améliorations UI : diag accessible depuis menu+erreurs globales, icônes ra aptitudes, couleurs or/rouge boutons, icônes reliquaire or, lune popup repos long, Metamorphous sur texte sphères.
 v11.12 — 2026-03-09 : Fix URL CDN rpg-awesome 0.3.4→0.2.0 (seule version publiée sur npm).
 v11.11 — 2026-03-09 : Panneau diagnostic RPG Awesome ajouté (debug temporaire).
 v11.10 — 2026-03-09 : Fix commentaire HTML cassé dans [EX-G-F47] (marqueur SCRIPTABLE_RPA_INJECT imbriqué).
@@ -8521,9 +8525,34 @@ v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user reque
 </div>
 
 <script>
-(function() {
+// Global error catching — logs to diag panel and auto-opens it
+window.onerror = function(msg, src, line, col, err) {
+  var log = document.getElementById('rpa-diag-log');
+  if (!log) return false;
+  var d = document.createElement('div');
+  d.className = 'row';
+  d.innerHTML = '<span class="err">⛔ JS ERROR : ' + msg + ' [' + (src||'') + ':' + line + ']</span>';
+  log.appendChild(d);
+  document.getElementById('rpa-diag').style.display = 'block';
+  return false;
+};
+window.onunhandledrejection = function(e) {
+  var log = document.getElementById('rpa-diag-log');
+  if (!log) return;
+  var d = document.createElement('div');
+  d.className = 'row';
+  d.innerHTML = '<span class="err">⛔ PROMISE REJETÉE : ' + (e.reason||e) + '</span>';
+  log.appendChild(d);
+  document.getElementById('rpa-diag').style.display = 'block';
+};
+
+function ouvrirDiagnostic() {
+  var panel = document.getElementById('rpa-diag');
   var log = document.getElementById('rpa-diag-log');
   var iconTest = document.getElementById('rpa-icon-test');
+  panel.style.display = 'block';
+  log.innerHTML = '<span class="inf">Démarrage...</span>';
+  iconTest.innerHTML = '';
 
   function row(cls, msg) {
     var d = document.createElement('div');
@@ -8581,7 +8610,7 @@ v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user reque
         var fontUrl = m[1];
         // Resolve relative URL against CDN base
         if (fontUrl.indexOf('http') !== 0) {
-          fontUrl = 'https://cdn.jsdelivr.net/npm/rpg-awesome@0.3.4/css/' + fontUrl;
+          fontUrl = 'https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/' + fontUrl;
         }
         row('inf', '⏳ URL police résolue : ' + fontUrl);
         // 4. Fetch the actual font file
@@ -8648,7 +8677,8 @@ v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user reque
 
     row('inf', '— Fin du diagnostic —');
   }, 2000); // wait 2s for stylesheets to settle
-})();
+}
+window.ouvrirDiagnostic = ouvrirDiagnostic;
 </script>
 <!-- ═══════════════════════════════════════════════════ -->
 
