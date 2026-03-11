@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.25 — 2026-03-10 -->
+<!-- dnd-sheet-v11 | version complète : 11.26 — 2026-03-11 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -792,7 +792,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '11.25'
+       · Valeur courante : '11.26'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -1010,7 +1010,7 @@ CHANGELOG entry format:
      Toutes exposées sur window.*
 -->
 
-<!-- [EX-G-F47] RPG AWESOME ICONS (v11.23)
+<!-- [EX-G-F47] RPG AWESOME ICONS (v11.26)
      Emojis remplacés par icônes RPG Awesome 0.3.4 via <i class="ra ra-X rpa-icon">.
      Chargement : <link rel="stylesheet"> dans <head>.
      Marqueur Scriptable : commentaire HTML SCRIPTABLE_RPA_INJECT précédant le &lt;link&gt;.
@@ -1031,44 +1031,60 @@ CHANGELOG entry format:
      Remplacés par gi-icon game-icons.net (v11.16) :
        🐎 🐴 → stag-head (lorc)    ❤/&#x2665; → heart-organ (lorc)
        🎒  → knapsack (lorc)       🎲 → dice-twenty-faces-twenty (delapouite)
-     Nouveaux gi-icon sans équivalent ra (v11.23) :
-       ⬡  → icicles-aura (lorc)        — Caractéristiques (icône ajoutée, ⬡ conservé)
-       ✧  → unfurling-scroll (delapouite) — Emplacements & Conduit (icône ajoutée, ✧ conservé)
+     Nouveaux gi-icon sans équivalent ra (v11.23/v11.26) :
+       ⬡ retiré  → icicles-aura (lorc)          — Caractéristiques
+       ✧ retiré  → scroll-quill (delapouite)     — Emplacements & Conduit Divin
+       (aucun)   → finger-print (delapouite)     — Identité (ajout, ✦ conservé)
+     Icônes panneaux ajoutées (v11.26) :
+       ra-burning-embers → fire-ray (lorc)       — Magie
+       ra-crossed-swords → shield-bash (delapouite) — Combat
+       ra-fizzing-flask  → potion-ball (lorc)    — Reliquaire
+       ra-hand (×2)      → glowing-hands (lorc)  — Imposition des mains + sphère soins
+       ra-crossed-swords → spinning-sword (lorc) — Attaque 1 & 2 (template JS)
      Emojis conservés (KEEP) : ✦ ✧ ❖ ▼ ♥ ✗ ⬡ ⚠️
      Note : ▶ ▼ encore utilisés par JS chevron collapsible (textContent — non remplacé)
              ⛔ ✘ conservés dans le panneau diagnostic (usage interne, non visible en jeu)
 -->
 
-<!-- [EX-G-F48] GAME-ICONS.NET SVG ICONS (v11.20)
-     Icônes SVG via CSS mask-image sur <span> (NE PAS utiliser <img> ni URL couleur).
-     Le serveur game-icons.net ne garantit pas les couleurs hex dans l'URL — seul
-     ffffff/transparent est fiable. La couleur est appliquée via background-color CSS.
+<!-- [EX-G-F48] GAME-ICONS.NET SVG ICONS (v11.26)
+     Pattern : <img src="CDN_URL"> + CSS filter pour la couleur.
+     URL SVG : https://game-icons.net/icons/ffffff/transparent/1x1/{auteur}/{nom}.svg
+       → Toujours ffffff/transparent. Couleur via filtre CSS, jamais dans l'URL.
+       → NE PAS utiliser mask-image/background-color — ne fonctionne pas sur <img>.
+       → Éléments dans display:none : utiliser data URI base64 (WebKit diffère le chargement CDN).
+       → Tous les éléments visibles utilisent CDN URL. Vérifier le slug exact sur game-icons.net.
 
-     PATTERN OBLIGATOIRE (img + filter CSS sur SVG blanc) :
-       URL SVG : https://game-icons.net/icons/ffffff/transparent/1x1/{auteur}/{nom}.svg
-         → Toujours ffffff/transparent — les URLs avec couleur hex ne sont pas fiables.
-       Rendu HTML :
-         <img src="{url}" class="gi-icon [gi-icon-lg|gi-icon-md] [gi-icon-gold|gi-icon-red]"
-              alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">
+     Rendu HTML :
+       <img src="{url}" class="gi-icon [gi-icon-lg|gi-icon-md] [gi-icon-gold|gi-icon-red]"
+            alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">
 
      Classes CSS :
        .gi-icon        base : inline-block, 1em×1em, vertical-align:middle
-       .gi-icon-lg     taille : 1.3em×1.3em  (titres de section, spans Vie/Inventaire)
-       .gi-icon-md     taille : 1.2em×1.2em  (combat-title, dés critique)
+       .gi-icon-lg     taille : 1.3em×1.3em  (titres de section)
+       .gi-icon-md     taille : 1.2em×1.2em  (combat-title, template Attaque N)
        .gi-icon-gold   filter : sepia(1) saturate(2.2) hue-rotate(6deg) brightness(0.92)
-                         → teinte or chaud, proche de --or (#c9a84c)
        .gi-icon-red    filter : sepia(1) saturate(8) hue-rotate(315deg) brightness(0.75)
-                         → rouge bordeaux, proche de --bordeaux-clair (#b52a2a)
-     NE PAS utiliser mask-image/background-color — ne fonctionne pas sur <img>.
+
+     Mapping complet (CDN, visibles) :
+       stag-head (lorc)                  — Monture section-title (gold) + combat-title (red)
+       heart-organ (lorc)                — Vie + Points de Vie (gold)
+       knapsack (lorc)                   — Inventaire (gold)
+       dice-twenty-faces-twenty (delapouite) — Aide aux Tests + inputs D20 (gold)
+       icicles-aura (lorc)               — Caractéristiques & Compétences (gold)
+       sword-clash (lorc)                — Attaque Rapide section-title (gold)
+       breastplate (lorc)                — Armures inventaire (gold)
+       diamond-hilt (delapouite)         — Armes inventaire (gold)
+       scroll-quill (delapouite)         — Emplacements & Conduit Divin (gold)
+       secret-book (delapouite)          — Grimoire (gold)
+       fire-ray (lorc)                   — Magie panel (gold)
+       shield-bash (delapouite)          — Combat panel (gold)
+       finger-print (delapouite)         — Identité panel (gold, ✦ conservé)
+       potion-ball (lorc)                — Reliquaire panel (gold)
+       glowing-hands (lorc)              — Imposition des mains + sphère soins (gold)
+       spinning-sword (lorc)             — Attaque 1 & 2 combat-title (red, gi-icon-md)
+     Dés critique (data URI, display:none) : voir critDiceIcons() + CRIT_DICE_ICON_MAP [EX-G-DICE].
      Fallback offline : img vide invisible — aucun tofu, aucun texte perdu [EX-T-F37].
      Licence SVG : CC BY 3.0 (game-icons.net). Auteurs : Lorc, Delapouite.
-
-     Mapping emoji → SVG :
-       🐎 🐴 → stag-head (lorc)          — section-title Monture (gold) + combat-title Monture (red)
-       ❤/&#x2665; → heart-organ (lorc)  — span Vie + section-title Points de Vie (gold)
-       🎒  → knapsack (lorc)             — span Inventaire (gold)
-       🎲  → dice-twenty-faces-twenty (delapouite) — span Aide aux Tests (gold)
-     Dés critique : voir critDiceIcons() + CRIT_DICE_ICON_MAP [EX-G-DICE].
 -->
 
 <!-- [EX-G-DICE] DICE ICON SET (v11.22)
@@ -3159,7 +3175,7 @@ select.field-input optgroup {
       <!-- Identité -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">✦ Identité</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/finger-print.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">✦ Identité</span>
         </div>
         <div class="panel-body">
         <div class="field-group">
@@ -3286,7 +3302,7 @@ select.field-input optgroup {
       <!-- Combat -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>Combat</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/shield-bash.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Combat</span>
         </div>
         <div class="panel-body">
         <div class="field-row">
@@ -3394,11 +3410,11 @@ select.field-input optgroup {
       <!-- Magie -->
       <div class="panel" id="panel-magie">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;"><i class="ra ra-burning-embers rpa-icon" aria-hidden="true"></i>Magie</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/fire-ray.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Magie</span>
         </div>
         <div class="panel-body panel-magie-body">
         <!-- Emplacements &amp; Conduit Divin -->
-        <div class="section-title collapsible" style="margin-top:6px;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNODAgOTZjLTI2IDAtNDggMjItNDggNDh2MjI0YzAgMjYgMjIgNDggNDggNDhoMzJ2LTMySDgwYy04IDAtMTYtOC0xNi0xNlYxNDRjMC04IDgtMTYgMTYtMTZoMzJWOTZIODB6bTM1MiAwaC0zMnYzMmgzMmM4IDAgMTYgOCAxNiAxNnYyMjRjMCA4LTggMTYtMTYgMTZoLTMydjMyaDMyYzI2IDAgNDgtMjIgNDgtNDhWMTQ0YzAtMjYtMjItNDgtNDgtNDh6TTEyOCA5NnYzMjBoMjU2Vjk2SDEyOHptMzIgMzJoMTkydjI1NkgxNjBWMTI4em0zMiA0MHYzMmgxMjh2LTMySDE5MnptMCA2MHYzMmgxMjh2LTMySDE5MnptMCA2MHYzMmg5NnYtMzJIMTkyeiIvPjwvc3ZnPg==" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Emplacements &amp; Conduit Divin</div>
+        <div class="section-title collapsible" style="margin-top:6px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/scroll-quill.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Emplacements &amp; Conduit Divin</div>
         <div class="panel-body">
           <div id="conduit-cur-row" style="display:flex;align-items:center;gap:6px;margin-bottom:3px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.18);border-radius:3px;padding:4px 7px;">
             <span style="font-family:var(--font-sub);font-size:0.6rem;color:var(--or);letter-spacing:1px;text-transform:uppercase;flex:1;">Conduit Divin</span>
@@ -3433,7 +3449,7 @@ select.field-input optgroup {
         <div class="sep"></div>
 
         <!-- Imposition des mains -->
-        <div class="section-title collapsible"><i class="ra ra-hand rpa-icon" aria-hidden="true"></i>Imposition des mains</div>
+        <div class="section-title collapsible"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/glowing-hands.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Imposition des mains</div>
         <div class="panel-body">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:0.7rem;color:var(--parchemin-s);">
             <span>PV Max (5 × niveau) :</span>
@@ -3607,7 +3623,7 @@ select.field-input optgroup {
 
           <!-- ─ Armes ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:4px;">
-            <span style="flex:1;min-width:0;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMzY4IDQ4TDI1NiAzMjBsLTgwLTgwTDQ4IDM2OGw5Ni05Ni04MC04MCAyNzItMTEyLTgwIDgwIDExMi0xMTJ6TTI1NiAzMDBsLTQ0LTQ0IDQ0LTQ0IDQ0IDQ0LTQ0IDQ0em0tMjAgMzZsLTk2IDEyOCAyMC0yMCA3Ni0xMDB2LTh6bTQwIDB2OGw3NiAxMDAgMjAgMjAtOTYtMTI4eiIvPjwvc3ZnPg==" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Armes</span>
+            <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/diamond-hilt.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Armes</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormArme()" title="Ajouter une arme">+</button>
           </div>
           <div class="panel-body">
@@ -3618,7 +3634,7 @@ select.field-input optgroup {
 
           <!-- ─ Armures ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:4px;">
-            <span style="flex:1;min-width:0;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ4Yy00MCAwLTc2IDE0LTEwNCAzOGwtMjQgODAgMjQgMTZ2MjAwbDEwNCA4MiAxMDQtODJWMTgybDI0LTE2LTI0LTgwYy0yOC0yNC02NC0zOC0xMDQtMzh6bTAgMzJjMjggMCA1NCA4IDc2IDIybDE4IDYyLTE4IDEydjIwOGwtNzYgNjAtNzYtNjBWMTc2bC0xOC0xMiAxOC02MmMyMi0xNCA0OC0yMiA3Ni0yMnptLTQwIDEwMHYzMmg4MHYtMzJoLTgwem0wIDYwdjMyaDgwdi0zMmgtODB6bTAgNjB2MzJoODB2LTMyaC04MHoiLz48L3N2Zz4=" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Armures</span>
+            <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/breastplate.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Armures</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormArmure()" title="Ajouter une armure">+</button>
           </div>
           <div class="panel-body">
@@ -3640,7 +3656,7 @@ select.field-input optgroup {
       <!-- ══ ATTAQUE RAPIDE ══ -->
       <div class="panel">
         <!-- Titre principal ATTAQUE RAPIDE — collapsible [EX-G-F44] -->
-        <div class="section-title collapsible section-title-rapide"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMTA4IDM2bDE4IDE4LTE4IDE4LTE4LTE4IDE4LTE4em0yOTAgMjkwbDE4IDE4LTE4IDE4LTE4LTE4IDE4LTE4ek05NiA2NGwzNTIgMzUyLTMyIDMyTDY0IDk2bDMyLTMyem0xNi0xNmwzMiAzMi0zMiAzMi0zMi0zMiAzMi0zMnptMjg4IDI4OGwzMiAzMi0zMiAzMi0zMi0zMiAzMi0zMnpNMjU2IDgwYy05NyAwLTE3NiA3OS0xNzYgMTc2czc5IDE3NiAxNzYgMTc2IDE3Ni03OSAxNzYtMTc2UzM1MyA4MCAyNTYgODB6bTAgMzJjNzkuNSAwIDE0NCA2NC41IDE0NCAxNDRTMzM1LjUgNDAwIDI1NiA0MDAgMTEyIDMzNS41IDExMiAyNTZzNjQuNS0xNDQgMTQ0LTE0NHptLTEwIDQwdjExMmw4MCA4MC0yMiAyMi05MC05MFYxNTJoMzJ6Ii8+PC9zdmc+" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Attaque Rapide</div>
+        <div class="section-title collapsible section-title-rapide"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/sword-clash.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Attaque Rapide</div>
         <div class="panel-body" id="panel-body-attaque-rapide">
 
         <!-- Sous-titre 1 : Sorts Actifs -->
@@ -3704,7 +3720,7 @@ select.field-input optgroup {
       <!-- ═══ GRIMOIRE ═══ — voir [EX-M-F50] -->
       <div class="panel">
         <div class="section-title collapsible grimoire-title">
-          <span style="flex:1;min-width:0;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOTYgNjRjLTI2IDAtNDggMjItNDggNDhzMjIgNDggNDggNDhoMTZ2MjU2SDk2Yy0yNiAwLTQ4IDIyLTQ4IDQ4czIyIDQ4IDQ4IDQ4aDMyMGMyNiAwIDQ4LTIyIDQ4LTQ4cy0yMi00OC00OC00OGgtMTZWMTYwaDE2YzI2IDAgNDgtMjIgNDgtNDhzLTIyLTQ4LTQ4LTQ4SDk2em0zMiA5NmgyNTZ2MjU2SDEyOFYxNjB6bTMyIDQwdjMyaDE5MnYtMzJIMTYwem0wIDYwdjMyaDE5MnYtMzJIMTYwem0wIDYwdjMyaDEyOHYtMzJIMTYwem0xOTItODBjMTYgMCA0OC00OCA0OC04MC0xNiAxNi0zMiAxNi00OCAzMnY0OHoiLz48L3N2Zz4=" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Grimoire</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/secret-book.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Grimoire</span>
         </div>
         <div class="panel-body">
           <div id="grimoire-filter-bar" class="grimoire-filter-bar">
@@ -3734,7 +3750,7 @@ select.field-input optgroup {
 
       <!-- ══ RELIQUAIRE ══ -->
       <div class="panel" id="panel-reliquaire">
-        <div class="section-title"><i class="ra ra-fizzing-flask rpa-icon" aria-hidden="true"></i>Reliquaire</div>
+        <div class="section-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/potion-ball.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Reliquaire</div>
         <div class="panel-body">
 
       <!-- Sphère Gauche — PV -->
@@ -4203,7 +4219,7 @@ select.field-input optgroup {
       <div class="sphere-zone">
         <div class="sphere-controls">
           <div class="sphere-ctrl-row">
-            <span style="font-size:1.1rem;color:var(--or);"><i class="ra ra-hand rpa-icon" aria-hidden="true"></i></span>
+            <span style="font-size:1.1rem;color:var(--or);"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/glowing-hands.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;"></span>
             <input class="sphere-ctrl-input" type="number" id="soin-mains-input" min="0" placeholder="Soin">
             <button class="btn btn-bleu" onclick="appliquerSoinMains()">✓</button>
           </div>
@@ -4396,7 +4412,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.25';
+var FILE_VERSION = '11.26';
 
 'use strict';
 
@@ -8479,7 +8495,7 @@ function injectDefaults() {
 }
 
 function makeCombatBlock(n){
-  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <div class="combat-title"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>Attaque '+n+'</div>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"><img src=\"https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg\" class=\"gi-icon gi-icon-md gi-icon-gold\" alt=\"\" aria-hidden=\"true\" width=\"1em\" height=\"1em\" style=\"vertical-align:middle;margin-left:4px;\"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">Critique : saisir la somme de 2d8 <img src="PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDMyTDQwIDI1NmwyMTYgMjI0IDIxNi0yMjRMMjU2IDMyem0wIDY2bDE2OCAxNTgtMTY4IDEyLTE2OC0xMiAxNjgtMTU4em0tMTc4IDE5MmwxNjggMTJ2MTU2bC0xNjgtMTY4em0xOTYgMTY4VjMwMmwxNjgtMTItMTY4IDE2OHoiLz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"><img src="PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDMyTDQwIDI1NmwyMTYgMjI0IDIxNi0yMjRMMjU2IDMyem0wIDY2bDE2OCAxNTgtMTY4IDEyLTE2OC0xMiAxNjgtMTU4em0tMTc4IDE5MmwxNjggMTJ2MTU2bC0xNjgtMTY4em0xOTYgMTY4VjMwMmwxNjgtMTItMTY4IDE2OHoiLz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"></div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
+  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <div class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/spinning-sword.svg" class="gi-icon gi-icon-md gi-icon-red" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Attaque '+n+'</div>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"><img src=\"https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg\" class=\"gi-icon gi-icon-md gi-icon-gold\" alt=\"\" aria-hidden=\"true\" width=\"1em\" height=\"1em\" style=\"vertical-align:middle;margin-left:4px;\"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">Critique : saisir la somme de 2d8 <img src="PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDMyTDQwIDI1NmwyMTYgMjI0IDIxNi0yMjRMMjU2IDMyem0wIDY2bDE2OCAxNTgtMTY4IDEyLTE2OC0xMiAxNjgtMTU4em0tMTc4IDE5MmwxNjggMTJ2MTU2bC0xNjgtMTY4em0xOTYgMTY4VjMwMmwxNjgtMTItMTY4IDE2OHoiLz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"><img src="PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDMyTDQwIDI1NmwyMTYgMjI0IDIxNi0yMjRMMjU2IDMyem0wIDY2bDE2OCAxNTgtMTY4IDEyLTE2OC0xMiAxNjgtMTU4em0tMTc4IDE5MmwxNjggMTJ2MTU2bC0xNjgtMTY4em0xOTYgMTY4VjMwMmwxNjgtMTItMTY4IDE2OHoiLz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"></div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
 }
 var HM_STARS=[
   [[98.3,55.3,1.21,320,0.52],[49.4,54.3,1,209,0.9],[94.4,133,1.05,60,0.38],[93.2,49.4,0.89,230,0.7],[97.3,42.5,1.49,260,0.54],[113,99.5,1.07,286,0.29],[105.2,63.9,0.79,123,0.68],[49.5,79.9,1.27,242,0.6],[110.9,87,1.49,163,0.59],[126.3,103.6,1.06,312,0.63],[70,58.2,1.54,286,0.54],[113.7,84,0.77,83,0.67],[125.3,55.6,1.15,121,0.75],[37.2,115.1,1.49,93,0.87],[84.3,97.5,1.15,228,0.57],[76.6,51.4,1.28,158,0.52],[59,105,1.48,340,0.86],[56.5,66.7,0.84,62,0.46],[88.2,114.5,1.18,51,0.54],[120.9,113.4,1.52,347,0.87],[94.6,29.5,1,2,0.49],[118.6,54.7,0.81,86,0.57],[82.7,29.1,1.13,295,0.33],[82.9,79.5,0.79,105,0.45],[59.9,32.2,1.12,324,0.67],[124.5,49.9,0.88,283,0.56],[31.5,58.1,1.34,168,0.62],[47.3,31.4,0.97,3,0.41]],
@@ -8577,6 +8593,7 @@ v11.22 — 2026-03-10 : A) Dés critique 3D — d4 et d10 passent au style Delap
 v11.23 — 2026-03-10 : 6 nouvelles icônes game-icons.net (gi-icon-gold) : spinning-sword→Attaque Rapide, icicles-aura→Caractéristiques, breastplate→Armures, diamond-hilt→Armes, scroll-quill→Grimoire, unfurling-scroll→Emplacements & Conduit ; remplacement ra-crossed-swords / ra-shield / ra-book correspondants.
 v11.24 — 2026-03-10 : Suppression ⬡ et ✧ devant Caractéristiques et Emplacements — icône gi-icon suffit.
 v11.25 — 2026-03-10 : Fix icônes 5/6 absentes — CDN URLs non fiables (slugs incertains) ; remplacement par data URI SVG inline pour spinning-sword, breastplate, diamond-hilt, scroll-quill, unfurling-scroll.
+v11.26 — 2026-03-11 : Correction slugs + 6 nouvelles icônes panneaux. Tous les gi-icons utilisent des CDN URLs correctes (plus de data URIs approximatifs). Remplacements : sword-clash→Attaque Rapide, breastplate(lorc)→Armures, diamond-hilt(delapouite)→Armes, scroll-quill(delapouite)→Emplacements, secret-book→Grimoire, fire-ray→Magie, shield-bash→Combat, finger-print→Identité, potion-ball→Reliquaire, glowing-hands→Imposition+sphère soins, spinning-sword(lorc)→Attaque 1&2.
 v11.22 — 2026-03-10 : A) Dés critique 3D — remplacement SVGs 2D plats par SVGs isométriques (tétraèdre/cube/octaèdre/trapézoèdre) dans CRIT_DICE_ICON_MAP ; B) Icône d20 ajoutée à droite de chaque champ d20 du panneau Attaque Rapide : init-d20, mnt-atk-d20, atk1/2-d20 (template).
 v11.14 — 2026-03-09 : 5 corrections UI : diag plus auto-ouvert, ordre boutons aptitudes (édition avant suppression), icônes ra dans popups confirmation/édition, flèche ra-angle-right menu, label Max emplacements sorts.
 v11.13 — 2026-03-09 : 6 améliorations UI : diag accessible depuis menu+erreurs globales, icônes ra aptitudes, couleurs or/rouge boutons, icônes reliquaire or, lune popup repos long, Metamorphous sur texte sphères.
