@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.27 — 2026-03-11 -->
+<!-- dnd-sheet-v11 | version complète : 11.28 — 2026-03-11 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -792,7 +792,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '11.27'
+       · Valeur courante : '11.28'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -1089,16 +1089,17 @@ CHANGELOG entry format:
      Licence SVG : CC BY 3.0 (game-icons.net). Auteurs : Lorc, Delapouite.
 -->
 
-<!-- [EX-G-DICE] DICE ICON SET (v11.27)
+<!-- [EX-G-DICE] DICE ICON SET (v11.28)
      Source   : game-icons.net CC BY 3.0
      RÈGLE CHARGEMENT :
-       · Élément dans display:none → src = data URI base64 (WebKit diffère les CDN)
-       · Élément toujours visible  → src = CDN URL ffffff/transparent
-     Icônes série critique (CRIT_DICE_ICON_MAP — dans display:none → data URIs requis) :
-       d4  → skoll/d4                           ⚠️ data URI à regénérer avec SVG correct
-       d6  → delapouite/perspective-dice-six    ⚠️ data URI à regénérer avec SVG correct
-       d8  → delapouite/dice-eight-faces-eight  ⚠️ data URI à regénérer avec SVG correct
-       d10 → skoll/d10                          ⚠️ data URI à regénérer avec SVG correct
+       · Tous les éléments → src = CDN URL ffffff/transparent
+       · Exception data URI SUPPRIMÉE (v11.28) : app hébergée sur GitHub Pages ;
+         compatibilité Scriptable limitée aux contenus fonctionnels, pas aux icônes.
+     Icônes série critique (CRIT_DICE_ICON_MAP — dans display:none → CDN, voir règle) :
+       d4  → skoll/d4                           ✅ CDN CRIT_DICE_ICON_MAP
+       d6  → delapouite/perspective-dice-six    ✅ CDN CRIT_DICE_ICON_MAP
+       d8  → delapouite/dice-eight-faces-eight  ✅ CDN CRIT_DICE_ICON_MAP
+       d10 → skoll/d10                          ✅ CDN CRIT_DICE_ICON_MAP
      Icônes série visibles (getDiceIconUrl — CDN URLs) :
        d4  → skoll/d4.svg                       ✅ CDN — damage input icon
        d6  → delapouite/perspective-dice-six.svg ✅ CDN — damage input icon
@@ -4422,7 +4423,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.27';
+var FILE_VERSION = '11.28';
 
 'use strict';
 
@@ -7306,10 +7307,10 @@ function updateSmite(n) {
    Icons from game-icons.net (c9a84c / transparent), CC BY 3.0.
    ============================================================ */
 var CRIT_DICE_ICON_MAP = {
-  'd4':  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ4TDQ4IDQ2NGg0MTZMMjU2IDQ4em0wIDczbDE1MiAzMDNIMTA0TDI1NiAxMjF6bS0xOCAxMjloMzZ2MjhoLTM2di0yOHptMCA1MmgzNnY2NWgtMzZ2LTY1eiIvPjwvc3ZnPg==',
-  'd6':  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ0TDYwIDE1NnYyMDBsMTk2IDExMiAxOTYtMTEyVjE1NkwyNTYgNDR6bTAgNDRsMTYwIDkydjRMMjU2IDkyIDk2IDE4NHYtNGwxNjAtOTJ6bS0xNzYgMTI4bDE2MCA5MnYxNjhsLTE2MC05MlYyMTZ6bTE5NiAyNjBWMzA4bDE2MC05MnYxNjhsLTE2MCA4NHoiLz48L3N2Zz4=',
-  'd8':  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDMyTDQwIDI1NmwyMTYgMjI0IDIxNi0yMjRMMjU2IDMyem0wIDY2bDE2OCAxNTgtMTY4IDEyLTE2OC0xMiAxNjgtMTU4em0tMTc4IDE5MmwxNjggMTJ2MTU2bC0xNjgtMTY4em0xOTYgMTY4VjMwMmwxNjgtMTItMTY4IDE2OHoiLz48L3N2Zz4=',
-  'd10': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDMyTDMyIDI0MGw4NiAyNDBoMjc2bDg2LTI0MEwyNTYgMzJ6bTAgNTVsMTg4IDE2M0g2OEwyNTYgODd6bS0xNDggMTgxaDI5NmwtNzIgMjAwSDE4MGwtNzItMjAweiIvPjwvc3ZnPg=='
+  'd4':  'https://game-icons.net/icons/ffffff/transparent/1x1/skoll/d4.svg',
+  'd6':  'https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/perspective-dice-six.svg',
+  'd8':  'https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-eight-faces-eight.svg',
+  'd10': 'https://game-icons.net/icons/ffffff/transparent/1x1/skoll/d10.svg'
 };
 function critDiceIcons(count, diceType) {
   var url = CRIT_DICE_ICON_MAP[diceType] || CRIT_DICE_ICON_MAP['d6'];
@@ -8618,6 +8619,7 @@ v11.24 — 2026-03-10 : Suppression ⬡ et ✧ devant Caractéristiques et Empla
 v11.25 — 2026-03-10 : Fix icônes 5/6 absentes — CDN URLs non fiables (slugs incertains) ; remplacement par data URI SVG inline pour spinning-sword, breastplate, diamond-hilt, scroll-quill, unfurling-scroll.
 v11.26 — 2026-03-10 : 11 icônes gi-icon mises à jour avec URLs correctes : sword-clash/Attaque Rapide, breastplate/Armures, diamond-hilt/Armes, scroll-quill/Emplacements, secret-book/Grimoire, fire-ray/Magie, shield-bash/Combat, finger-print/Identité, potion-ball/Reliquaire, glowing-hands/Imposition (titre+sphère). Data URIs provisoires supprimées.
 v11.26 — 2026-03-11 : Correction slugs + 6 nouvelles icônes panneaux. Tous les gi-icons utilisent des CDN URLs correctes (plus de data URIs approximatifs). Remplacements : sword-clash→Attaque Rapide, breastplate(lorc)→Armures, diamond-hilt(delapouite)→Armes, scroll-quill(delapouite)→Emplacements, secret-book→Grimoire, fire-ray→Magie, shield-bash→Combat, finger-print→Identité, potion-ball→Reliquaire, glowing-hands→Imposition+sphère soins, spinning-sword(lorc)→Attaque 1&2.
+v11.28 — 2026-03-11 : CRIT_DICE_ICON_MAP : data URIs remplacées par CDN URLs (d4→skoll/d4, d6→perspective-dice-six, d8→dice-eight-faces-eight, d10→skoll/d10). Règle data URI supprimée — app hébergée sur GitHub Pages.
 v11.27 — 2026-03-11 : (1) Dés crídice CRIT_DICE_ICON_MAP slugs mis à jour : d4→skoll/d4, d6→delapouite/perspective-dice-six, d8→delapouite/dice-eight-faces-eight, d10→skoll/d10 (data URIs à remplacer — slugs corrects, SVGs non encore fournis) ; (2) dice-fire (delapouite) : Dés de Vie section-title + Reliquaire hd-vial-label ; (3) Retrait ❆ devant Identité ; (4) magic-potion (delapouite) : Objets ; (5) reaper-scythe (lorc) : Jets de Sauvegarde Mort ; (6) Chevrons ▼▶ remplacés par ▾▸ (sans variante emoji) ; (7) Géndice icons dynamiques sur inputs dégâts : atk1/atk2 (mise à jour via updateCombat/getDiceIconUrl), mnt-dmg-d8 (statique d8), smite-dice (statique d8).
 v11.22 — 2026-03-10 : A) Dés critique 3D — remplacement SVGs 2D plats par SVGs isométriques (tétraèdre/cube/octaèdre/trapézoèdre) dans CRIT_DICE_ICON_MAP ; B) Icône d20 ajoutée à droite de chaque champ d20 du panneau Attaque Rapide : init-d20, mnt-atk-d20, atk1/2-d20 (template).
 v11.14 — 2026-03-09 : 5 corrections UI : diag plus auto-ouvert, ordre boutons aptitudes (édition avant suppression), icônes ra dans popups confirmation/édition, flèche ra-angle-right menu, label Max emplacements sorts.
