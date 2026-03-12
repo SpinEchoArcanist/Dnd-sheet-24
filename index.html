@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.34 — 2026-03-11 -->
+<!-- dnd-sheet-v12 | version complète : 12.6 — 2026-03-12 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -271,8 +271,9 @@ CHANGELOG entry format:
        - Col. gauche  : Identité (champs: Nom, Classe, Espèce, Historique, Niveau/Maîtrise + sous-section Aptitudes), Vie, Combat
        - Col. centrale: Caractéristiques & Compétences, Aide aux Tests
        - Col. droite  : Magie, Inventaire
-     Section basse : .bottom-section, flex-direction column, width 100%, gap 10px
-       3 panneaux indépendants empilés verticalement (chacun pleine largeur) :
+     Section basse : .bottom-section supprimée (v12.6) — les 3 panneaux sont
+       désormais enfants directs de #app, empilés verticalement en flux block normal.
+       Espacement inter-panneaux assuré par .panel { margin-bottom:8px }.
        - .panel Attaque Rapide
        - .panel Grimoire
        - .panel#panel-reliquaire : .panel-body en flex-direction:row
@@ -644,6 +645,66 @@ CHANGELOG entry format:
      Fermeture : fermerFormObjet() — inchangé
 -->
 
+<!-- [EX-M-F57] CARACTÉRISTIQUE D'INCANTATION & DD SORTS (v12.1)
+
+     Dernière sous-section du panneau Magie (#panel-magie), après Monture.
+     Layout : .field-row avec 2 .field-group côte à côte.
+
+     CHAMPS :
+       #carac-incantation : <select> options for/dex/con/int/sag/cha/'' — onchange=updateDDSorts()
+       #dd-sorts           : <input type="text" readonly> — affiche le DD calculé
+
+     FORMULE : DD = 8 + modCarac + modMaîtrise
+       modCarac   : parseInt(textContent de #mod-{stat}) — lu via updateDDSorts()
+       modMaîtrise: parseInt(value de #bonus-maitrise)
+
+     FONCTION : updateDDSorts()
+       · Si aucune caractéristique sélectionnée (value='') → dd-sorts = '—'
+       · Sinon → dd-sorts = String(8 + modCarac + modMaîtrise)
+       · Appelée par : onchange sur #carac-incantation, updateAll() après STATS_DEF.forEach
+
+     PERSISTANCE : collecterDonnees() → data.caracIncantation = lireStr('carac-incantation')
+       charger() → setVal('carac-incantation', data.caracIncantation || '') + updateDDSorts()
+       DEFAULTS.caracIncantation = 'cha' (Paladin — caractéristique d'incantation canonique)
+       sanitiserDonnees() : whitelist ['for','dex','con','int','sag','cha',''] — défaut 'cha'
+
+     EXPOSITION : window.updateDDSorts
+-->
+
+<!-- [EX-M-F58] AURA DE PROTECTION (v12.3)
+
+     Case à cocher dans la section Jets de Sauvegarde du panneau Aide aux Tests.
+     Aptitude de Paladin niveau 6 : le modificateur de Charisme s'ajoute à tous
+     les jets de sauvegarde tant que l'aura est active.
+
+     HTML :
+       #aura-protection-active : <input type="checkbox"> — onchange=updateAuraProtection()
+                                   rendu via .custom-check / .chk-box
+       #aura-protection-note   : <p class="feature-note"> — rappel textuel, display:none/block
+
+     FONCTION : updateAuraProtection()
+       · Lit niveau via lireInt('niveau',1), checkbox via #aura-protection-active,
+         mod CHA via parseInt(#mod-cha.textContent)
+       · bonus = (niv >= 6 && checked) ? modCha : 0
+       · Recalcule saveMod complet depuis les inputs bruts (anti-accumulation) :
+           baseMod = modDnd(stat-{saveStatId}) + (maîtrise si proficient)
+           totalMod = baseMod + bonus
+       · Écrit sgn(totalMod) → #aide-save-mod ; d20+totalMod → #aide-save-total
+       · Affiche #aura-protection-note si bonus ≠ 0
+       · Appelée par : onchange sur #aura-protection-active,
+                       updateAideTests() (en fin de bloc sauvegarde),
+                       charger() après restore
+
+     PERSISTANCE : auraProtectionActive (bool, défaut false)
+       collecterDonnees() → lireChk('aura-protection-active')
+       charger()          → setChk + updateAuraProtection()
+       sanitiserDonnees() → defBool(raw.auraProtectionActive, false)
+       DEFAULTS.auraProtectionActive = false
+
+     CSS : .feature-note ajouté (font-size 0.75rem, italic, parchemin-s)
+     EXPOSITION : window.updateAuraProtection
+-->
+
 <!-- [EX-G-F54] HTML RENDER HELPERS (v9.15)
 
      mkActionBtns(editFn,delFn,id) → string
@@ -786,13 +847,15 @@ CHANGELOG entry format:
        dons      (tableau, chaque élément : { id, name, categorie, description }),
        aptitudes (tableau, chaque élément : { id, name, niveau(int 1-20), description })
        [feats retiré v9.8 — migration automatique dans sanitiserDonnees()]
+       caracIncantation (string : 'for'|'dex'|'con'|'int'|'sag'|'cha'|'' — défaut 'cha')
+       auraProtectionActive (bool — défaut false) [EX-M-F58]
 -->
 
 <!-- [EX-T-F41] VERSIONNAGE DU FICHIER (v9.0)
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '11.34'
+       · Valeur courante : '12.6'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -985,6 +1048,7 @@ CHANGELOG entry format:
      MISE À JOUR : updateAideTests() appelée par updateAll() et par onchange/oninput
        des dropdowns et champs D20.
      Valeurs éphémères — non persistées dans localStorage.
+     Exception : case #aura-protection-active — persistée (état de personnage) [EX-M-F58].
 -->
 
 <!-- [EX-G-F44] PANNEAUX COLLAPSIBLES (v5.3+)
@@ -1570,19 +1634,6 @@ body {
 /* ============================================================
    SECTION BAS — DIABLO
    ============================================================ */
-.bottom-section {
-  background:linear-gradient(180deg,rgba(18,14,28,0.99) 0%,rgba(8,6,14,0.99) 100%);
-  border:1px solid rgba(201,168,76,0.18); border-radius:4px;
-  padding:14px 16px; position:relative; overflow:hidden;
-  display:flex; flex-direction:column; width:100%; gap:10px;
-}
-.bottom-section::before {
-  content:''; position:absolute; inset:0;
-  background:repeating-linear-gradient(0deg,rgba(255,255,255,0.007) 0px,rgba(255,255,255,0.007) 1px,transparent 1px,transparent 28px),
-    repeating-linear-gradient(90deg,rgba(255,255,255,0.007) 0px,rgba(255,255,255,0.007) 1px,transparent 1px,transparent 28px);
-  pointer-events:none;
-}
-
 /* Sphères */
 .sphere-zone { display:flex; flex-direction:column; align-items:center; gap:8px; flex:1 1 0; min-width:0; }
 /* Barre de contrôles PV : champs blessure+soin à gauche, bouclier CA à droite */
@@ -3055,6 +3106,37 @@ select.field-input optgroup {
   font-weight:600;
 }
 .armor-stealth-warning.hidden { display:none; }
+.feature-note { font-size:0.75rem; color:var(--parchemin-s); font-style:italic; margin-top:5px; line-height:1.35; opacity:0.85; }
+
+/* ── Subsection spacing & title sizing ─────────────────────────────── */
+/* Slightly larger font for subsection titles vs body/label text        */
+/* Base .section-title: 0.64rem → 0.64 × 1.08 = 0.69rem               */
+/* Ceiling: top-level .section-title-rapide = 1.3rem (not affected)    */
+.panel-body > .section-title:not(.section-title-rapide) {
+  font-size: 0.69rem;
+}
+/* Vertical spacing before subsections — skip genuine first children    */
+/* Pattern 1: plain .section-title.collapsible inside a .panel-body    */
+.panel-body > .section-title.collapsible:not(.section-title-rapide):not(.inv-section-header):not(:first-child) {
+  margin-top: 1.2rem;
+}
+/* Pattern 2: .inv-section-header inside a .panel-body                 */
+/* !important required to override per-element inline margin-top values */
+/* Covers all instances; first-child (Inventaire "Objets") is           */
+/* intentionally included per user request                              */
+.panel-body > .section-title.inv-section-header {
+  margin-top: 1.2rem !important;
+}
+/* Pattern 3: .subsection-header — inline-div subheaders (Aide aux Tests) */
+/* Font size matches other subsection titles                            */
+.subsection-header {
+  font-size: 0.69rem;
+}
+/* Spacing only for the second wrapper (Jets de Sauvegarde);            */
+/* first wrapper (Tests de Caractéristique) gets no top margin          */
+.panel-body > div + div > .subsection-header {
+  margin-top: 1.2rem;
+}
 .inv-armor-detail {
   padding:4px 6px 6px 10px;
   border-left:2px solid rgba(201,168,76,0.2);
@@ -3361,7 +3443,7 @@ select.field-input optgroup {
 
           <!-- Tests de Caractéristique -->
           <div style="margin-bottom:10px;">
-            <div style="font-family:var(--font-sub);font-size:0.57rem;color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Tests de Caractéristique</div>
+            <div class="subsection-header" style="font-family:var(--font-sub);color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Tests de Caractéristique</div>
             <div class="field-group">
               <label class="field-label">Caractéristique ou Compétence</label>
               <select class="field-input" id="aide-test-target" style="cursor:pointer;" onchange="updateAideTests()">
@@ -3389,7 +3471,12 @@ select.field-input optgroup {
 
           <!-- Jets de Sauvegarde -->
           <div>
-            <div style="font-family:var(--font-sub);font-size:0.57rem;color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Jets de Sauvegarde</div>
+            <div class="subsection-header" style="font-family:var(--font-sub);color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Jets de Sauvegarde</div>
+            <label class="custom-check" style="margin-bottom:6px;">
+              <input type="checkbox" id="aura-protection-active" onchange="updateAuraProtection()">
+              <span class="chk-box"></span>
+              <span>Aura de Protection (niv. 6)</span>
+            </label>
             <div class="field-group">
               <label class="field-label">Caractéristique</label>
               <select class="field-input" id="aide-save-target" style="cursor:pointer;" onchange="updateAideTests()">
@@ -3409,6 +3496,9 @@ select.field-input optgroup {
                 <div class="combat-total" id="aide-save-total" style="font-size:0.92rem;padding:4px 8px;">—</div>
               </div>
             </div>
+            <p id="aura-protection-note" class="feature-note" style="display:none;">
+              ✦ Aura de Protection : modificateur de Charisme ajouté aux jets de sauvegarde.
+            </p>
           </div>
         </div><!-- fin panel-body -->
       </div><!-- fin panel-aide-tests -->
@@ -3424,6 +3514,26 @@ select.field-input optgroup {
           <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/fire-ray.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Magie</span>
         </div>
         <div class="panel-body panel-magie-body">
+        <!-- Caractéristique d'incantation [EX-M-F57] -->
+        <div class="field-row" style="margin-top:4px;margin-bottom:4px;">
+          <div class="field-group">
+            <label class="field-label">Carac. d'incantation</label>
+            <select class="field-input" id="carac-incantation" onchange="updateDDSorts()">
+              <option value="">—</option>
+              <option value="for">Force</option>
+              <option value="dex">Dextérité</option>
+              <option value="con">Constitution</option>
+              <option value="int">Intelligence</option>
+              <option value="sag">Sagesse</option>
+              <option value="cha">Charisme</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">DD sorts</label>
+            <input class="field-input" type="text" id="dd-sorts" readonly value="—" style="text-align:center;">
+          </div>
+        </div>
+        <div class="sep"></div>
         <!-- Emplacements &amp; Conduit Divin -->
         <div class="section-title collapsible" style="margin-top:6px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/scroll-quill.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Emplacements &amp; Conduit Divin</div>
         <div class="panel-body">
@@ -3662,7 +3772,6 @@ select.field-input optgroup {
   </div><!-- fin main-grid -->
 
   <!-- ══ SECTION BAS — DIABLO ══ -->
-  <div class="bottom-section">
 
       <!-- ══ ATTAQUE RAPIDE ══ -->
       <div class="panel">
@@ -4414,7 +4523,6 @@ select.field-input optgroup {
         </div>
         </div><!-- fin panel-body reliquaire -->
       </div><!-- fin panel Reliquaire -->
-  </div><!-- fin bottom-section -->
 
 </div><!-- fin #app -->
 
@@ -4423,7 +4531,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.34';
+var FILE_VERSION = '12.6';
 
 'use strict';
 
@@ -4480,7 +4588,9 @@ var DEFAULTS = {
   spells:[],
   spellGroupsOpen:{},
   mount:{ spellLevel:2, type:'Céleste', currentHP:25 },
-  traits:[], dons:[], aptitudes:[]
+  traits:[], dons:[], aptitudes:[],
+  caracIncantation: 'cha',
+  auraProtectionActive: false
 };
 
 /* ============================================================
@@ -4730,12 +4840,53 @@ function updateAideTests() {
     var saveMod = modDnd(lireInt('stat-' + saveStatId, 10));
     var saveCheckEl = document.getElementById('save-' + saveStatId);
     if (saveCheckEl && saveCheckEl.checked) saveMod += mait;
-    saveModEl.value = sgn(saveMod);
+    saveModEl.value = sgn(saveMod);  /* write BASE modifier — aura bonus applied by updateAuraProtection() */
     var saveD20v = parseInt(saveD20El && saveD20El.value);
     saveTotEl.textContent = isNaN(saveD20v) ? '—' : (saveD20v + saveMod);
   }
   /* Update stealth warning visibility when dropdown changes */
   updateStealthWarning();
+  /* Apply Aura de Protection bonus on top of freshly computed base [EX-M-F58] */
+  updateAuraProtection();
+}
+
+/* ============================================================
+   AURA DE PROTECTION — voir [EX-M-F58]
+   Applique le bonus CHA aux jets de sauvegarde si niv ≥ 6
+   et case cochée. Appelée après chaque recalcul de saveMod.
+   ============================================================ */
+function updateAuraProtection() {
+  var niv = Math.max(1, lireInt('niveau', 1));
+  var chk = document.getElementById('aura-protection-active');
+  var active = chk && chk.checked;
+  /* CHA modifier — read from DOM element generated by genererStats() */
+  var modChaEl = document.getElementById('mod-cha');
+  var modCha = modChaEl ? (parseInt(modChaEl.textContent) || 0) : 0;
+  /* Aura bonus: only when level >= 6 AND checkbox checked */
+  var bonus = (niv >= 6 && active) ? modCha : 0;
+
+  var saveModEl = document.getElementById('aide-save-mod');
+  var saveD20El = document.getElementById('aide-save-d20');
+  var saveTotEl = document.getElementById('aide-save-total');
+  var noteEl    = document.getElementById('aura-protection-note');
+
+  if (saveModEl && saveTotEl) {
+    /* Re-read the base modifier freshly from stat inputs (avoids accumulation) */
+    var saveSel = document.getElementById('aide-save-target');
+    var niv2    = Math.max(1, lireInt('niveau', 1));
+    var mait2   = calcMaitrise(niv2);
+    var saveStatId = saveSel ? (saveSel.value || 'con') : 'con';
+    var baseMod = modDnd(lireInt('stat-' + saveStatId, 10));
+    var saveCheckEl = document.getElementById('save-' + saveStatId);
+    if (saveCheckEl && saveCheckEl.checked) baseMod += mait2;
+    var totalMod = baseMod + bonus;
+    saveModEl.value = sgn(totalMod);
+    var saveD20v = parseInt(saveD20El && saveD20El.value);
+    saveTotEl.textContent = isNaN(saveD20v) ? '—' : (saveD20v + totalMod);
+  }
+
+  /* Show/hide reminder note */
+  if (noteEl) noteEl.style.display = (bonus !== 0) ? 'block' : 'none';
 }
 
 /* ============================================================
@@ -5320,6 +5471,22 @@ function updateMonture() {
 
   /* Persist */
   sauvegarder();
+}
+
+/* ============================================================
+   DD SORTS — voir [EX-M-F57]
+   ============================================================ */
+function updateDDSorts() {
+  var el = document.getElementById('dd-sorts');
+  if (!el) return;
+  var sel = document.getElementById('carac-incantation');
+  var statKey = sel ? sel.value : '';
+  if (!statKey) { el.value = '—'; return; }
+  var modEl = document.getElementById('mod-' + statKey);
+  var modCarac = modEl ? (parseInt(modEl.textContent) || 0) : 0;
+  var bmEl = document.getElementById('bonus-maitrise');
+  var modMaitrise = bmEl ? (parseInt(bmEl.value) || 0) : 0;
+  el.value = String(8 + modCarac + modMaitrise);
 }
 
 /* Toggle grimoire prepared-only filter */
@@ -6171,6 +6338,7 @@ function updateAll() {
       if (ve) ve.textContent = sgn(md + ((ck && ck.checked) ? maîtBns : 0));
     });
   });
+  updateDDSorts(); /* sync DD when stats or proficiency change [EX-M-F57] */
   var hmM = 5 * niv;
   var hmx = document.getElementById('hm-max');
   if (hmx) hmx.value = hmM;
@@ -6774,6 +6942,8 @@ function collecterDonnees() {
     type: (lireStr('mnt-type')) || 'Céleste',
     currentHP: lireInt('mnt-pv-cur', 25)
   };
+  data.caracIncantation = lireStr('carac-incantation');
+  data.auraProtectionActive = lireChk('aura-protection-active');
   return data;
 }
 
@@ -7078,7 +7248,13 @@ function sanitiserDonnees(raw) {
         out.push({id:String(a.id||(Date.now()+Math.random())),name:String(a.name).trim(),niveau:niv,description:typeof a.description==='string'?a.description:''});
       }
       return out;
-    }())
+    }()),
+    caracIncantation: (function() {
+      var valid = ['for','dex','con','int','sag','cha',''];
+      var v = typeof raw.caracIncantation === 'string' ? raw.caracIncantation : 'cha';
+      return valid.indexOf(v) >= 0 ? v : 'cha';
+    }()),
+    auraProtectionActive: defBool(raw.auraProtectionActive, false)
   };
 
   return { data: data, fallbacks: fb };
@@ -7143,6 +7319,12 @@ function charger(data) {
   S.traits    = data.traits    || [];
   S.dons      = data.dons      || [];
   S.aptitudes = data.aptitudes || [];
+  /* Restore spellcasting ability [EX-M-F57] */
+  setVal('carac-incantation', data.caracIncantation || '');
+  updateDDSorts();
+  /* Restore Aura de Protection [EX-M-F58] */
+  setChk('aura-protection-active', data.auraProtectionActive);
+  updateAuraProtection();
 }
 
 function syncInputs() {
@@ -7422,6 +7604,7 @@ window.updateVersionLabel    = updateVersionLabel;
 window.updateTestRoll        = updateAideTests;
 window.updateSaveRoll        = updateAideTests;
 window.updateAideTests       = updateAideTests;
+window.updateAuraProtection  = updateAuraProtection;
 window.buildAideTestsOptions = buildAideTestsOptions;
 /* ============================================================
    INVENTAIRE — OBJETS
@@ -8448,6 +8631,7 @@ window.fermerFormArmure      = fermerFormArmure;
 window.toggleArmorTypeFields = toggleArmorTypeFields;
 window.enregistrerArmure     = enregistrerArmure;
 window.updateMonture         = updateMonture;
+window.updateDDSorts         = updateDDSorts;
 window.updateFeats           = updateFeats;
 window.toggleFeatExpand      = toggleFeatExpand;
 window.supprimerTypedItem    = supprimerTypedItem;
@@ -8625,6 +8809,13 @@ v11.25 — 2026-03-10 : Fix icônes 5/6 absentes — CDN URLs non fiables (slugs
 v11.26 — 2026-03-10 : 11 icônes gi-icon mises à jour avec URLs correctes : sword-clash/Attaque Rapide, breastplate/Armures, diamond-hilt/Armes, scroll-quill/Emplacements, secret-book/Grimoire, fire-ray/Magie, shield-bash/Combat, finger-print/Identité, potion-ball/Reliquaire, glowing-hands/Imposition (titre+sphère). Data URIs provisoires supprimées.
 v11.26 — 2026-03-11 : Correction slugs + 6 nouvelles icônes panneaux. Tous les gi-icons utilisent des CDN URLs correctes (plus de data URIs approximatifs). Remplacements : sword-clash→Attaque Rapide, breastplate(lorc)→Armures, diamond-hilt(delapouite)→Armes, scroll-quill(delapouite)→Emplacements, secret-book→Grimoire, fire-ray→Magie, shield-bash→Combat, finger-print→Identité, potion-ball→Reliquaire, glowing-hands→Imposition+sphère soins, spinning-sword(lorc)→Attaque 1&2.
 v11.34 — 2026-03-11 : Icône Aptitudes/Traits/Dons : ra-book remplacée par gi-icon lorc/dna2.
+v12.0 — 2026-03-11 : Version majeure — passage v11.34 → v12.0 (user request).
+v12.1 — 2026-03-11 : Ajout Caractéristique d'incantation (select #carac-incantation) et DD sorts auto-calculé (#dd-sorts) dans le panneau Magie — formule DD = 8 + mod carac + mod maîtrise.
+v12.2 — 2026-03-11 : Déplacement Carac. d'incantation / DD sorts en tête du panneau Magie, avant la sous-section Emplacements & Conduit Divin.
+v12.3 — 2026-03-11 : Aura de Protection (niv. 6) — case à cocher dans Jets de Sauvegarde ; modificateur CHA ajouté au total de sauvegarde quand actif et niveau ≥ 6.
+v12.4 — 2026-03-12 : CSS uniquement — espacement vertical (1.2rem) avant chaque sous-titre de panneau ; taille de police sous-titres portée à 0.69rem ; exception : "Objets" dans Inventaire reçoit l'espacement même en première position.
+v12.5 — 2026-03-12 : Aide aux Tests — classe subsection-header ajoutée aux deux sous-titres inline (Tests de Caractéristique, Jets de Sauvegarde) ; espacements et taille de police désormais cohérents avec les autres panneaux.
+v12.6 — 2026-03-12 : Suppression du conteneur .bottom-section — bordure, fond, padding et texture décoratifs retirés ; les 3 panneaux bas (Attaque Rapide, Grimoire, Reliquaire) sont désormais enfants directs de #app, largeur pleine, empilés en flux block normal.
 v11.33 — 2026-03-11 : d8 : URL CDN skoll/d8 introuvable — icône encodée en data URI base64 (SVG delapouite/dice-eight-faces-eight, fond noir supprimé, chemin blanc conservé). 10 occurrences remplacées.
 v11.32 — 2026-03-11 : (1) Icone smite: ligne Niv.emplacement -> ligne Des lancés + id smite+n+-die-icon. (2) updateSmite: getElementById. (3) Diagnostic: test img.onerror/onload chaque URL CDN dé.
 v11.31 — 2026-03-11 : (1) d8 slug corrigé : delapouite/dice-eight-faces-eight → skoll/d8 (cohérent avec skoll/d4 et skoll/d10) — 10 occurrences. (2) updateSmite : icône dé mise à jour dynamiquement (d8 pour Châtiment Divin, d6 pour Châtiment de la Fournaise).
