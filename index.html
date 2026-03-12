@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v11 | version complète : 11.2 — 2026-03-09 -->
+<!-- dnd-sheet-v12 | version complète : 12.6 — 2026-03-12 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -271,8 +271,9 @@ CHANGELOG entry format:
        - Col. gauche  : Identité (champs: Nom, Classe, Espèce, Historique, Niveau/Maîtrise + sous-section Aptitudes), Vie, Combat
        - Col. centrale: Caractéristiques & Compétences, Aide aux Tests
        - Col. droite  : Magie, Inventaire
-     Section basse : .bottom-section, flex-direction column, width 100%, gap 10px
-       3 panneaux indépendants empilés verticalement (chacun pleine largeur) :
+     Section basse : .bottom-section supprimée (v12.6) — les 3 panneaux sont
+       désormais enfants directs de #app, empilés verticalement en flux block normal.
+       Espacement inter-panneaux assuré par .panel { margin-bottom:8px }.
        - .panel Attaque Rapide
        - .panel Grimoire
        - .panel#panel-reliquaire : .panel-body en flex-direction:row
@@ -470,7 +471,7 @@ CHANGELOG entry format:
 
      Panneau collapsible dans la colonne droite, sous le panneau Attaque Rapide.
      Structure HTML : .grimoire-header (flex row) contenant :
-       · .section-title.collapsible "📖 Grimoire" (titre seul, sans éléments inline)
+       · .section-title.collapsible "📖→ra-book Grimoire" (titre seul, sans éléments inline)
        · #grimoire-filter-bar (dans .panel-body) contient :
            .grimoire-prep-label + #grimoire-prep-counter | switch | #grimoire-add-btn
      Corps : .panel-body > #grimoire-spell-list (rendu dynamique par updateGrimoire())
@@ -532,8 +533,11 @@ CHANGELOG entry format:
 <!-- [EX-M-F52] MONTURE D'OUTREMONDE (Sprint 1)
 
      Sous-section collapsible dans le panneau Magie (à la suite de Imposition des mains).
-     Structure HTML : <div class="section-title collapsible">🐎 Monture d&#39;outremonde</div>
+     Structure HTML : <div class="section-title collapsible">
+                        <img class="gi-icon" src="game-icons.net/stag-head.svg"> Monture d'outremonde
+                      </div>
                       <div class="panel-body">..contenu..</div>
+     Icône : stag-head (Lorc, game-icons.net, CC BY 3.0) via <img class="gi-icon"> [EX-G-F48]
      (plus de <div class="panel" id="panel-monture"> wrapper — supprimé en v8.4)
 
      CHAMPS DE CONFIGURATION :
@@ -570,7 +574,7 @@ CHANGELOG entry format:
 <!-- [EX-M-F53] APTITUDES TYPED (v9.8)
 
      Sous-section collapsible dans le panneau Identité (colonne gauche), après les champs Classe (readonly Paladin), Espèce, Historique.
-     Titre : "📖 Aptitudes, Traits et Dons"
+     Titre : "ra-book Aptitudes, Traits et Dons"  (icône RPG Awesome ra-book, emoji 📖 remplacé)
      Bouton + header → ouvrirFormTyped() (formulaire inline dans #feats-form-area)
 
      MODELES :
@@ -639,6 +643,66 @@ CHANGELOG entry format:
      Hidden : iform-id | Erreur : iform-error
      Enregistrement : enregistrerObjet() — inchangé
      Fermeture : fermerFormObjet() — inchangé
+-->
+
+<!-- [EX-M-F57] CARACTÉRISTIQUE D'INCANTATION & DD SORTS (v12.1)
+
+     Dernière sous-section du panneau Magie (#panel-magie), après Monture.
+     Layout : .field-row avec 2 .field-group côte à côte.
+
+     CHAMPS :
+       #carac-incantation : <select> options for/dex/con/int/sag/cha/'' — onchange=updateDDSorts()
+       #dd-sorts           : <input type="text" readonly> — affiche le DD calculé
+
+     FORMULE : DD = 8 + modCarac + modMaîtrise
+       modCarac   : parseInt(textContent de #mod-{stat}) — lu via updateDDSorts()
+       modMaîtrise: parseInt(value de #bonus-maitrise)
+
+     FONCTION : updateDDSorts()
+       · Si aucune caractéristique sélectionnée (value='') → dd-sorts = '—'
+       · Sinon → dd-sorts = String(8 + modCarac + modMaîtrise)
+       · Appelée par : onchange sur #carac-incantation, updateAll() après STATS_DEF.forEach
+
+     PERSISTANCE : collecterDonnees() → data.caracIncantation = lireStr('carac-incantation')
+       charger() → setVal('carac-incantation', data.caracIncantation || '') + updateDDSorts()
+       DEFAULTS.caracIncantation = 'cha' (Paladin — caractéristique d'incantation canonique)
+       sanitiserDonnees() : whitelist ['for','dex','con','int','sag','cha',''] — défaut 'cha'
+
+     EXPOSITION : window.updateDDSorts
+-->
+
+<!-- [EX-M-F58] AURA DE PROTECTION (v12.3)
+
+     Case à cocher dans la section Jets de Sauvegarde du panneau Aide aux Tests.
+     Aptitude de Paladin niveau 6 : le modificateur de Charisme s'ajoute à tous
+     les jets de sauvegarde tant que l'aura est active.
+
+     HTML :
+       #aura-protection-active : <input type="checkbox"> — onchange=updateAuraProtection()
+                                   rendu via .custom-check / .chk-box
+       #aura-protection-note   : <p class="feature-note"> — rappel textuel, display:none/block
+
+     FONCTION : updateAuraProtection()
+       · Lit niveau via lireInt('niveau',1), checkbox via #aura-protection-active,
+         mod CHA via parseInt(#mod-cha.textContent)
+       · bonus = (niv >= 6 && checked) ? modCha : 0
+       · Recalcule saveMod complet depuis les inputs bruts (anti-accumulation) :
+           baseMod = modDnd(stat-{saveStatId}) + (maîtrise si proficient)
+           totalMod = baseMod + bonus
+       · Écrit sgn(totalMod) → #aide-save-mod ; d20+totalMod → #aide-save-total
+       · Affiche #aura-protection-note si bonus ≠ 0
+       · Appelée par : onchange sur #aura-protection-active,
+                       updateAideTests() (en fin de bloc sauvegarde),
+                       charger() après restore
+
+     PERSISTANCE : auraProtectionActive (bool, défaut false)
+       collecterDonnees() → lireChk('aura-protection-active')
+       charger()          → setChk + updateAuraProtection()
+       sanitiserDonnees() → defBool(raw.auraProtectionActive, false)
+       DEFAULTS.auraProtectionActive = false
+
+     CSS : .feature-note ajouté (font-size 0.75rem, italic, parchemin-s)
+     EXPOSITION : window.updateAuraProtection
 -->
 
 <!-- [EX-G-F54] HTML RENDER HELPERS (v9.15)
@@ -783,13 +847,15 @@ CHANGELOG entry format:
        dons      (tableau, chaque élément : { id, name, categorie, description }),
        aptitudes (tableau, chaque élément : { id, name, niveau(int 1-20), description })
        [feats retiré v9.8 — migration automatique dans sanitiserDonnees()]
+       caracIncantation (string : 'for'|'dex'|'con'|'int'|'sag'|'cha'|'' — défaut 'cha')
+       auraProtectionActive (bool — défaut false) [EX-M-F58]
 -->
 
 <!-- [EX-T-F41] VERSIONNAGE DU FICHIER (v9.0)
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '10.0'
+       · Valeur courante : '12.6'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -817,9 +883,14 @@ CHANGELOG entry format:
 <!-- [EX-T-F37] COMPATIBILITÉ iOS / SCRIPTABLE (WKWebView)
 
      Règles IMPÉRATIVES — ne jamais enfreindre :
-       1. Zéro CDN, zéro framework — fichier 100% autonome sauf Metamorphous (Google
-          Fonts via @import, amélioration progressive uniquement). Fallback garanti :
-          Palatino Linotype → Georgia → serif si la police externe échoue.
+       1. Zéro CDN, zéro framework — fichier 100% autonome sauf trois exceptions
+          autorisées (amélioration progressive, fallback garanti) :
+          · Metamorphous — Google Fonts via @import dans <style>
+            Fallback : Palatino Linotype → Georgia → serif
+          · RPG Awesome 0.3.4 — jsDelivr via <link> dans <head> (icônes [EX-G-F47])
+            Fonctionne depuis GitHub Pages. Fallback : <i class="ra ..."> vide, aucun tofu.
+          · game-icons.net SVG — <img src="https://game-icons.net/icons/..."> (icônes [EX-G-F48])
+            Fallback : img vide (alt="", aria-hidden="true"), aucun tofu, aucun texte perdu.
        2. initApp() appelé DIRECTEMENT à la fin du script
           → JAMAIS via DOMContentLoaded ou window.onload
        3. Toutes les fonctions appelées via onclick="..." DOIVENT être
@@ -977,6 +1048,7 @@ CHANGELOG entry format:
      MISE À JOUR : updateAideTests() appelée par updateAll() et par onchange/oninput
        des dropdowns et champs D20.
      Valeurs éphémères — non persistées dans localStorage.
+     Exception : case #aura-protection-active — persistée (état de personnage) [EX-M-F58].
 -->
 
 <!-- [EX-G-F44] PANNEAUX COLLAPSIBLES (v5.3+)
@@ -1002,14 +1074,118 @@ CHANGELOG entry format:
      Toutes exposées sur window.*
 -->
 
-<!-- [EX-G-F46] PANNEAU MAGIE PARENT (v9.6)
+<!-- [EX-G-F47] RPG AWESOME ICONS (v11.26)
+     Emojis remplacés par icônes RPG Awesome 0.3.4 via <i class="ra ra-X rpa-icon">.
+     Chargement : <link rel="stylesheet"> dans <head>.
+     Marqueur Scriptable : commentaire HTML SCRIPTABLE_RPA_INJECT précédant le &lt;link&gt;.
+     Classe helper CSS .rpa-icon : font-style:normal; line-height:1; vertical-align:middle;
+       margin-right:0.28em; font-size:1em; color:inherit.
+     Mapping emoji → ra-class (actifs) :
+       ⚙  → ra-cog              ✨ → ra-burning-embers
+       🤲 → ra-hand              ⚅ → ra-perspective-dice-six
+       ⚗ → ra-fizzing-flask     🗡 → ra-plain-dagger
+       ❤ → ra-health             ☽ → ra-moon-sun
+       ⏱ → ra-stopwatch         ✏ → ra-quill-ink
+       🗑 → ra-x-mark            📦 → ra-hourglass
+     Remplacés par gi-icon game-icons.net (v11.23) :
+       ⚔ ra-crossed-swords → spinning-sword (delapouite)  — Attaque Rapide
+       ⚔ ra-crossed-swords → diamond-hilt (lorc)          — Armes (Inventaire)
+       🛡 ra-shield         → breastplate (delapouite)     — Armures (Inventaire)
+       📖 ra-book           → scroll-quill (lorc)          — Grimoire
+     Remplacés par gi-icon game-icons.net (v11.16) :
+       🐎 🐴 → stag-head (lorc)    ❤/&#x2665; → heart-organ (lorc)
+       🎒  → knapsack (lorc)       🎲 → dice-twenty-faces-twenty (delapouite)
+     Nouveaux gi-icon sans équivalent ra (v11.23/v11.26) :
+       ⬡ retiré  → icicles-aura (lorc)          — Caractéristiques
+       ✧ retiré  → scroll-quill (delapouite)     — Emplacements & Conduit Divin
+       (aucun)   → finger-print (delapouite)     — Identité (ajout, ✦ conservé)
+     Icônes panneaux ajoutées (v11.26) :
+       ra-burning-embers → fire-ray (lorc)       — Magie
+       ra-crossed-swords → shield-bash (delapouite) — Combat
+       ra-fizzing-flask  → potion-ball (lorc)    — Reliquaire
+       ra-hand (×2)      → glowing-hands (lorc)  — Imposition des mains + sphère soins
+       ra-crossed-swords → spinning-sword (lorc) — Attaque 1 & 2 (template JS)
+     Emojis conservés (KEEP) : ✧ ❖ ▾ ♥ ✗ ⬡ ⚠️
+     Note : ✦ retiré devant Identité (v11.27) — finger-print icon suffit
+            ▼▶ remplacés par ▾▸ (U+25BE/U+25B8) — pas de variante emoji
+     Note : ▶ ▼ encore utilisés par JS chevron collapsible (textContent — non remplacé)
+             ⛔ ✘ conservés dans le panneau diagnostic (usage interne, non visible en jeu)
+-->
+
+<!-- [EX-G-F48] GAME-ICONS.NET SVG ICONS (v11.26)
+     Pattern : <img src="CDN_URL"> + CSS filter pour la couleur.
+     URL SVG : https://game-icons.net/icons/ffffff/transparent/1x1/{auteur}/{nom}.svg
+       → Toujours ffffff/transparent. Couleur via filtre CSS, jamais dans l'URL.
+       → NE PAS utiliser mask-image/background-color — ne fonctionne pas sur <img>.
+       → Éléments dans display:none : utiliser data URI base64 (WebKit diffère le chargement CDN).
+       → Tous les éléments visibles utilisent CDN URL. Vérifier le slug exact sur game-icons.net.
+
+     Rendu HTML :
+       <img src="{url}" class="gi-icon [gi-icon-lg|gi-icon-md] [gi-icon-gold|gi-icon-red]"
+            alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">
+
+     Classes CSS :
+       .gi-icon        base : inline-block, 1em×1em, vertical-align:middle
+       .gi-icon-lg     taille : 1.3em×1.3em  (titres de section)
+       .gi-icon-md     taille : 1.2em×1.2em  (combat-title, template Attaque N)
+       .gi-icon-gold   filter : sepia(1) saturate(2.2) hue-rotate(6deg) brightness(0.92)
+       .gi-icon-red    filter : sepia(1) saturate(8) hue-rotate(315deg) brightness(0.75)
+
+     Mapping complet (CDN, visibles) :
+       stag-head (lorc)                  — Monture section-title (gold) + combat-title (red)
+       heart-organ (lorc)                — Vie + Points de Vie (gold)
+       knapsack (lorc)                   — Inventaire (gold)
+       dice-twenty-faces-twenty (delapouite) — Aide aux Tests + inputs D20 (gold)
+       icicles-aura (lorc)               — Caractéristiques & Compétences (gold)
+       sword-clash (lorc)                — Attaque Rapide section-title (gold)
+       breastplate (lorc)                — Armures inventaire (gold)
+       diamond-hilt (delapouite)         — Armes inventaire (gold)
+       scroll-quill (delapouite)         — Emplacements & Conduit Divin (gold)
+       secret-book (delapouite)          — Grimoire (gold)
+       fire-ray (lorc)                   — Magie panel (gold)
+       shield-bash (delapouite)          — Combat panel (gold)
+       finger-print (delapouite)         — Identité panel (gold, ✦ conservé)
+       potion-ball (lorc)                — Reliquaire panel (gold)
+       glowing-hands (lorc)              — Imposition des mains + sphère soins (gold)
+       spinning-sword (lorc)             — Attaque 1 & 2 combat-title (red, gi-icon-md)
+     Dés critique (data URI, display:none) : voir critDiceIcons() + CRIT_DICE_ICON_MAP [EX-G-DICE].
+     Fallback offline : img vide invisible — aucun tofu, aucun texte perdu [EX-T-F37].
+     Licence SVG : CC BY 3.0 (game-icons.net). Auteurs : Lorc, Delapouite.
+-->
+
+<!-- [EX-G-DICE] DICE ICON SET (v11.28)
+     Source   : game-icons.net CC BY 3.0
+     RÈGLE CHARGEMENT :
+       · Tous les éléments → src = CDN URL ffffff/transparent
+       · Exception data URI SUPPRIMÉE (v11.28) : app hébergée sur GitHub Pages ;
+         compatibilité Scriptable limitée aux contenus fonctionnels, pas aux icônes.
+     Icônes série critique (CRIT_DICE_ICON_MAP — dans display:none → CDN, voir règle) :
+       d4  → skoll/d4                           ✅ CDN CRIT_DICE_ICON_MAP
+       d6  → delapouite/perspective-dice-six    ✅ CDN CRIT_DICE_ICON_MAP
+       d8  → delapouite/dice-eight-faces-eight  ✅ data URI (aucun CDN disponible pour cet icône)
+       d10 → skoll/d10                          ✅ CDN CRIT_DICE_ICON_MAP
+     Icônes série visibles (getDiceIconUrl — CDN URLs) :
+       d4  → skoll/d4.svg                       ✅ CDN — damage input icon
+       d6  → delapouite/perspective-dice-six.svg ✅ CDN — damage input icon
+       d8  → delapouite/dice-eight-faces-eight.svg ✅ CDN — damage input icon
+       d10 → skoll/d10.svg                      ✅ CDN — damage input icon
+       d20 → delapouite/dice-twenty-faces-twenty.svg ✅ CDN — Aide aux Tests + D20 inputs
+     Icône spéciale :
+       dice-fire (delapouite) — Dés de Vie section + hd-vial-label Reliquaire
+     Damage input icons (v11.27) :
+       · dmg1/dmg2-die-icon : <img> after damage input, src mis à jour par updateCombat()
+       · mnt-dmg-die-icon   : <img> statique d8 après mnt-dmg-d8
+       · smite icon         : <img> statique d8 dans template après smite-dice input
+-->
+
+<!-- [EX-G-F46] PANNEAU MAGIE PARENT
      Panneau parent collapsible regroupant trois sous-sections :
        1. ✧ Emplacements & Conduit Divin
-       2. 🤲 Imposition des mains
-       3. 🐎 Monture d'outremonde
+       2. ra-hand Imposition des mains  (icône RPG Awesome ra-hand, emoji 🤲 remplacé)
+       3. gi-icon stag-head Monture d'outremonde  (SVG game-icons.net, voir [EX-G-F48])
      Colonne droite, en tête avant Inventaire.
      Structure : <div class="panel" id="panel-magie">
-                   <div class="section-title collapsible">✨ Magie</div>
+                   <div class="section-title collapsible">lorc/fire-ray Magie</div>
                    <div class="panel-body panel-magie-body">
                      <div class="section-title collapsible" style="margin-top:6px;">... sous-titre A</div>
                      <div class="panel-body">... contenu A</div>
@@ -1050,10 +1226,15 @@ CHANGELOG entry format:
              désactiver l'un ou l'autre masque les bulles PV indépendamment.
 -->
 
+<!-- RPG Awesome 0.3.4 — loaded via <link> (GitHub Pages CSP compatible) -->
+<!-- SCRIPTABLE_RPA_INJECT -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css">
+
 <style>
 /* Scriptable runtime font injection point — do not remove */
 /* SCRIPTABLE_FONT_INJECT */
 @import url('https://fonts.googleapis.com/css2?family=Metamorphous&display=swap');
+
 /* ============================================================
    VARIABLES & RESET — Polices système, zéro dépendance externe
 v9.12 — 2026-03-07 : T1 type-switch en modification Traits/Dons/Aptitudes ; T2 Classe readonly Paladin + layout compact.
@@ -1076,6 +1257,14 @@ v9.12 — 2026-03-07 : T1 type-switch en modification Traits/Dons/Aptitudes ; T
   --font-corps: var(--font-metamorphous);
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+/* RPG Awesome icon helper — see [EX-G-F47] */
+.rpa-icon { font-style:normal; line-height:1; vertical-align:middle; margin-right:0.28em; font-size:1em; color:inherit; }
+.gi-icon        { display:inline-block; vertical-align:middle; width:1em; height:1em; margin-right:0.3em; }
+.gi-icon-lg     { width:1.3em; height:1.3em; }
+.gi-icon-md     { width:1.2em; height:1.2em; }
+/* Colour via CSS filter on white SVG — sepia base + tuned hue/saturation/brightness */
+.gi-icon-gold   { filter:sepia(1) saturate(2.2) hue-rotate(6deg) brightness(0.92); }
+.gi-icon-red    { filter:sepia(1) saturate(8) hue-rotate(315deg) brightness(0.75); }
 
 body {
   background-color: var(--noir);
@@ -1324,8 +1513,8 @@ body {
   gap:5px;
 }
 .section-title.collapsible::before {
-  content:'▼';
-  font-size:0.45rem;
+  content:'▾';
+  font-size:0.6rem;
   color:var(--or);
   transition:transform 0.25s ease;
   flex-shrink:0;
@@ -1445,19 +1634,6 @@ body {
 /* ============================================================
    SECTION BAS — DIABLO
    ============================================================ */
-.bottom-section {
-  background:linear-gradient(180deg,rgba(18,14,28,0.99) 0%,rgba(8,6,14,0.99) 100%);
-  border:1px solid rgba(201,168,76,0.18); border-radius:4px;
-  padding:14px 16px; position:relative; overflow:hidden;
-  display:flex; flex-direction:column; width:100%; gap:10px;
-}
-.bottom-section::before {
-  content:''; position:absolute; inset:0;
-  background:repeating-linear-gradient(0deg,rgba(255,255,255,0.007) 0px,rgba(255,255,255,0.007) 1px,transparent 1px,transparent 28px),
-    repeating-linear-gradient(90deg,rgba(255,255,255,0.007) 0px,rgba(255,255,255,0.007) 1px,transparent 1px,transparent 28px);
-  pointer-events:none;
-}
-
 /* Sphères */
 .sphere-zone { display:flex; flex-direction:column; align-items:center; gap:8px; flex:1 1 0; min-width:0; }
 /* Barre de contrôles PV : champs blessure+soin à gauche, bouclier CA à droite */
@@ -2320,12 +2496,9 @@ select.field-input optgroup {
   opacity:1;
   background:rgba(255,255,255,0.07);
 }
-.spell-edit-btn {
-  opacity:0.55;
-}
-.spell-del-btn {
-  /* standard .spell-action-btn hover applies */
-}
+.spell-edit-btn { opacity:0.55; }
+.spell-edit-btn .ra-quill-ink { color:var(--or); }
+.spell-del-btn .ra-x-mark { color:#c0392b; }
 .spell-desc-row {
   padding:0 6px 5px 14px;
 }
@@ -2673,6 +2846,8 @@ select.field-input optgroup {
   opacity:0.7;
 }
 .inv-item-action-btn:hover { opacity:1; background:rgba(201,168,76,0.10); }
+.inv-item-action-btn .ra-quill-ink { color:var(--or); }
+.inv-item-action-btn .ra-x-mark { color:#c0392b; }
 .inv-desc-row {
   padding:0 6px 5px 10px;
 }
@@ -2931,6 +3106,37 @@ select.field-input optgroup {
   font-weight:600;
 }
 .armor-stealth-warning.hidden { display:none; }
+.feature-note { font-size:0.75rem; color:var(--parchemin-s); font-style:italic; margin-top:5px; line-height:1.35; opacity:0.85; }
+
+/* ── Subsection spacing & title sizing ─────────────────────────────── */
+/* Slightly larger font for subsection titles vs body/label text        */
+/* Base .section-title: 0.64rem → 0.64 × 1.08 = 0.69rem               */
+/* Ceiling: top-level .section-title-rapide = 1.3rem (not affected)    */
+.panel-body > .section-title:not(.section-title-rapide) {
+  font-size: 0.69rem;
+}
+/* Vertical spacing before subsections — skip genuine first children    */
+/* Pattern 1: plain .section-title.collapsible inside a .panel-body    */
+.panel-body > .section-title.collapsible:not(.section-title-rapide):not(.inv-section-header):not(:first-child) {
+  margin-top: 1.2rem;
+}
+/* Pattern 2: .inv-section-header inside a .panel-body                 */
+/* !important required to override per-element inline margin-top values */
+/* Covers all instances; first-child (Inventaire "Objets") is           */
+/* intentionally included per user request                              */
+.panel-body > .section-title.inv-section-header {
+  margin-top: 1.2rem !important;
+}
+/* Pattern 3: .subsection-header — inline-div subheaders (Aide aux Tests) */
+/* Font size matches other subsection titles                            */
+.subsection-header {
+  font-size: 0.69rem;
+}
+/* Spacing only for the second wrapper (Jets de Sauvegarde);            */
+/* first wrapper (Tests de Caractéristique) gets no top margin          */
+.panel-body > div + div > .subsection-header {
+  margin-top: 1.2rem;
+}
 .inv-armor-detail {
   padding:4px 6px 6px 10px;
   border-left:2px solid rgba(201,168,76,0.2);
@@ -2986,7 +3192,7 @@ select.field-input optgroup {
   <div class="header">
     <!-- C6a — Menu ⚙ à gauche du titre -->
     <div class="menu-wrapper">
-      <button class="menu-btn" id="menu-btn" onclick="toggleMenu(this)" title="Menu">⚙</button>
+      <button class="menu-btn" id="menu-btn" onclick="toggleMenu(this)" title="Menu"><i class="ra ra-cog rpa-icon" aria-hidden="true"></i></button>
       <div class="dropdown" id="dropdown">
         <!-- C6b — 5 options -->
         <button class="dropdown-item" onclick="menuReinitialiser()">
@@ -3001,16 +3207,20 @@ select.field-input optgroup {
         </button>
         <div class="dropdown-sep"></div>
         <button class="dropdown-item" onclick="menuToutReplier()">
-          <span class="di-icon">▶</span> Tout replier
+          <span class="di-icon"><i class="ra ra-angle-right rpa-icon" aria-hidden="true"></i></span> Tout replier
         </button>
         <button class="dropdown-item" onclick="menuToutDeployer()">
-          <span class="di-icon">▼</span> Tout déplier
+          <span class="di-icon">▾</span> Tout déplier
+        </button>
+        <div class="dropdown-sep"></div>
+        <button class="dropdown-item" onclick="ouvrirDiagnostic()">
+          <span class="di-icon">🔍</span> Diagnostic
         </button>
         <div class="dropdown-sep"></div>
         <!-- Sous-menu Effets visuels — voir [EX-G-F45] -->
         <button class="dropdown-submenu-header" id="vfx-submenu-btn" onclick="toggleVfxSubmenu()">
-          <span class="di-icon">✨</span> Effets visuels
-          <span class="di-arrow">▶</span>
+          <span class="di-icon"><i class="ra ra-burning-embers rpa-icon" aria-hidden="true"></i></span> Effets visuels
+          <span class="di-arrow"><i class="ra ra-angle-right rpa-icon" aria-hidden="true"></i></span>
         </button>
         <div class="dropdown-submenu" id="vfx-submenu">
           <div class="dropdown-toggle-row">
@@ -3058,7 +3268,7 @@ select.field-input optgroup {
       <!-- Identité -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">✦ Identité</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/finger-print.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Identité</span>
         </div>
         <div class="panel-body">
         <div class="field-group">
@@ -3092,7 +3302,7 @@ select.field-input optgroup {
 
           <!-- ─ Aptitudes, Traits et Dons ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:4px;">
-            <span style="flex:1;min-width:0;">📖 Aptitudes, Traits et Dons</span>
+            <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/dna2.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Aptitudes, Traits et Dons</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormTyped()" title="Ajouter">+</button>
           </div>
           <div class="panel-body">
@@ -3105,12 +3315,12 @@ select.field-input optgroup {
       <!-- ═══ PANNEAU VIE — Points de Vie + Des de Vie + Jets Mort ═══ -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">&#x2665; Vie</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/heart-organ.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Vie</span>
         </div>
         <div class="panel-body" style="padding-top:4px;">
 
           <!-- Sous-section 1 : Points de Vie -->
-          <div class="section-title collapsible" style="margin-top:0;">&#x2665; Points de Vie</div>
+          <div class="section-title collapsible" style="margin-top:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/heart-organ.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Points de Vie</div>
           <div class="panel-body">
           <label class="custom-check" style="margin-bottom:6px;">
             <input type="checkbox" id="check-robuste">
@@ -3138,7 +3348,7 @@ select.field-input optgroup {
           </div><!-- fin panel-body Points de Vie -->
 
           <!-- Sous-section 2 : Des de Vie -->
-          <div class="section-title collapsible" style="margin-top:4px;">&#x2685; Des de Vie</div>
+          <div class="section-title collapsible" style="margin-top:4px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-fire.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Des de Vie</div>
           <div class="panel-body">
           <div class="field-row" style="margin-bottom:5px;">
             <div class="field-group">
@@ -3157,7 +3367,7 @@ select.field-input optgroup {
           </div><!-- fin panel-body Des de Vie -->
 
           <!-- Sous-section 3 : Jets de Sauvegarde Mort -->
-          <div class="section-title collapsible" style="margin-top:4px;">&#x2620; Jets de Sauvegarde Mort</div>
+          <div class="section-title collapsible" style="margin-top:4px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/reaper-scythe.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Jets de Sauvegarde Mort</div>
           <div class="panel-body">
           <div class="death-saves">
             <div class="death-group">
@@ -3185,7 +3395,7 @@ select.field-input optgroup {
       <!-- Combat -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">⚔ Combat</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/shield-bash.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Combat</span>
         </div>
         <div class="panel-body">
         <div class="field-row">
@@ -3217,7 +3427,7 @@ select.field-input optgroup {
     <div>
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">⬡ Caractéristiques &amp; Compétences</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/icicles-aura.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Caractéristiques &amp; Compétences</span>
         </div>
         <div class="panel-body">
         <div id="stats-container"></div>
@@ -3227,13 +3437,13 @@ select.field-input optgroup {
       <!-- Bloc Aide aux Tests — voir [EX-M-F43] -->
       <div class="panel" id="panel-aide-tests">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">🎲 Aide aux Tests</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Aide aux Tests</span>
         </div>
         <div class="panel-body">
 
           <!-- Tests de Caractéristique -->
           <div style="margin-bottom:10px;">
-            <div style="font-family:var(--font-sub);font-size:0.57rem;color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Tests de Caractéristique</div>
+            <div class="subsection-header" style="font-family:var(--font-sub);color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Tests de Caractéristique</div>
             <div class="field-group">
               <label class="field-label">Caractéristique ou Compétence</label>
               <select class="field-input" id="aide-test-target" style="cursor:pointer;" onchange="updateAideTests()">
@@ -3261,7 +3471,12 @@ select.field-input optgroup {
 
           <!-- Jets de Sauvegarde -->
           <div>
-            <div style="font-family:var(--font-sub);font-size:0.57rem;color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Jets de Sauvegarde</div>
+            <div class="subsection-header" style="font-family:var(--font-sub);color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Jets de Sauvegarde</div>
+            <label class="custom-check" style="margin-bottom:6px;">
+              <input type="checkbox" id="aura-protection-active" onchange="updateAuraProtection()">
+              <span class="chk-box"></span>
+              <span>Aura de Protection (niv. 6)</span>
+            </label>
             <div class="field-group">
               <label class="field-label">Caractéristique</label>
               <select class="field-input" id="aide-save-target" style="cursor:pointer;" onchange="updateAideTests()">
@@ -3281,6 +3496,9 @@ select.field-input optgroup {
                 <div class="combat-total" id="aide-save-total" style="font-size:0.92rem;padding:4px 8px;">—</div>
               </div>
             </div>
+            <p id="aura-protection-note" class="feature-note" style="display:none;">
+              ✦ Aura de Protection : modificateur de Charisme ajouté aux jets de sauvegarde.
+            </p>
           </div>
         </div><!-- fin panel-body -->
       </div><!-- fin panel-aide-tests -->
@@ -3293,11 +3511,31 @@ select.field-input optgroup {
       <!-- Magie -->
       <div class="panel" id="panel-magie">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">✨ Magie</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/fire-ray.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Magie</span>
         </div>
         <div class="panel-body panel-magie-body">
+        <!-- Caractéristique d'incantation [EX-M-F57] -->
+        <div class="field-row" style="margin-top:4px;margin-bottom:4px;">
+          <div class="field-group">
+            <label class="field-label">Carac. d'incantation</label>
+            <select class="field-input" id="carac-incantation" onchange="updateDDSorts()">
+              <option value="">—</option>
+              <option value="for">Force</option>
+              <option value="dex">Dextérité</option>
+              <option value="con">Constitution</option>
+              <option value="int">Intelligence</option>
+              <option value="sag">Sagesse</option>
+              <option value="cha">Charisme</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">DD sorts</label>
+            <input class="field-input" type="text" id="dd-sorts" readonly value="—" style="text-align:center;">
+          </div>
+        </div>
+        <div class="sep"></div>
         <!-- Emplacements &amp; Conduit Divin -->
-        <div class="section-title collapsible" style="margin-top:6px;">✧ Emplacements &amp; Conduit Divin</div>
+        <div class="section-title collapsible" style="margin-top:6px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/scroll-quill.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Emplacements &amp; Conduit Divin</div>
         <div class="panel-body">
           <div id="conduit-cur-row" style="display:flex;align-items:center;gap:6px;margin-bottom:3px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.18);border-radius:3px;padding:4px 7px;">
             <span style="font-family:var(--font-sub);font-size:0.6rem;color:var(--or);letter-spacing:1px;text-transform:uppercase;flex:1;">Conduit Divin</span>
@@ -3306,19 +3544,22 @@ select.field-input optgroup {
           </div>
           <div id="conduit-recovery-text" style="font-family:var(--font-corps);font-size:0.64rem;color:var(--parchemin-s);font-style:italic;margin-bottom:5px;padding:1px 4px 4px;">1 charge / Repos court · Toutes les charges / Repos long</div>
           <div id="slot-row-1" style="display:flex;align-items:center;gap:6px;margin-bottom:5px;background:rgba(123,45,139,0.08);border:1px solid rgba(123,45,139,0.22);border-radius:3px;padding:4px 7px;">
-            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#9b3dcc;letter-spacing:1px;text-transform:uppercase;flex:1;">Sort Niv. 1</span>
+            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#9b3dcc;letter-spacing:1px;text-transform:uppercase;">Sort Niv. 1</span>
+            <span style="font-size:0.64rem;color:var(--parchemin-s);margin-left:auto;">Max</span>
             <input class="field-input" type="number" id="slot1-max" min="0" max="20" readonly value="4" style="width:36px;text-align:center;padding:2px;" placeholder="Max">
             <span style="color:var(--parchemin-s);font-size:0.8rem;">/</span>
             <input class="field-input" type="number" id="slot1-cur" min="0" max="20" value="4" style="width:36px;text-align:center;padding:2px;" placeholder="Act">
           </div>
           <div id="slot-row-2" style="display:flex;align-items:center;gap:6px;background:rgba(26,107,139,0.08);border:1px solid rgba(26,139,180,0.22);border-radius:3px;padding:4px 7px;">
-            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#2aaccc;letter-spacing:1px;text-transform:uppercase;flex:1;">Sort Niv. 2</span>
+            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#2aaccc;letter-spacing:1px;text-transform:uppercase;">Sort Niv. 2</span>
+            <span style="font-size:0.64rem;color:var(--parchemin-s);margin-left:auto;">Max</span>
             <input class="field-input" type="number" id="slot2-max" min="0" max="20" readonly value="2" style="width:36px;text-align:center;padding:2px;" placeholder="Max">
             <span style="color:var(--parchemin-s);font-size:0.8rem;">/</span>
             <input class="field-input" type="number" id="slot2-cur" min="0" max="20" value="2" style="width:36px;text-align:center;padding:2px;" placeholder="Act">
           </div>
           <div id="slot-row-3" style="display:flex;align-items:center;gap:6px;margin-top:5px;background:rgba(10,80,60,0.08);border:1px solid rgba(20,160,120,0.22);border-radius:3px;padding:4px 7px;">
-            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#2acc9b;letter-spacing:1px;text-transform:uppercase;flex:1;">Sort Niv. 3</span>
+            <span style="font-family:var(--font-sub);font-size:0.6rem;color:#2acc9b;letter-spacing:1px;text-transform:uppercase;">Sort Niv. 3</span>
+            <span style="font-size:0.64rem;color:var(--parchemin-s);margin-left:auto;">Max</span>
             <input class="field-input" type="number" id="slot3-max" min="0" max="20" readonly value="0" style="width:36px;text-align:center;padding:2px;" placeholder="Max">
             <span style="color:var(--parchemin-s);font-size:0.8rem;">/</span>
             <input class="field-input" type="number" id="slot3-cur" min="0" max="20" value="0" style="width:36px;text-align:center;padding:2px;" placeholder="Act">
@@ -3329,7 +3570,7 @@ select.field-input optgroup {
         <div class="sep"></div>
 
         <!-- Imposition des mains -->
-        <div class="section-title collapsible">🤲 Imposition des mains</div>
+        <div class="section-title collapsible"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/glowing-hands.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Imposition des mains</div>
         <div class="panel-body">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:0.7rem;color:var(--parchemin-s);">
             <span>PV Max (5 × niveau) :</span>
@@ -3356,7 +3597,7 @@ select.field-input optgroup {
         <div class="sep"></div>
 
         <!-- Monture d'outremonde [EX-M-F52] -->
-        <div class="section-title collapsible">🐎 Monture d&#39;outremonde</div>
+        <div class="section-title collapsible"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/stag-head.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Monture d&#39;outremonde</div>
         <div class="panel-body">
 
             <!-- Configuration -->
@@ -3486,13 +3727,13 @@ select.field-input optgroup {
       <!-- ══ INVENTAIRE ══ -->
       <div class="panel">
         <div class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;">🎒 Inventaire</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/knapsack.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Inventaire</span>
         </div>
         <div class="panel-body">
 
           <!-- ─ Objets ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:0;">
-            <span style="flex:1;min-width:0;">📦 Objets</span>
+            <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/magic-potion.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Objets</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormObjet()" title="Ajouter un objet">+</button>
           </div>
           <div class="panel-body">
@@ -3503,7 +3744,7 @@ select.field-input optgroup {
 
           <!-- ─ Armes ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:4px;">
-            <span style="flex:1;min-width:0;">⚔️ Armes</span>
+            <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/diamond-hilt.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Armes</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormArme()" title="Ajouter une arme">+</button>
           </div>
           <div class="panel-body">
@@ -3514,7 +3755,7 @@ select.field-input optgroup {
 
           <!-- ─ Armures ─ -->
           <div class="section-title collapsible inv-section-header" style="margin-top:4px;">
-            <span style="flex:1;min-width:0;">🛡️ Armures</span>
+            <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/breastplate.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Armures</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormArmure()" title="Ajouter une armure">+</button>
           </div>
           <div class="panel-body">
@@ -3531,12 +3772,11 @@ select.field-input optgroup {
   </div><!-- fin main-grid -->
 
   <!-- ══ SECTION BAS — DIABLO ══ -->
-  <div class="bottom-section">
 
       <!-- ══ ATTAQUE RAPIDE ══ -->
       <div class="panel">
         <!-- Titre principal ATTAQUE RAPIDE — collapsible [EX-G-F44] -->
-        <div class="section-title collapsible section-title-rapide">⚔ Attaque Rapide</div>
+        <div class="section-title collapsible section-title-rapide"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/sword-clash.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Attaque Rapide</div>
         <div class="panel-body" id="panel-body-attaque-rapide">
 
         <!-- Sous-titre 1 : Sorts Actifs -->
@@ -3553,8 +3793,8 @@ select.field-input optgroup {
         <div class="section-title collapsible" style="margin-top:6px;">✦ Initiative</div>
         <div class="panel-body">
         <div class="combat-block">
-          <div class="combat-title">⚅ Initiative</div>
-          <div class="combat-row"><span class="lbl">Jet D20</span><input class="combat-input" type="number" id="init-d20" min="1" max="20"></div>
+          <div class="combat-title"><i class="ra ra-perspective-dice-six rpa-icon" aria-hidden="true"></i>Initiative</div>
+          <div class="combat-row"><span class="lbl">Jet D20</span><input class="combat-input" type="number" id="init-d20" min="1" max="20"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-left:4px;"></div>
           <div class="combat-row"><span class="lbl">Mod. DEX</span><span class="val" id="init-mod-dex">+0</span></div>
           <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="init-total">—</span></div>
         </div>
@@ -3569,19 +3809,19 @@ select.field-input optgroup {
 
           <!-- Monture -->
           <div class="combat-block">
-            <div class="combat-title">🐴 Monture</div>
+            <div class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/stag-head.svg" class="gi-icon gi-icon-md gi-icon-red" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Monture</div>
             <div class="atk-dmg-pair">
               <div class="atk-half">
                 <div class="half-title">Toucher</div>
-                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="mnt-atk-d20" min="1" max="20" oninput="checkCritique('mnt-atk-d20','mnt-dmg')"></div>
-                <div class="crit-badge" id="mnt-atk-crit-badge">⚔ CRITIQUE !</div>
+                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="mnt-atk-d20" min="1" max="20" oninput="checkCritique('mnt-atk-d20','mnt-dmg')"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-left:4px;"></div>
+                <div class="crit-badge" id="mnt-atk-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>
                 <div class="combat-row"><span class="lbl">Mod</span><span class="val" id="mnt-atk-mod">+7</span></div>
                 <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="mnt-atk-total">—</span></div>
               </div>
               <div class="dmg-half">
                 <div class="half-title">Dégâts</div>
-                <div class="combat-row"><span class="lbl">D8</span><input class="combat-input" type="number" id="mnt-dmg-d8" min="1" max="8"></div>
-                <div class="crit-label" id="mnt-dmg-crit-label">🎲 Critique : saisir la somme de 2d8</div>
+                <div class="combat-row"><span class="lbl">D8</span><input class="combat-input" type="number" id="mnt-dmg-d8" min="1" max="8"><img id="mnt-dmg-die-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-left:4px;"></div>
+                <div class="crit-label" id="mnt-dmg-crit-label">Critique : saisir la somme de 2d8 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"></div>
                 <div class="combat-row"><span class="lbl">Mod</span><span class="val" id="mnt-dmg-mod">+2</span></div>
                 <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="mnt-dmg-total">—</span><span class="dmg-type-lbl" id="mnt-dmg-type-atk"></span></div>
               </div>
@@ -3589,7 +3829,7 @@ select.field-input optgroup {
           </div>
 
           <!-- Bouton Fin du Round — à l'intérieur de la zone Round -->
-          <button class="btn-fin-round" onclick="finDuRound()">⏱ Fin du Round</button>
+          <button class="btn-fin-round" onclick="finDuRound()"><i class="ra ra-stopwatch rpa-icon" aria-hidden="true"></i>Fin du Round</button>
 
         </div><!-- fin .round-zone -->
         </div><!-- fin panel-body round -->
@@ -3600,7 +3840,7 @@ select.field-input optgroup {
       <!-- ═══ GRIMOIRE ═══ — voir [EX-M-F50] -->
       <div class="panel">
         <div class="section-title collapsible grimoire-title">
-          <span style="flex:1;min-width:0;">📖 Grimoire</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/secret-book.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Grimoire</span>
         </div>
         <div class="panel-body">
           <div id="grimoire-filter-bar" class="grimoire-filter-bar">
@@ -3630,7 +3870,7 @@ select.field-input optgroup {
 
       <!-- ══ RELIQUAIRE ══ -->
       <div class="panel" id="panel-reliquaire">
-        <div class="section-title">⚗ Reliquaire</div>
+        <div class="section-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/potion-ball.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Reliquaire</div>
         <div class="panel-body">
 
       <!-- Sphère Gauche — PV -->
@@ -3639,12 +3879,12 @@ select.field-input optgroup {
           <!-- Colonne gauche : saisie blessure + soin -->
           <div class="sphere-controls">
             <div class="sphere-ctrl-row">
-              <span style="font-size:1.1rem;">🗡️</span>
+              <span style="font-size:1.1rem;color:var(--or);"><i class="ra ra-plain-dagger rpa-icon" aria-hidden="true"></i></span>
               <input class="sphere-ctrl-input sphere-ctrl-input-narrow" type="number" id="blessure-input" min="0" placeholder="Dégâts">
               <button class="btn" onclick="appliquerBlessure()">✓</button>
             </div>
             <div class="sphere-ctrl-row">
-              <span style="font-size:1.1rem;">❤️</span>
+              <span style="font-size:1.1rem;color:var(--or);"><i class="ra ra-health rpa-icon" aria-hidden="true"></i></span>
               <input class="sphere-ctrl-input sphere-ctrl-input-narrow" type="number" id="soin-input" min="0" placeholder="Soins">
               <button class="btn btn-or" onclick="appliquerSoin()">✓</button>
             </div>
@@ -3967,10 +4207,10 @@ select.field-input optgroup {
               </g>
               <ellipse cx="58" cy="50" rx="22" ry="12" fill="rgba(255,255,255,0.07)" transform="rotate(-22,58,50)"/>
               <ellipse cx="50" cy="46" rx="9" ry="4.5" fill="rgba(255,255,255,0.12)" transform="rotate(-22,50,46)"/>
-              <text x="81" y="85" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="rgba(0,0,0,0.75)">—/—</text>
-              <text id="pv-sphere-text" x="80" y="84" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="rgba(255,245,220,1.0)">—/—</text>
-              <text x="81" y="100" text-anchor="middle" font-family="Georgia,serif" font-size="7.5" fill="rgba(0,0,0,0.6)" letter-spacing="1">POINTS DE VIE</text>
-              <text x="80" y="99" text-anchor="middle" font-family="Georgia,serif" font-size="7.5" fill="rgba(220,180,76,0.90)" letter-spacing="1">POINTS DE VIE</text>
+              <text x="81" y="85" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="13" font-weight="700" fill="rgba(0,0,0,0.75)">—/—</text>
+              <text id="pv-sphere-text" x="80" y="84" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="13" font-weight="700" fill="rgba(255,245,220,1.0)">—/—</text>
+              <text x="81" y="100" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="7.5" fill="rgba(0,0,0,0.6)" letter-spacing="1">POINTS DE VIE</text>
+              <text x="80" y="99" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="7.5" fill="rgba(220,180,76,0.90)" letter-spacing="1">POINTS DE VIE</text>
             </svg>
           </div>
                     <template id="pv-steam-paused">
@@ -4049,7 +4289,7 @@ select.field-input optgroup {
         </div>
         <!-- Fiole Dés de Vie — voir [EX-M-F39] -->
         <div class="hd-vial-zone">
-          <div class="hd-vial-label">⚅ Dés de Vie (D10)</div>
+          <div class="hd-vial-label"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-fire.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Dés de Vie (D10)</div>
           <div class="potion-row" style="justify-content:center;gap:6px;">
             <button class="potion-btn" onclick="modifierHD(-1)">−</button>
             <div class="potion-flask" style="width:120px;">
@@ -4092,14 +4332,14 @@ select.field-input optgroup {
           <div class="potion-flask"><div class="flask-bg flask-bg-v3"><div class="flask-fill flask-v3" id="flask3-fill" style="width:0%"><span class="bubbles"></span></div><div class="flask-text" id="flask3-text">0/0</div></div></div>
           <button class="potion-btn" onclick="modifierSlot(3,1)">+</button>
         </div>
-        <button class="btn btn-or" style="width:100%;margin-top:4px;" onclick="confirmerReposLong()">☽ Repos Long</button>
+        <button class="btn btn-or" style="width:100%;margin-top:4px;" onclick="confirmerReposLong()"><i class="ra ra-moon-sun rpa-icon" aria-hidden="true"></i>Repos Long</button>
       </div>
 
       <!-- Sphère Droite — Imposition des mains -->
       <div class="sphere-zone">
         <div class="sphere-controls">
           <div class="sphere-ctrl-row">
-            <span style="font-size:1.1rem;">🤲</span>
+            <span style="font-size:1.1rem;color:var(--or);"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/glowing-hands.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;"></span>
             <input class="sphere-ctrl-input" type="number" id="soin-mains-input" min="0" placeholder="Soin">
             <button class="btn btn-bleu" onclick="appliquerSoinMains()">✓</button>
           </div>
@@ -4273,17 +4513,16 @@ select.field-input optgroup {
             </g>
             <ellipse cx="58" cy="50" rx="22" ry="12" fill="rgba(255,255,255,0.07)" transform="rotate(-22,58,50)"/>
             <ellipse cx="50" cy="46" rx="9" ry="4.5" fill="rgba(255,255,255,0.12)" transform="rotate(-22,50,46)"/>
-            <text x="81" y="85" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="rgba(0,0,0,0.75)">—/—</text>
-            <text id="hm-sphere-text" x="80" y="84" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="rgba(255,245,220,1.0)">—/—</text>
-            <text x="81" y="100" text-anchor="middle" font-family="Georgia,serif" font-size="7.5" fill="rgba(0,0,0,0.6)" letter-spacing="1">IMPOSITION MAINS</text>
-            <text x="80" y="99" text-anchor="middle" font-family="Georgia,serif" font-size="7.5" fill="rgba(40,200,120,0.92)" letter-spacing="1">IMPOSITION MAINS</text>
+            <text x="81" y="85" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="13" font-weight="700" fill="rgba(0,0,0,0.75)">—/—</text>
+            <text id="hm-sphere-text" x="80" y="84" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="13" font-weight="700" fill="rgba(255,245,220,1.0)">—/—</text>
+            <text x="81" y="100" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="7.5" fill="rgba(0,0,0,0.6)" letter-spacing="1">IMPOSITION MAINS</text>
+            <text x="80" y="99" text-anchor="middle" font-family="Metamorphous,Georgia,serif" font-size="7.5" fill="rgba(40,200,120,0.92)" letter-spacing="1">IMPOSITION MAINS</text>
           </svg>
 
         </div>
         </div>
         </div><!-- fin panel-body reliquaire -->
       </div><!-- fin panel Reliquaire -->
-  </div><!-- fin bottom-section -->
 
 </div><!-- fin #app -->
 
@@ -4292,7 +4531,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '11.2';
+var FILE_VERSION = '12.6';
 
 'use strict';
 
@@ -4349,7 +4588,9 @@ var DEFAULTS = {
   spells:[],
   spellGroupsOpen:{},
   mount:{ spellLevel:2, type:'Céleste', currentHP:25 },
-  traits:[], dons:[], aptitudes:[]
+  traits:[], dons:[], aptitudes:[],
+  caracIncantation: 'cha',
+  auraProtectionActive: false
 };
 
 /* ============================================================
@@ -4599,12 +4840,53 @@ function updateAideTests() {
     var saveMod = modDnd(lireInt('stat-' + saveStatId, 10));
     var saveCheckEl = document.getElementById('save-' + saveStatId);
     if (saveCheckEl && saveCheckEl.checked) saveMod += mait;
-    saveModEl.value = sgn(saveMod);
+    saveModEl.value = sgn(saveMod);  /* write BASE modifier — aura bonus applied by updateAuraProtection() */
     var saveD20v = parseInt(saveD20El && saveD20El.value);
     saveTotEl.textContent = isNaN(saveD20v) ? '—' : (saveD20v + saveMod);
   }
   /* Update stealth warning visibility when dropdown changes */
   updateStealthWarning();
+  /* Apply Aura de Protection bonus on top of freshly computed base [EX-M-F58] */
+  updateAuraProtection();
+}
+
+/* ============================================================
+   AURA DE PROTECTION — voir [EX-M-F58]
+   Applique le bonus CHA aux jets de sauvegarde si niv ≥ 6
+   et case cochée. Appelée après chaque recalcul de saveMod.
+   ============================================================ */
+function updateAuraProtection() {
+  var niv = Math.max(1, lireInt('niveau', 1));
+  var chk = document.getElementById('aura-protection-active');
+  var active = chk && chk.checked;
+  /* CHA modifier — read from DOM element generated by genererStats() */
+  var modChaEl = document.getElementById('mod-cha');
+  var modCha = modChaEl ? (parseInt(modChaEl.textContent) || 0) : 0;
+  /* Aura bonus: only when level >= 6 AND checkbox checked */
+  var bonus = (niv >= 6 && active) ? modCha : 0;
+
+  var saveModEl = document.getElementById('aide-save-mod');
+  var saveD20El = document.getElementById('aide-save-d20');
+  var saveTotEl = document.getElementById('aide-save-total');
+  var noteEl    = document.getElementById('aura-protection-note');
+
+  if (saveModEl && saveTotEl) {
+    /* Re-read the base modifier freshly from stat inputs (avoids accumulation) */
+    var saveSel = document.getElementById('aide-save-target');
+    var niv2    = Math.max(1, lireInt('niveau', 1));
+    var mait2   = calcMaitrise(niv2);
+    var saveStatId = saveSel ? (saveSel.value || 'con') : 'con';
+    var baseMod = modDnd(lireInt('stat-' + saveStatId, 10));
+    var saveCheckEl = document.getElementById('save-' + saveStatId);
+    if (saveCheckEl && saveCheckEl.checked) baseMod += mait2;
+    var totalMod = baseMod + bonus;
+    saveModEl.value = sgn(totalMod);
+    var saveD20v = parseInt(saveD20El && saveD20El.value);
+    saveTotEl.textContent = isNaN(saveD20v) ? '—' : (saveD20v + totalMod);
+  }
+
+  /* Show/hide reminder note */
+  if (noteEl) noteEl.style.display = (bonus !== 0) ? 'block' : 'none';
 }
 
 /* ============================================================
@@ -4836,6 +5118,16 @@ function updateFioles() {
 /* ============================================================
    MISE À JOUR DES TOTAUX COMBAT
    ============================================================ */
+function getDiceIconUrl(diceType) {
+  var map = {
+    'd4':  'https://game-icons.net/icons/ffffff/transparent/1x1/skoll/d4.svg',
+    'd6':  'https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/perspective-dice-six.svg',
+    'd8':  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=',
+    'd10': 'https://game-icons.net/icons/ffffff/transparent/1x1/skoll/d10.svg',
+    'd12': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4='
+  };
+  return map[diceType] || map['d8'];
+}
 function updateCombat() {
   var niv   = Math.max(1, lireInt('niveau', 1));
   var m     = calcMaitrise(niv);
@@ -4903,6 +5195,9 @@ function updateCombat() {
     if (dieLbl) {
       dieLbl.textContent = weapon ? (weapon.diceCount + weapon.diceType) : 'D8';
     }
+    var dieType = weapon ? weapon.diceType : 'd8';
+    var dieIconEl = document.getElementById(dmgP + '-die-icon');
+    if (dieIconEl) dieIconEl.src = getDiceIconUrl(dieType);
 
     /* Update atk total */
     var d20  = parseInt(document.getElementById(atkP + '-d20') && document.getElementById(atkP + '-d20').value);
@@ -4968,7 +5263,7 @@ function updateCombat() {
     if (critLbl) {
       var critDiceCount = weapon ? (weapon.diceCount * 2) : 2;
       var critDiceType  = weapon ? weapon.diceType : 'd8';
-      critLbl.textContent = '🎲+🎲 Critique : saisir la somme de ' + critDiceCount + critDiceType;
+      critLbl.innerHTML = 'Critique : saisir la somme de ' + critDiceCount + critDiceType + ' ' + critDiceIcons(critDiceCount, critDiceType);
     }
   });
 
@@ -5178,6 +5473,22 @@ function updateMonture() {
   sauvegarder();
 }
 
+/* ============================================================
+   DD SORTS — voir [EX-M-F57]
+   ============================================================ */
+function updateDDSorts() {
+  var el = document.getElementById('dd-sorts');
+  if (!el) return;
+  var sel = document.getElementById('carac-incantation');
+  var statKey = sel ? sel.value : '';
+  if (!statKey) { el.value = '—'; return; }
+  var modEl = document.getElementById('mod-' + statKey);
+  var modCarac = modEl ? (parseInt(modEl.textContent) || 0) : 0;
+  var bmEl = document.getElementById('bonus-maitrise');
+  var modMaitrise = bmEl ? (parseInt(bmEl.value) || 0) : 0;
+  el.value = String(8 + modCarac + modMaitrise);
+}
+
 /* Toggle grimoire prepared-only filter */
 function toggleGrimoireFilter() {
   S.grimoireFilterPrepared = !S.grimoireFilterPrepared;
@@ -5263,7 +5574,7 @@ function updateGrimoire() {
     var level = levels[gi];
     // Default open unless explicitly false in spellGroupsOpen
     var isOpen = (S.spellGroupsOpen && S.spellGroupsOpen[level] === false) ? false : true;
-    var chevron = isOpen ? '\u25bc' : '\u25b6';
+    var chevron = isOpen ? '\u25be' : '\u25b8';
     html += '<div class="spell-level-group">' +
       '<div class="spell-level-header" onclick="toggleSpellGroup(' + level + ')">' +
         '<span class="spell-level-chevron" id="spell-chev-' + level + '">' + chevron + '</span>' +
@@ -5298,9 +5609,9 @@ function updateGrimoire() {
           '</div>' +
           '<div class="spell-actions">' +
             '<button class="spell-action-btn spell-edit-btn" ' +
-              'onclick="editSort(\'' + safeId + '\')" title="Modifier (bient\u00f4t disponible)">\u270f\ufe0f</button>' +
+              'onclick="editSort(\'' + safeId + '\')" title="Modifier (bient\u00f4t disponible)"><i class="ra ra-quill-ink rpa-icon" aria-hidden="true"></i></button>' +
             '<button class="spell-action-btn spell-del-btn" id="spell-del-' + sp.id + '" ' +
-              'onclick="supprimerSort(\'' + safeId + '\')" title="Supprimer">\ud83d\uddd1\ufe0f</button>' +
+              'onclick="supprimerSort(\'' + safeId + '\')" title="Supprimer"><i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i></button>' +
           '</div>' +
         '</div>' +
         '<div class="spell-desc-row hidden" id="spell-desc-' + sp.id + '">' +
@@ -5368,8 +5679,8 @@ function buildTypedRow(item, type, badge) {
     '<div class="inv-item-row" id="frow-' + sid + '">' +
       '<button class="inv-item-name-btn" onclick="toggleFeatExpand(\'' + sid + '\')" title="' + sname + '">' + sname + '</button>' +
       badgeHtml +
-      '<button class="inv-item-action-btn" onclick="supprimerTypedItem(\'' + type + '\',\'' + sid + '\')" title="Supprimer">\ud83d\uddd1\ufe0f</button>' +
-      '<button class="inv-item-action-btn" onclick="editTypedItem(\'' + type + '\',\'' + sid + '\')" title="Modifier">\u270f\ufe0f</button>' +
+      '<button class="inv-item-action-btn" onclick="editTypedItem(\'' + type + '\',\'' + sid + '\')" title="Modifier"><i class="ra ra-quill-ink rpa-icon" aria-hidden="true"></i></button>' +
+      '<button class="inv-item-action-btn" onclick="supprimerTypedItem(\'' + type + '\',\'' + sid + '\')" title="Supprimer"><i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i></button>' +
     '</div>' +
     '<div class="inv-desc-row hidden" id="fexp-' + sid + '">' +
       '<div class="inv-desc-text">' +
@@ -5391,10 +5702,10 @@ function supprimerTypedItem(type, id) {
   for(var i=0;i<arr.length;i++){ if(arr[i].id===id){ item=arr[i]; break; } }
   var art = type==='aptitude' ? 'l\u2019aptitude' : type==='don' ? 'le don' : 'le trait';
   ouvrirConfirmation({
-    title:    '\ud83d\uddd1\ufe0f Supprimer '+art,
+    title:    '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer '+art,
     subtitle: 'Cette action est irr\u00e9versible',
     message:  'Supprimer <strong>' + escapeHtml(item?item.name:id) + '</strong>\u00a0?',
-    labelOui: '\ud83d\uddd1\ufe0f Supprimer',
+    labelOui: '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer',
     labelNon: '\u2715 Annuler',
     onOui: function() {
       if(type==='trait')    { S.traits    = (S.traits||[]).filter(function(x){return x.id!==id;}); }
@@ -5681,7 +5992,7 @@ function ouvrirConfirmation(opts) {
 
   var btnOui = document.createElement('button');
   btnOui.className = 'overlay-btn overlay-btn-danger';
-  btnOui.textContent = opts.labelOui || '✔ Oui';
+  btnOui.innerHTML  = opts.labelOui || '✔ Oui';
   btnOui.setAttribute('type', 'button');
   btnOui.onclick = function() {
     fermerConfirmation();
@@ -5722,10 +6033,10 @@ function supprimerSort(id) {
     if (S.spells[i].id === id) { spellName = S.spells[i].name; break; }
   }
   ouvrirConfirmation({
-    title:    '🗑️ Supprimer le sort',
+    title:    '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer le sort',
     subtitle: 'Cette action est irréversible',
     message:  'Supprimer <strong>' + escapeHtml(spellName || id) + '</strong>&nbsp;?',
-    labelOui: '🗑️ Supprimer',
+    labelOui: '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer',
     labelNon: '✕ Annuler',
     onOui: function() {
       S.spells = S.spells.filter(function(sp) { return sp.id !== id; });
@@ -5794,7 +6105,7 @@ function ouvrirFormSort(id) {
   var ov = creerOverlay({
     id: 'overlay-form-sort', maxWidth: '540px', 
     titleHtml:
-    '<p class="overlay-title">' + (isEdit ? '\u270f\ufe0f Modifier le sort' : '\u2726 Nouveau sort') + '</p>' +
+    '<p class="overlay-title">' + (isEdit ? '<i class=\"ra ra-quill-ink rpa-icon\" aria-hidden=\"true\"></i> Modifier le sort' : '\u2726 Nouveau sort') + '</p>' +
     '<p class="overlay-subtitle">' + formSub(isEdit) + '</p>',
     onFermer: fermerFormSort
   });
@@ -6027,6 +6338,7 @@ function updateAll() {
       if (ve) ve.textContent = sgn(md + ((ck && ck.checked) ? maîtBns : 0));
     });
   });
+  updateDDSorts(); /* sync DD when stats or proficiency change [EX-M-F57] */
   var hmM = 5 * niv;
   var hmx = document.getElementById('hm-max');
   if (hmx) hmx.value = hmM;
@@ -6133,10 +6445,10 @@ function restaurerMains() {
    ============================================================ */
 function confirmerReposLong() {
   ouvrirConfirmation({
-    title:    '☽ Repos Long',
+    title:    '<i class="ra ra-moon-sun rpa-icon" aria-hidden="true"></i>Repos Long',
     subtitle: 'Toutes les ressources seront restaurées',
     message:  'Effectuer un <strong>Repos Long</strong> ?<br><span style="font-size:0.8rem;color:#5a4a3a;">PV max, Imposition des mains, Conduit Divin, emplacements de sorts, dés de vie.</span>',
-    labelOui: '☽ Repos Long appliqué',
+    labelOui: '<i class="ra ra-moon-sun rpa-icon" aria-hidden="true"></i>Repos Long appliqué',
     labelNon: '✕ Non',
     onOui:    _executerReposLong
   });
@@ -6630,6 +6942,8 @@ function collecterDonnees() {
     type: (lireStr('mnt-type')) || 'Céleste',
     currentHP: lireInt('mnt-pv-cur', 25)
   };
+  data.caracIncantation = lireStr('carac-incantation');
+  data.auraProtectionActive = lireChk('aura-protection-active');
   return data;
 }
 
@@ -6934,7 +7248,13 @@ function sanitiserDonnees(raw) {
         out.push({id:String(a.id||(Date.now()+Math.random())),name:String(a.name).trim(),niveau:niv,description:typeof a.description==='string'?a.description:''});
       }
       return out;
-    }())
+    }()),
+    caracIncantation: (function() {
+      var valid = ['for','dex','con','int','sag','cha',''];
+      var v = typeof raw.caracIncantation === 'string' ? raw.caracIncantation : 'cha';
+      return valid.indexOf(v) >= 0 ? v : 'cha';
+    }()),
+    auraProtectionActive: defBool(raw.auraProtectionActive, false)
   };
 
   return { data: data, fallbacks: fb };
@@ -6999,6 +7319,12 @@ function charger(data) {
   S.traits    = data.traits    || [];
   S.dons      = data.dons      || [];
   S.aptitudes = data.aptitudes || [];
+  /* Restore spellcasting ability [EX-M-F57] */
+  setVal('carac-incantation', data.caracIncantation || '');
+  updateDDSorts();
+  /* Restore Aura de Protection [EX-M-F58] */
+  setChk('aura-protection-active', data.auraProtectionActive);
+  updateAuraProtection();
 }
 
 function syncInputs() {
@@ -7142,6 +7468,11 @@ function updateSmite(n) {
 
   if (hintEl) hintEl.textContent = dieLabel;
   if (lblEl)  lblEl.textContent  = typeLabelText;
+  /* Update smite dice icon to match smite type */
+  var smiteDieIconEl = document.getElementById('smite' + n + '-die-icon');
+  if (smiteDieIconEl) {
+    smiteDieIconEl.src = getDiceIconUrl(smiteType === 'divin' ? 'd8' : 'd6');
+  }
 
   /* Compute total: base weapon dmg + smite dice input */
   var dmgTotalEl = document.getElementById('dmg' + n + '-total');
@@ -7154,6 +7485,26 @@ function updateSmite(n) {
       totEl.textContent = smiteDice > 0 ? '(' + smiteDice + ')' : '—';
     }
   }
+}
+
+/* ============================================================
+   CRITIQUE DICE ICONS — helper [EX-G-DICE]
+   Returns HTML string of N <img> icons matching the die type.
+   diceType : 'd4' | 'd6' | 'd8' | 'd10'  (VALID_DICE)
+   Icons from game-icons.net (c9a84c / transparent), CC BY 3.0.
+   ============================================================ */
+var CRIT_DICE_ICON_MAP = {
+  'd4':  'https://game-icons.net/icons/ffffff/transparent/1x1/skoll/d4.svg',
+  'd6':  'https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/perspective-dice-six.svg',
+  'd8':  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=',
+  'd10': 'https://game-icons.net/icons/ffffff/transparent/1x1/skoll/d10.svg'
+};
+function critDiceIcons(count, diceType) {
+  var url = CRIT_DICE_ICON_MAP[diceType] || CRIT_DICE_ICON_MAP['d6'];
+  var img = '<img src="' + url + '" class="gi-icon gi-icon-md gi-icon-gold" alt="' + diceType + '" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;">';
+  var out = '';
+  for (var i = 0; i < count; i++) out += img;
+  return out;
 }
 
 function checkCritique(toucherInputId, degatsGroupId) {
@@ -7253,6 +7604,7 @@ window.updateVersionLabel    = updateVersionLabel;
 window.updateTestRoll        = updateAideTests;
 window.updateSaveRoll        = updateAideTests;
 window.updateAideTests       = updateAideTests;
+window.updateAuraProtection  = updateAuraProtection;
 window.buildAideTestsOptions = buildAideTestsOptions;
 /* ============================================================
    INVENTAIRE — OBJETS
@@ -7263,8 +7615,8 @@ window.buildAideTestsOptions = buildAideTestsOptions;
    mkDetailSpan(cls,label,val)   : labelled detail <span> for inv grids.
    ────────────────────────────────────────────────────────────────────────── */
 function mkActionBtns(editFn,delFn,id){
-  return '<button class="inv-item-action-btn" onclick="'+editFn+'(\''+id+'\')" title="Modifier">\u270f\ufe0f</button>'+
-         '<button class="inv-item-action-btn" onclick="'+delFn +'(\''+id+'\')" title="Supprimer">\ud83d\uddd1\ufe0f</button>';
+  return '<button class="inv-item-action-btn" onclick="'+editFn+'(\''+id+'\')" title="Modifier"><i class="ra ra-quill-ink rpa-icon" aria-hidden="true"></i></button>'+
+         '<button class="inv-item-action-btn" onclick="'+delFn +'(\''+id+'\')" title="Supprimer"><i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i></button>';
 }
 function mkDetailSpan(cls,label,val){
   return '<span><span class="'+cls+'">'+label+' :</span>'+val+'</span>';
@@ -7314,10 +7666,10 @@ function supprimerObjet(id) {
     if (S.items[i].id === id) { itemName = S.items[i].name; break; }
   }
   ouvrirConfirmation({
-    title:    '🗑️ Supprimer l’objet',
+    title:    '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer l’objet',
     subtitle: 'Cette action est irréversible',
     message:  'Supprimer <strong>' + escapeHtml(itemName || id) + '</strong> ?',
-    labelOui: '🗑️ Supprimer',
+    labelOui: '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer',
     labelNon: '✕ Annuler',
     onOui: function() {
       S.items = (S.items || []).filter(function(it) { return it.id !== id; });
@@ -7342,7 +7694,7 @@ function ouvrirFormObjet(id) {
   }
   ouvrirFormSimple({
     overlayId: 'overlay-form-objet', maxWidth: '480px', isEdit: isEdit,
-    titleAdd:  '\u2756 Nouvel objet', titleEdit: '\u270f\ufe0f Modifier l\u2019objet',
+    titleAdd:  '\u2756 Nouvel objet', titleEdit: '<i class=\"ra ra-quill-ink rpa-icon\" aria-hidden=\"true\"></i> Modifier l\u2019objet',
     fermerFn: 'fermerFormObjet', enrFn: 'enregistrerObjet',
     hiddenId: 'iform-id', hiddenVal: isEdit ? item.id : '',
     errorId: 'iform-error', focusId: 'iform-nom',
@@ -7496,10 +7848,10 @@ function supprimerArme(id) {
     if (S.weapons[i].id === id) { weapName = S.weapons[i].name; break; }
   }
   ouvrirConfirmation({
-    title:    '🗑️ Supprimer l’arme',
+    title:    '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer l’arme',
     subtitle: 'Cette action est irréversible',
     message:  'Supprimer <strong>' + escapeHtml(weapName || id) + '</strong> ?',
-    labelOui: '🗑️ Supprimer',
+    labelOui: '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer',
     labelNon: '✕ Annuler',
     onOui: function() {
       S.weapons = (S.weapons || []).filter(function(w) { return w.id !== id; });
@@ -7529,7 +7881,7 @@ function ouvrirFormArme(id) {
   var ov = creerOverlay({
     id: 'overlay-form-arme', maxWidth: '560px', 
     titleHtml:
-    '<p class="overlay-title">' + (isEdit ? '\u270f\ufe0f Modifier l\'arme' : '\u2694\ufe0f Nouvelle arme') + '</p>' +
+    '<p class="overlay-title">' + (isEdit ? '<i class=\"ra ra-quill-ink rpa-icon\" aria-hidden=\"true\"></i> Modifier l\'arme' : '\u2694\ufe0f Nouvelle arme') + '</p>' +
     '<p class="overlay-subtitle">' + formSub(isEdit) + '</p>',
     onFermer: fermerFormArme
   });
@@ -7986,10 +8338,10 @@ function supprimerArmure(id) {
     if (S.armors[i].id === id) { armorName = S.armors[i].name; break; }
   }
   ouvrirConfirmation({
-    title:    '\ud83d\uddd1\ufe0f Supprimer l\u2019armure',
+    title:    '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer l’armure',
     subtitle: 'Cette action est irr\u00e9versible',
     message:  'Supprimer <strong>' + escapeHtml(armorName || id) + '</strong>\u00a0?',
-    labelOui: '\ud83d\uddd1\ufe0f Supprimer',
+    labelOui: '<i class="ra ra-x-mark rpa-icon" aria-hidden="true"></i> Supprimer',
     labelNon: '\u2715 Annuler',
     onOui: function() {
       S.caManualOverride = false;
@@ -8019,7 +8371,7 @@ function ouvrirFormArmure(id) {
   var ov = creerOverlay({
     id: 'overlay-form-armure', maxWidth: '480px', 
     titleHtml:
-    '<p class="overlay-title">' + (isEdit ? '\u270f\ufe0f Modifier l\u2019armure' : '\ud83d\udee1\ufe0f Nouvelle armure') + '</p>' +
+    '<p class="overlay-title">' + (isEdit ? '<i class=\"ra ra-quill-ink rpa-icon\" aria-hidden=\"true\"></i> Modifier l\u2019armure' : '\ud83d\udee1\ufe0f Nouvelle armure') + '</p>' +
     '<p class="overlay-subtitle">' + formSub(isEdit) + '</p>',
     onFermer: fermerFormArmure
   });
@@ -8279,6 +8631,7 @@ window.fermerFormArmure      = fermerFormArmure;
 window.toggleArmorTypeFields = toggleArmorTypeFields;
 window.enregistrerArmure     = enregistrerArmure;
 window.updateMonture         = updateMonture;
+window.updateDDSorts         = updateDDSorts;
 window.updateFeats           = updateFeats;
 window.toggleFeatExpand      = toggleFeatExpand;
 window.supprimerTypedItem    = supprimerTypedItem;
@@ -8355,7 +8708,7 @@ function injectDefaults() {
 }
 
 function makeCombatBlock(n){
-  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <div class="combat-title">⚔ Attaque '+n+'</div>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge">⚔ CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">🎲 Critique : saisir la somme de 2d8</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
+  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <div class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/spinning-sword.svg" class="gi-icon gi-icon-md gi-icon-red" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;">Attaque '+n+'</div>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"><img src=\"https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg\" class=\"gi-icon gi-icon-md gi-icon-gold\" alt=\"\" aria-hidden=\"true\" width=\"1em\" height=\"1em\" style=\"vertical-align:middle;margin-left:4px;\"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"><img id="dmg'+n+'-die-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-left:4px;"></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">Critique : saisir la somme de 2d8 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-right:0.15em;"></div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')"><img id="smite'+n+'-die-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=" class="gi-icon gi-icon-md gi-icon-gold" alt="" aria-hidden="true" width="1em" height="1em" style="vertical-align:middle;margin-left:4px;">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
 }
 var HM_STARS=[
   [[98.3,55.3,1.21,320,0.52],[49.4,54.3,1,209,0.9],[94.4,133,1.05,60,0.38],[93.2,49.4,0.89,230,0.7],[97.3,42.5,1.49,260,0.54],[113,99.5,1.07,286,0.29],[105.2,63.9,0.79,123,0.68],[49.5,79.9,1.27,242,0.6],[110.9,87,1.49,163,0.59],[126.3,103.6,1.06,312,0.63],[70,58.2,1.54,286,0.54],[113.7,84,0.77,83,0.67],[125.3,55.6,1.15,121,0.75],[37.2,115.1,1.49,93,0.87],[84.3,97.5,1.15,228,0.57],[76.6,51.4,1.28,158,0.52],[59,105,1.48,340,0.86],[56.5,66.7,0.84,62,0.46],[88.2,114.5,1.18,51,0.54],[120.9,113.4,1.52,347,0.87],[94.6,29.5,1,2,0.49],[118.6,54.7,0.81,86,0.57],[82.7,29.1,1.13,295,0.33],[82.9,79.5,0.79,105,0.45],[59.9,32.2,1.12,324,0.67],[124.5,49.9,0.88,283,0.56],[31.5,58.1,1.34,168,0.62],[47.3,31.4,0.97,3,0.41]],
@@ -8428,16 +8781,13 @@ v9.13 — 2026-03-07 : Bugfix ouvrirFormTyped (2 lignes orphelines) ; factory cr
 v9.14 — 2026-03-07 : Défauts Paladin/Aasimar/Fermier pour classe, espèce, historique.
 v9.15 — 2026-03-07 : Helpers mkActionBtns+mkDetailSpan ; refactoring updateItems/updateWeapons/updateArmors.
 v10.0 — 2026-03-07 : Version majeure — passage v9.15 → v10.0 (user request).
-v11.2 — 2026-03-09 : Typographie — suppression sélecteur de polices et Eagle Lake ; Metamorphous (Google Fonts) appliquée à tout le texte, fallback système garanti.
-v11.1 — 2026-03-09 : Typographie globale — --font-sub et --font-corps pointent vers --font-titre-active ; le sélecteur de police s'applique à tout le texte.
-v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user request). Ajout système de polices double (Metamorphous / Eagle Lake) avec sélecteur dans le menu et persistance localStorage. Amendement [EX-T-F37] / [EX-G-F02] pour autoriser les polices Google Fonts avec fallback système garanti.
 v10.14 — 2026-03-09 : Revert checkboxes Grimoire/Armures — retour accent-color:var(--or) natif (fond blanc non coché, or coché).
-  v10.13 — 2026-03-09 : Checkboxes — coche blanche (\u2714) via span.cb-tick frère (input replaced element incompatible avec ::after).
-  v10.12 — 2026-03-09 : Checkboxes Grimoire/Armures — état coché restauré en fond or + coche blanche (identique accent-color natif).
-  v10.11 — 2026-03-09 : Checkboxes Grimoire (Préparé/T. prêt) et Armures (Équiper) — fond violet gothique sombre (#1a0b2e) non coché, or+lueur au coché (appearance:none).
-  v10.10 — 2026-03-09 : Grimoire — cases Préparé / T. prêt converties en native checkbox (accent-color gold, style identique à Inventaire Équiper armure).
-  v10.9 — 2026-03-09 : Bugfix portrait mobile — bouton + Grimoire toujours visible (barre filter réorganisée en 2 rangées via flex-wrap + .gfb-top-row/.gfb-filter-row).
-  v10.8 — 2026-03-08 : Scénario B token-reduction — ouvrirFormObjet remplacé par shim vers driver générique ouvrirFormSimple(cfg) [EX-M-F55/F56]. ouvrirFormSort restauré en createElement (WKWebView-safe — innerHTML driver incompatible). Saving net : ~350 chars.
+v10.13 — 2026-03-09 : Checkboxes — coche blanche (\u2714) via span.cb-tick frère (input replaced element incompatible avec ::after).
+v10.12 — 2026-03-09 : Checkboxes Grimoire/Armures — état coché restauré en fond or + coche blanche (identique accent-color natif).
+v10.11 — 2026-03-09 : Checkboxes Grimoire (Préparé/T. prêt) et Armures (Équiper) — fond violet gothique sombre (#1a0b2e) non coché, or+lueur au coché (appearance:none).
+v10.10 — 2026-03-09 : Grimoire — cases Préparé / T. prêt converties en native checkbox (accent-color gold, style identique à Inventaire Équiper armure).
+v10.9 — 2026-03-09 : Bugfix portrait mobile — bouton + Grimoire toujours visible (barre filter réorganisée en 2 rangées via flex-wrap + .gfb-top-row/.gfb-filter-row).
+v10.8 — 2026-03-08 : Scénario B token-reduction — ouvrirFormObjet remplacé par shim vers driver générique ouvrirFormSimple(cfg) [EX-M-F55/F56]. ouvrirFormSort restauré en createElement (WKWebView-safe — innerHTML driver incompatible). Saving net : ~350 chars.
 v10.7 — 2026-03-08 : UX — smite-block déplacé à l'intérieur de .dmg-half (après dmg-mastery-note) pour les 2 attaques via makeCombatBlock. [EX-M-F31] mis à jour.
 v10.6 — 2026-03-08 : Sprint token-reduction — combat-block-1/2 remplacés par makeCombatBlock(n) template + combat-blocks-container. Saving : ~4 483 chars.
 v10.5 — 2026-03-08 : Sprint token-reduction F5 — 112 SVG <use href="#sp"> étoiles remplacées par HM_STARS data array + générateur JS. Saving : ~11 121 chars.
@@ -8445,7 +8795,270 @@ v10.4 — 2026-03-08 : Mise à jour du processus IA obligatoire de 6 à 7 étape
 v10.3 — 2026-03-08 : Sprint token-reduction F6/F7/F8 — lireStr/lireChk helpers (19 double-lookups), mkFormFooter helper (3 footer blocks), formSub helper (4 subtitle ternaries). Saving : ~873 chars.
 v10.2 — 2026-03-08 : Sprint token-reduction F2/F3/F4 — inline styles → CSS class (×8), bubble groups → JS expansion (×5), sanList helper + CATS→DON_CATEGORIES dans sanitiserDonnees. Saving : ~2 015 chars.
 v10.1 — 2026-03-07 : SVG déduplication géométrie bouclier (ca-shield-outer + ca-shield-inner) ; 11 <path> remplacés par <use href>.
+v11.15 — 2026-03-10 : Fix UAT : panneau diagnostic masqué au chargement (display:none CSS), emplacements sorts alignés à droite (margin-left:auto sur label Max).
+v11.16 — 2026-03-10 : Icônes Sprint 2 — remplacement emoji restants : 🐎🐴→stag-head (SVG game-icons.net), ❤/&#x2665;→heart-organ (SVG), 🎒→knapsack (SVG), 📦→ra-hourglass (RPG Awesome) ; ajout CSS .gi-icon ; [EX-G-F47][EX-M-F52][EX-G-F46][EX-T-F37] mis à jour ; [EX-G-F48] et [EX-G-DICE] créés.
+v11.17 — 2026-03-10 : Couleurs et tailles icônes gi-icon : stag-head section-title→or, stag-head combat-title→rouge bordeaux, heart-organ+knapsack→or ; CSS .gi-icon-gold/.gi-icon-red ajoutés ; Aide aux Tests : ra-perspective-dice-random → d20 SVG game-icons.net (or).
+v11.18 — 2026-03-10 : A) Correction couleur gi-icon : filtre CSS remplacé par encodage couleur dans URL game-icons.net (#c9a84c or exact, #b52a2a bordeaux exact) ; CSS .gi-icon-gold/.gi-icon-red → .gi-icon-lg/.gi-icon-md (taille seule). B) Critique : icône de tête supprimée, icônes dés après le texte (N×type correspondant) via critDiceIcons() + CRIT_DICE_ICON_MAP.
+v11.19 — 2026-03-10 : Fix icônes gi-icon disparues — URL couleur game-icons.net non fiable ; passage à CSS mask-image (background-color:var(--or/--bordeaux-clair) + -webkit-mask-image:url(blanc)) sur <span> ; img → span pour tous les éléments gi-icon ; critDiceIcons() mis à jour idem.
+v11.20 — 2026-03-10 : Restauration icônes gi-icon — retour <img> + filter CSS (mask-image non fonctionnel) ; filter or ajusté : sepia(1) saturate(2.2) hue-rotate(6deg) brightness(0.92) ; filter rouge : sepia(1) saturate(8) hue-rotate(315deg) brightness(0.75) ; critDiceIcons() produit <img> identique au d20 Aide aux Tests.
+v11.21 — 2026-03-10 : Fix dés critique invisibles — <img> dans .crit-label (display:none) non chargées par WebKit ; src CDN remplacé par data URI SVG inline pour d4/d6/d8/d10 dans CRIT_DICE_ICON_MAP et img statiques ; chargement garanti avant affichage.
+v11.22 — 2026-03-10 : A) Dés critique 3D — d4 et d10 passent au style Delapouite (dice-four-faces-four / dice-ten-faces-ten) pour cohérence visuelle avec le d20 ; B) Icône d20 ajoutée à droite de chaque champ D20 dans Attaque Rapide (mnt-atk-d20 statique + atk+n-d20 template).
+v11.23 — 2026-03-10 : 6 nouvelles icônes game-icons.net (gi-icon-gold) : spinning-sword→Attaque Rapide, icicles-aura→Caractéristiques, breastplate→Armures, diamond-hilt→Armes, scroll-quill→Grimoire, unfurling-scroll→Emplacements & Conduit ; remplacement ra-crossed-swords / ra-shield / ra-book correspondants.
+v11.24 — 2026-03-10 : Suppression ⬡ et ✧ devant Caractéristiques et Emplacements — icône gi-icon suffit.
+v11.25 — 2026-03-10 : Fix icônes 5/6 absentes — CDN URLs non fiables (slugs incertains) ; remplacement par data URI SVG inline pour spinning-sword, breastplate, diamond-hilt, scroll-quill, unfurling-scroll.
+v11.26 — 2026-03-10 : 11 icônes gi-icon mises à jour avec URLs correctes : sword-clash/Attaque Rapide, breastplate/Armures, diamond-hilt/Armes, scroll-quill/Emplacements, secret-book/Grimoire, fire-ray/Magie, shield-bash/Combat, finger-print/Identité, potion-ball/Reliquaire, glowing-hands/Imposition (titre+sphère). Data URIs provisoires supprimées.
+v11.26 — 2026-03-11 : Correction slugs + 6 nouvelles icônes panneaux. Tous les gi-icons utilisent des CDN URLs correctes (plus de data URIs approximatifs). Remplacements : sword-clash→Attaque Rapide, breastplate(lorc)→Armures, diamond-hilt(delapouite)→Armes, scroll-quill(delapouite)→Emplacements, secret-book→Grimoire, fire-ray→Magie, shield-bash→Combat, finger-print→Identité, potion-ball→Reliquaire, glowing-hands→Imposition+sphère soins, spinning-sword(lorc)→Attaque 1&2.
+v11.34 — 2026-03-11 : Icône Aptitudes/Traits/Dons : ra-book remplacée par gi-icon lorc/dna2.
+v12.0 — 2026-03-11 : Version majeure — passage v11.34 → v12.0 (user request).
+v12.1 — 2026-03-11 : Ajout Caractéristique d'incantation (select #carac-incantation) et DD sorts auto-calculé (#dd-sorts) dans le panneau Magie — formule DD = 8 + mod carac + mod maîtrise.
+v12.2 — 2026-03-11 : Déplacement Carac. d'incantation / DD sorts en tête du panneau Magie, avant la sous-section Emplacements & Conduit Divin.
+v12.3 — 2026-03-11 : Aura de Protection (niv. 6) — case à cocher dans Jets de Sauvegarde ; modificateur CHA ajouté au total de sauvegarde quand actif et niveau ≥ 6.
+v12.4 — 2026-03-12 : CSS uniquement — espacement vertical (1.2rem) avant chaque sous-titre de panneau ; taille de police sous-titres portée à 0.69rem ; exception : "Objets" dans Inventaire reçoit l'espacement même en première position.
+v12.5 — 2026-03-12 : Aide aux Tests — classe subsection-header ajoutée aux deux sous-titres inline (Tests de Caractéristique, Jets de Sauvegarde) ; espacements et taille de police désormais cohérents avec les autres panneaux.
+v12.6 — 2026-03-12 : Suppression du conteneur .bottom-section — bordure, fond, padding et texture décoratifs retirés ; les 3 panneaux bas (Attaque Rapide, Grimoire, Reliquaire) sont désormais enfants directs de #app, largeur pleine, empilés en flux block normal.
+v11.33 — 2026-03-11 : d8 : URL CDN skoll/d8 introuvable — icône encodée en data URI base64 (SVG delapouite/dice-eight-faces-eight, fond noir supprimé, chemin blanc conservé). 10 occurrences remplacées.
+v11.32 — 2026-03-11 : (1) Icone smite: ligne Niv.emplacement -> ligne Des lancés + id smite+n+-die-icon. (2) updateSmite: getElementById. (3) Diagnostic: test img.onerror/onload chaque URL CDN dé.
+v11.31 — 2026-03-11 : (1) d8 slug corrigé : delapouite/dice-eight-faces-eight → skoll/d8 (cohérent avec skoll/d4 et skoll/d10) — 10 occurrences. (2) updateSmite : icône dé mise à jour dynamiquement (d8 pour Châtiment Divin, d6 pour Châtiment de la Fournaise).
+v11.30 — 2026-03-11 : Fix d8 : src base64 bruts résiduels (sans préfixe data:) dans mnt-dmg-crit-label et template makeCombatBlock remplacés par CDN URL dice-eight-faces-eight.
+v11.29 — 2026-03-11 : Suppression icône finger-print en double sur titre Identité.
+v11.28 — 2026-03-11 : CRIT_DICE_ICON_MAP : data URIs remplacées par CDN URLs (d4→skoll/d4, d6→perspective-dice-six, d8→dice-eight-faces-eight, d10→skoll/d10). Règle data URI supprimée — app hébergée sur GitHub Pages.
+v11.27 — 2026-03-11 : (1) Dés crídice CRIT_DICE_ICON_MAP slugs mis à jour : d4→skoll/d4, d6→delapouite/perspective-dice-six, d8→delapouite/dice-eight-faces-eight, d10→skoll/d10 (data URIs à remplacer — slugs corrects, SVGs non encore fournis) ; (2) dice-fire (delapouite) : Dés de Vie section-title + Reliquaire hd-vial-label ; (3) Retrait ❆ devant Identité ; (4) magic-potion (delapouite) : Objets ; (5) reaper-scythe (lorc) : Jets de Sauvegarde Mort ; (6) Chevrons ▼▶ remplacés par ▾▸ (sans variante emoji) ; (7) Géndice icons dynamiques sur inputs dégâts : atk1/atk2 (mise à jour via updateCombat/getDiceIconUrl), mnt-dmg-d8 (statique d8), smite-dice (statique d8).
+v11.22 — 2026-03-10 : A) Dés critique 3D — remplacement SVGs 2D plats par SVGs isométriques (tétraèdre/cube/octaèdre/trapézoèdre) dans CRIT_DICE_ICON_MAP ; B) Icône d20 ajoutée à droite de chaque champ d20 du panneau Attaque Rapide : init-d20, mnt-atk-d20, atk1/2-d20 (template).
+v11.14 — 2026-03-09 : 5 corrections UI : diag plus auto-ouvert, ordre boutons aptitudes (édition avant suppression), icônes ra dans popups confirmation/édition, flèche ra-angle-right menu, label Max emplacements sorts.
+v11.13 — 2026-03-09 : 6 améliorations UI : diag accessible depuis menu+erreurs globales, icônes ra aptitudes, couleurs or/rouge boutons, icônes reliquaire or, lune popup repos long, Metamorphous sur texte sphères.
+v11.12 — 2026-03-09 : Fix URL CDN rpg-awesome 0.3.4→0.2.0 (seule version publiée sur npm).
+v11.11 — 2026-03-09 : Panneau diagnostic RPG Awesome ajouté (debug temporaire).
+v11.10 — 2026-03-09 : Fix commentaire HTML cassé dans [EX-G-F47] (marqueur SCRIPTABLE_RPA_INJECT imbriqué).
+v11.9 — 2026-03-09 : Fix icônes RPG Awesome — @import remplacé par <link> dans <head> (GitHub Pages CSP).
+v11.8 — 2026-03-09 : Retour icônes RPG Awesome ra-* via @import CDN — déployement GitHub Pages.
+v11.7 — 2026-03-09 : Remplacement RPG Awesome (CDN) par SVG inline — zéro dépendance, fonctionne offline et dans Scriptable.
+v11.6 — 2026-03-09 : Fix RPG Awesome — <link> remplacé par @import dans <style> (même pattern Google Fonts) ; [EX-T-F37] et [EX-G-F47] mis à jour.
+v11.5 — 2026-03-09 : Fix commentaire HTML cassé dans [EX-G-F47] ; contrainte WKWebView loadHTML documentée — icônes Scriptable requièrent modification launcher (sprint suivant).
+v11.4 — 2026-03-09 : Fix icônes RPG Awesome Scriptable — @import CSS remplacé par <link rel="stylesheet"> dans <head> (WKWebView loadHTML null-origin policy) ; filename corrigé (major uniquement).
+v11.3 — 2026-03-09 : Icônes RPG Awesome (CDN, amélioration progressive) — 15 emojis remplacés par ra-* ; marqueur SCRIPTABLE_RPA_INJECT ajouté ; [EX-G-F47] créé.
+v11.2 — 2026-03-09 : Typographie — suppression sélecteur de polices et Eagle Lake ; Metamorphous (Google Fonts) appliquée à tout le texte, fallback système garanti.
+v11.1 — 2026-03-09 : Typographie globale — --font-sub et --font-corps pointent vers --font-titre-active ; le sélecteur de police s'applique à tout le texte.
+v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user request). Ajout système de polices double (Metamorphous / Eagle Lake) avec sélecteur dans le menu et persistance localStorage. Amendement [EX-T-F37] / [EX-G-F02] pour autoriser les polices Google Fonts avec fallback système garanti.
 ====================================================== */
 </script>
+
+<!-- ═══════════════════════════════════════════════════
+     DIAGNOSTIC RPG AWESOME — v11.11 — retirer après debug
+     ═══════════════════════════════════════════════════ -->
+<style>
+#rpa-diag {
+  position:fixed; bottom:0; left:0; right:0; z-index:99999;
+  background:#111; color:#eee; font-family:monospace; font-size:13px;
+  padding:10px 14px; border-top:2px solid #c9a84c;
+  max-height:50vh; overflow-y:auto;
+  display:none;
+}
+#rpa-diag h3 { color:#c9a84c; margin:0 0 6px; font-size:14px; }
+#rpa-diag .ok  { color:#4caf50; }
+#rpa-diag .err { color:#f44336; }
+#rpa-diag .wrn { color:#ff9800; }
+#rpa-diag .inf { color:#64b5f6; }
+#rpa-diag .row { margin:2px 0; }
+#rpa-diag-close {
+  position:absolute; top:8px; right:12px;
+  background:none; border:1px solid #c9a84c; color:#c9a84c;
+  cursor:pointer; padding:2px 8px; font-size:12px; border-radius:3px;
+}
+#rpa-icon-test { font-size:22px; margin-top:6px; }
+#rpa-icon-test i { margin-right:6px; }
+</style>
+
+<div id="rpa-diag">
+  <h3>🔍 Diagnostic RPG Awesome</h3>
+  <button id="rpa-diag-close" onclick="document.getElementById('rpa-diag').style.display='none'">Fermer</button>
+  <div id="rpa-diag-log"><span class="inf">Démarrage...</span></div>
+  <div id="rpa-icon-test"></div>
+</div>
+
+<script>
+// Global error catching — logs to diag panel and auto-opens it
+window.onerror = function(msg, src, line, col, err) {
+  var log = document.getElementById('rpa-diag-log');
+  if (!log) return false;
+  var d = document.createElement('div');
+  d.className = 'row';
+  d.innerHTML = '<span class="err">⛔ JS ERROR : ' + msg + ' [' + (src||'') + ':' + line + ']</span>';
+  log.appendChild(d);
+  return false;
+};
+window.onunhandledrejection = function(e) {
+  var log = document.getElementById('rpa-diag-log');
+  if (!log) return;
+  var d = document.createElement('div');
+  d.className = 'row';
+  d.innerHTML = '<span class="err">⛔ PROMISE REJETÉE : ' + (e.reason||e) + '</span>';
+  log.appendChild(d);
+};
+
+function ouvrirDiagnostic() {
+  var panel = document.getElementById('rpa-diag');
+  var log = document.getElementById('rpa-diag-log');
+  var iconTest = document.getElementById('rpa-icon-test');
+  panel.style.display = 'block';
+  log.innerHTML = '<span class="inf">Démarrage...</span>';
+  iconTest.innerHTML = '';
+
+  function row(cls, msg) {
+    var d = document.createElement('div');
+    d.className = 'row';
+    d.innerHTML = '<span class="' + cls + '">' + msg + '</span>';
+    log.appendChild(d);
+  }
+
+  // 1. Check <link> element present in DOM
+  var links = document.querySelectorAll('link[rel="stylesheet"]');
+  var rpaLink = null;
+  links.forEach(function(l) {
+    if (l.href && l.href.indexOf('rpg-awesome') !== -1) rpaLink = l;
+  });
+  if (rpaLink) {
+    row('ok', '✔ &lt;link&gt; RPG Awesome trouvé : ' + rpaLink.href);
+  } else {
+    row('err', '✘ Aucun &lt;link&gt; RPG Awesome dans le DOM');
+  }
+
+  // 2. Check @import in <style> (should NOT be there)
+  var styles = document.querySelectorAll('style');
+  var hasImport = false;
+  styles.forEach(function(s) {
+    if (s.textContent.indexOf('rpg-awesome') !== -1) hasImport = true;
+  });
+  row(hasImport ? 'wrn' : 'inf',
+    hasImport ? '⚠ @import rpg-awesome trouvé dans un <style> inline (peut être bloqué par CSP)'
+              : '✔ Pas de @import rpg-awesome dans <style> inline');
+
+  // 3. Fetch CDN CSS directly
+  row('inf', '⏳ Test fetch CDN CSS...');
+  fetch('https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css')
+    .then(function(r) {
+      if (r.ok) {
+        row('ok', '✔ CDN CSS accessible (HTTP ' + r.status + ')');
+        return r.text();
+      } else {
+        row('err', '✘ CDN CSS inaccessible (HTTP ' + r.status + ')');
+        return null;
+      }
+    })
+    .then(function(css) {
+      if (!css) return;
+      // Check font-face src in CSS
+      var hasFontFace = css.indexOf('@font-face') !== -1;
+      var hasWoff2 = css.indexOf('.woff2') !== -1;
+      row(hasFontFace ? 'ok' : 'err',
+        hasFontFace ? '✔ @font-face présent dans le CSS CDN' : '✘ Pas de @font-face dans le CSS CDN');
+      row(hasWoff2 ? 'ok' : 'wrn',
+        hasWoff2 ? '✔ .woff2 référencé dans @font-face' : '⚠ Pas de .woff2 dans @font-face');
+      // Extract font src URL
+      var m = css.match(/src:[^;]*url\(["']?([^"'\)]+\.woff2)["']?\)/);
+      if (m) {
+        var fontUrl = m[1];
+        // Resolve relative URL against CDN base
+        if (fontUrl.indexOf('http') !== 0) {
+          fontUrl = 'https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/' + fontUrl;
+        }
+        row('inf', '⏳ URL police résolue : ' + fontUrl);
+        // 4. Fetch the actual font file
+        fetch(fontUrl)
+          .then(function(r2) {
+            if (r2.ok) {
+              row('ok', '✔ Fichier police .woff2 accessible (HTTP ' + r2.status + ', ' + (r2.headers.get('content-length')||'?') + ' bytes)');
+            } else {
+              row('err', '✘ Fichier police .woff2 inaccessible (HTTP ' + r2.status + ')');
+            }
+          })
+          .catch(function(e) { row('err', '✘ Fetch police échoué : ' + e.message); });
+      } else {
+        row('wrn', '⚠ Impossible d\'extraire l\'URL de la police depuis le CSS');
+      }
+    })
+    .catch(function(e) { row('err', '✘ Fetch CDN CSS échoué : ' + e.message); });
+
+  // 5. Check if the CSS rules are actually loaded in document stylesheets
+  setTimeout(function() {
+    var found = false;
+    try {
+      var sheets = document.styleSheets;
+      for (var i = 0; i < sheets.length; i++) {
+        try {
+          var rules = sheets[i].cssRules || sheets[i].rules || [];
+          for (var j = 0; j < rules.length; j++) {
+            if (rules[j].selectorText && rules[j].selectorText.indexOf('.ra-') !== -1) {
+              found = true; break;
+            }
+          }
+        } catch(e) { /* cross-origin stylesheet — cannot read rules */ }
+        if (found) break;
+      }
+    } catch(e) {}
+    row(found ? 'ok' : 'err',
+      found ? '✔ Règles CSS .ra-* trouvées dans document.styleSheets'
+             : '✘ Aucune règle .ra-* dans document.styleSheets (police non chargée ou CORS)');
+
+    // 6. Check computed style of a test icon
+    var testEl = document.createElement('i');
+    testEl.className = 'ra ra-cog';
+    testEl.style.visibility = 'hidden';
+    testEl.style.position = 'absolute';
+    document.body.appendChild(testEl);
+    var cs = window.getComputedStyle(testEl, '::before');
+    var ff = cs.fontFamily || '';
+    var content = cs.content || '';
+    row((ff.indexOf('RPGAwesome') !== -1 || ff.indexOf('rpg') !== -1) ? 'ok' : 'err',
+      'font-family ::before : ' + ff);
+    row(content && content !== 'none' && content !== '""' ? 'ok' : 'err',
+      'content ::before : ' + content);
+    document.body.removeChild(testEl);
+
+    // 7. Live icon render test
+    iconTest.innerHTML =
+      'Test rendu : ' +
+      '<i class="ra ra-cog"></i>' +
+      '<i class="ra ra-crossed-swords"></i>' +
+      '<i class="ra ra-book"></i>' +
+      '<i class="ra ra-shield"></i>' +
+      '<i class="ra ra-health"></i>' +
+      ' ← ces icônes doivent être visibles';
+
+    // 8. Image load test for all dice CDN icons
+    var diceTestUrls = [
+      { key: 'd4',  url: 'https://game-icons.net/icons/ffffff/transparent/1x1/skoll/d4.svg' },
+      { key: 'd6',  url: 'https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/perspective-dice-six.svg' },
+      { key: 'd8',  url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=' },
+      { key: 'd10', url: 'https://game-icons.net/icons/ffffff/transparent/1x1/skoll/d10.svg' },
+      { key: 'd20', url: 'https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg' }
+    ];
+    row('inf', '⏳ Test chargement icônes dés (game-icons.net)...');
+    row('inf', 'ℹ d8 : data URI inline (pas de CDN) — chargement garanti');
+    diceTestUrls.forEach(function(d) {
+      var img = new Image();
+      img.onload  = function() { row('ok',  '✔ ' + d.key + ' chargé OK : ' + d.url); };
+      img.onerror = function() { row('err', '✘ ' + d.key + ' ÉCHEC chargement : ' + d.url); };
+      img.src = d.url;
+    });
+
+    // 9. Live visual render of dice icons
+    var renderDiv = document.createElement('div');
+    renderDiv.style.cssText = 'margin-top:6px;background:#222;padding:4px 6px;border-radius:4px;';
+    renderDiv.innerHTML = '<span style="font-size:11px;color:#aaa;">Rendu visuel dés : </span>' +
+      diceTestUrls.map(function(d) {
+        return '<img src="' + d.url + '" width="22" height="22"' +
+          ' style="vertical-align:middle;margin:0 4px;' +
+          'filter:sepia(1) saturate(2.2) hue-rotate(6deg) brightness(0.92);">' +
+          '<span style="font-size:10px;vertical-align:middle;color:#ccc;">' + d.key + '</span>';
+      }).join('');
+    log.appendChild(renderDiv);
+
+    row('inf', '— Fin du diagnostic —');
+  }, 2000); // wait 2s for stylesheets to settle
+}
+window.ouvrirDiagnostic = ouvrirDiagnostic;
+</script>
+<!-- ═══════════════════════════════════════════════════ -->
+
 </body>
 </html>
