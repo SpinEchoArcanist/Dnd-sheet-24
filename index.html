@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v12 | version complète : 12.13 — 2026-03-13 -->
+<!-- dnd-sheet-v12 | version complète : 12.14 — 2026-03-13 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1154,7 +1154,7 @@ CHANGELOG entry format:
        .gi-icon        base : inline-block, 1.4em×1.4em, vertical-align:middle
        .gi-icon-lg     taille : 1.82em×1.82em  (titres de section)
        .gi-icon-md     taille : 1.68em×1.68em  (combat-title, template Attaque N)
-       .gi-icon-dice-lg taille : 3.08em×3.08em (icones des — dice-fire, dice-twenty — surclasse gi-icon-lg)
+       .gi-icon-dice-lg taille : 3.08em×3.08em (icones des — dice-fire — surclasse gi-icon-lg)
        .gi-icon-dice-md taille : 2.83em×2.83em (icones des — D20/D8/des critique — surclasse gi-icon-md)
        .gi-icon-stag-lg taille : 2.55em×2.55em (stag-head section-title Monture — surclasse gi-icon-lg)
        .gi-icon-stag-md taille : 2.35em×2.35em (stag-head combat-title Monture — surclasse gi-icon-md)
@@ -1198,7 +1198,7 @@ CHANGELOG entry format:
          et #mnt-dmg-crit-label img (éléments HTML statiques sans accès aux constantes JS).
        · Aucun CDN game-icons.net disponible pour le slug dice-eight-faces-eight (Delapouite).
      TAILLES ICÔNES DÉS (v12.12) :
-       · .gi-icon-dice-lg : 3.08em×3.08em — dice-fire (Dés de Vie, hd-vial-label) + dice-twenty-faces-twenty (Aide aux Tests)
+       · .gi-icon-dice-lg : 3.08em×3.08em — dice-fire (Dés de Vie, hd-vial-label)
        · .gi-icon-dice-md : 2.83em×2.83em — D20/D8 inputs, crit-label, smite, critDiceIcons()
        Ces classes surchargent gi-icon-lg/gi-icon-md uniquement pour les icônes dés.
        NE PAS appliquer aux icônes non-dés (heart-organ, icicles-aura, potion-ball, etc.).
@@ -1212,7 +1212,7 @@ CHANGELOG entry format:
        d6  → delapouite/perspective-dice-six.svg ✅ CDN — damage input icon
        d8  → D8_DATA_URI                        ✅ data URI — damage input icon (pas de CDN)
        d10 → skoll/d10.svg                      ✅ CDN — damage input icon
-       d20 → delapouite/dice-twenty-faces-twenty.svg ✅ CDN — Aide aux Tests + D20 inputs
+       d20 → delapouite/dice-twenty-faces-twenty.svg ✅ CDN — Aide aux Tests (taille standard gi-icon-lg) + D20 inputs
      Icône spéciale :
        dice-fire (delapouite) — Dés de Vie section + hd-vial-label Reliquaire
      Damage input icons (v11.27) :
@@ -3490,7 +3490,7 @@ select.field-input optgroup {
       <!-- Bloc Aide aux Tests — voir [EX-M-F43] -->
       <div class="panel" id="panel-aide-tests">
         <h2 class="section-title collapsible section-title-rapide">
-          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg" class="gi-icon gi-icon-lg gi-icon-dice-lg gi-icon-gold" alt="" aria-hidden="true" width="3.08em" height="3.08em" style="vertical-align:middle;">Aide aux Tests</span>
+          <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Aide aux Tests</span>
         </h2>
         <div class="panel-body">
 
@@ -4584,7 +4584,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '12.13';
+var FILE_VERSION = '12.14';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -8883,6 +8883,7 @@ v12.10 — 2026-03-12 : Refactor — data URI d8 extraite en constante const D8_
 v12.11 — 2026-03-13 : Icônes SVG ×1.4 — CSS .gi-icon (1→1.4em), .gi-icon-lg (1.3→1.82em), .gi-icon-md (1.2→1.68em) ; attributs width/height synchronisés sur tous les éléments statiques HTML, critDiceIcons(), makeCombatBlock() ; [EX-G-F48] mis à jour.
 v12.12 — 2026-03-13 : Icônes dés ×1.3 — .gi-icon-dice-lg (3.08em) et .gi-icon-dice-md (2.83em) appliquées aux seules icônes dés ; correction v12.11 (gi-icon-dice-lg retiré de heart-organ, icicles-aura, potion-ball) ; mnt-dmg-die-icon et dice-fire rattrapés ; [EX-G-F48] et [EX-G-DICE] mis à jour.
 v12.13 — 2026-03-13 : Icônes stag-head ×1.4 — .gi-icon-stag-lg (2.55em) section-title Monture, .gi-icon-stag-md (2.35em) combat-title Monture ; [EX-G-F48] mis à jour.
+v12.14 — 2026-03-13 : Restauration d20 Aide aux Tests — gi-icon-dice-lg retiré, retour à gi-icon-lg standard (1.82em) ; hors scope des redimensionnements dés ; [EX-G-F48] et [EX-G-DICE] mis à jour.
 v12.6 — 2026-03-12 : Suppression du conteneur .bottom-section — bordure, fond, padding et texture décoratifs retirés ; les 3 panneaux bas (Attaque Rapide, Grimoire, Reliquaire) sont désormais enfants directs de #app, largeur pleine, empilés en flux block normal.
 v11.33 — 2026-03-11 : d8 : URL CDN skoll/d8 introuvable — icône encodée en data URI base64 (SVG delapouite/dice-eight-faces-eight, fond noir supprimé, chemin blanc conservé). 10 occurrences remplacées.
 v11.32 — 2026-03-11 : (1) Icone smite: ligne Niv.emplacement -> ligne Des lancés + id smite+n+-die-icon. (2) updateSmite: getElementById. (3) Diagnostic: test img.onerror/onload chaque URL CDN dé.
