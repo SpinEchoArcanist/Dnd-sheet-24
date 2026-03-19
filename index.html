@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.9 — 2026-03-19 -->
+<!-- dnd-sheet-v13 | version complète : 13.10 — 2026-03-19 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -953,7 +953,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '13.9'
+       · Valeur courante : '13.10'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -1088,6 +1088,8 @@ CHANGELOG entry format:
        · updateWeapons()  → enregistrerArme / supprimerArme (inclut updateWeaponDropdowns)
        · updateGrimoire() → toutes les actions Grimoire (add/edit/delete/toggle)
        · updateFeats()    → enregistrerTyped / supprimerTypedItem
+     Ces 5 fonctions sont appelées une fois au démarrage dans initApp() après updateAll(),
+     pour le rendu initial des tables (données chargées depuis localStorage).
 
      Listeners attachés par attachListeners() lors de initApp() :
        · input  → updateAll() sur tous les inputs (sauf checkbox)
@@ -4848,7 +4850,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.9';
+var FILE_VERSION = '13.10';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -9232,6 +9234,12 @@ function initApp() {
   applyPanelStates();        /* Restaure l'état collapse/expand des panels [EX-G-F44] */
   updateVersionLabel();      /* Affiche FILE_VERSION dans #version-label [EX-T-F41] */
   updateAll();
+  /* Initial render of tables not covered by updateAll() [EX-T-F38] */
+  updateArmors();
+  updateItems();
+  updateWeapons();   /* also calls updateWeaponDropdowns() */
+  updateGrimoire();
+  updateFeats();
 }
 
 /* Appel direct, sans event listener */
@@ -9248,6 +9256,7 @@ v13.6 — 2026-03-19 : Fix Safari/iPadOS clavier externe — champs page princip
 v13.7 — 2026-03-19 : Revert scroll corrections v13.5/v13.6 — en mode standalone (Add to Home Screen) avec clavier externe, aucun clavier n'est affiché à l'écran donc aucun scroll n'est nécessaire ; les focusin listeners dans creerOverlay() et attachListeners() causaient le défilement parasite. Suppression complète des deux blocs.
 v13.8 — 2026-03-19 : Option 3 — fix scroll parasite en standalone WKWebView : capture de window.scrollY en début de updateAll() et restauration après sauvegarder() ; empêche les mutations innerHTML (updateFeats/Grimoire/Items/Weapons/Armors) de déclencher l'ajustement scroll-anchor du navigateur à chaque frappe.
 v13.9 — 2026-03-19 : Retrait de 5 appels redondants de updateAll() — updateArmors/updateItems/updateWeapons/updateGrimoire/updateFeats retirés (chacun déjà appelé par ses propres actions) ; updateWeaponDropdowns() direct retiré (couvert par updateWeapons()) ; updateGrimoireCounter() créé pour le seul cas utile (compteur préparation selon niveau) ; [EX-T-F38] réécrit. Élimine la recréation de ~100–500 nœuds DOM à chaque frappe.
+v13.10 — 2026-03-19 : Fix régression v13.9 — tables vides au chargement : ajout de 5 appels initiaux dans initApp() après updateAll() (updateArmors, updateItems, updateWeapons, updateGrimoire, updateFeats) pour le rendu initial depuis localStorage.
 ====================================================== */
 </script>
 
