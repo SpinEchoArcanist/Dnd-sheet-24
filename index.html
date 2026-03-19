@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.1 — 2026-03-19 -->
+<!-- dnd-sheet-v13 | version complète : 13.5 — 2026-03-19 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -583,11 +583,11 @@ CHANGELOG entry format:
        · #mnt-dmg-type-atk : span.dmg-type-lbl après #mnt-dmg-total.
 -->
 
-<!-- [EX-M-F53] APTITUDES TYPED (v9.8)
+<!-- [EX-M-F53] APTITUDES TYPED (v13.2)
 
-     Sous-section collapsible dans le panneau Identité (colonne gauche), après les champs Classe (readonly Paladin), Espèce, Historique.
-     Titre : "ra-book Aptitudes, Traits et Dons"  (icône RPG Awesome ra-book, emoji 📖 remplacé)
-     Bouton + header → ouvrirFormTyped() (formulaire inline dans #feats-form-area)
+     Sous-section collapsible dans le panneau Identité (colonne gauche), après les champs Classe (readonly Paladin), Espèce, Historique.
+     Titre : gi-icon dna2 "Aptitudes, Traits et Dons"
+     Bouton + header → ouvrirFormTyped() — ouvre un overlay (creerOverlay factory)
 
      MODELES :
        S.traits[]    = [{ id, name, description }]
@@ -597,22 +597,28 @@ CHANGELOG entry format:
      DON_CATEGORIES (ordre enum et tri) :
        "D'origine" | "Générale" | "Style de combat" | "Faveur épique"
 
-     RENDU updateFeats() — 3 groupes dans #feats-list :
-       Groupe 1 Traits d'espèce : .feats-group-header + tri alpha nom
-       Groupe 2 Dons            : tri catégorie (ordre enum) puis alpha nom
-       Groupe 3 Aptitudes       : tri niveau asc puis alpha nom
-       Ligne : .inv-item-row  |  badge : .feats-badge (catégorie ou "Niv. N")
-       Expand : toggleFeatExpand(id) — un seul ouvert à la fois → #fexp-{id}
+     RENDU updateFeats() — 3 sous-sections collapsibles dans #feats-list :
+       Chaque groupe : div.section-title.collapsible.feats-sub-header + div.panel-body#feats-group-body-{type}
+       Groupe 1 Traits d'espèce (key: feats-group-trait)   : tri alpha nom
+       Groupe 2 Dons            (key: feats-group-don)     : tri catégorie (ordre enum) puis alpha nom
+       Groupe 3 Aptitudes       (key: feats-group-aptitude): tri niveau asc puis alpha nom
+       État collapse : S.panelsOpen['feats-group-trait|don|aptitude'] — défaut true (ouvert)
+       Ligne : .inv-item-row  |  badge : .feats-badge (catégorie ou "Niv. N")
+       Expand description : toggleFeatExpand(id) — un seul ouvert à la fois → #fexp-{id}
        Supprimer : supprimerTypedItem(type,id) — ouvrirConfirmation() [EX-G-F51]
+       initFeatGroupCollapsibles() appelée en fin de updateFeats() — ré-attache les handlers clic.
 
-     FORMULAIRE INLINE #feats-form-area (div dans panel-body, pas overlay) :
-       #fform-id (hidden), #fform-type (hidden), #fform-origtype (hidden), #fform-nom
-       #fform-cat-wrap (don uniquement), #fform-niv-wrap (aptitude uniquement), #fform-desc
-       Sélecteur Trait/Don/Aptitude visible toujours (ajout ET modification) [v9.12]
-       Changement de type en édition : retire de l’ancien tableau, insère dans le nouveau
+     FORMULAIRE OVERLAY (creerOverlay — id: 'overlay-form-typed', maxWidth: '480px') :
+       Champs : #fform-id (hidden), #fform-type (hidden), #fform-origtype (hidden), #fform-nom
+                #fform-cat-wrap (don uniquement), #fform-cat, #fform-niv-wrap (aptitude uniquement),
+                #fform-niv, #fform-desc
+       Sélecteur Trait/Don/Aptitude visible toujours (ajout ET modification)
+       Changement de type en édition : retire de l'ancien tableau, insère dans le nouveau
        switchFeatType(type) — affiche/cache les champs conditionnels
        ouvrirFormTyped(type?,id?) / fermerFormTyped() / enregistrerTyped()
-     PERSISTANCE : S.traits / S.dons / S.aptitudes dans localStorage paladin_strahd_v3
+       #feats-form-area (div HTML) conservé vide display:none — référence externe préservée.
+
+     PERSISTANCE : S.traits / S.dons / S.aptitudes + S.panelsOpen (feats-group-*) dans localStorage
        collecterDonnees() + charger() + sanitiserDonnees()
        Migration v9.8 : legacy raw.feats[] (v≤9.7) → aptitudes[] niveau=1
        Whitelist [EX-T-F40] : traits, dons, aptitudes (feats retiré)
@@ -939,13 +945,15 @@ CHANGELOG entry format:
          champs sanitisés : id, name, attackStat, diceType, diceCount, damageTypes,
          range, properties, attackModifier, damageModifier, mastery, description,
          consommable (bool), quantity (int ≥ 0, forcé à 0 si consommable=false))
+       panelsOpen (objet libre — clés dynamiques dont feats-group-trait, feats-group-don,
+         feats-group-aptitude : bool — état collapse des sous-sections Aptitudes ; défaut true=ouvert)
 -->
 
 <!-- [EX-T-F41] VERSIONNAGE DU FICHIER (v9.0)
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '13.1'
+       · Valeur courante : '13.5'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -2246,7 +2254,8 @@ select.field-input optgroup {
   box-shadow:0 8px 40px rgba(0,0,0,0.85), 0 0 0 1px rgba(201,168,76,0.3);
   width:100%;
   max-width:680px;
-  max-height:90vh;
+  max-height:85vh;        /* fallback for older Safari */
+  max-height:85svh;       /* svh excludes Safari chrome — prevents overlap with address/tab bars */
   display:flex;
   flex-direction:column;
   overflow:hidden;
@@ -2281,7 +2290,9 @@ select.field-input optgroup {
 .overlay-body {
   padding:16px 18px;
   flex:1;
+  min-height:0;                        /* forces flex child to shrink & become scrollable in Safari */
   overflow:auto;
+  -webkit-overflow-scrolling:touch;    /* momentum scrolling + correct scroll-into-view ancestor on Safari/iPadOS */
   display:flex;
   flex-direction:column;
   gap:12px;
@@ -2972,6 +2983,25 @@ select.field-input optgroup {
   font-size:0.65rem;
   color:rgba(196,180,154,0.50);
 }
+/* Collapsible sub-header for feats groups — uses .section-title.collapsible pattern */
+.feats-sub-header {
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:4px 2px 3px;
+  border-bottom:1px solid rgba(201,168,76,0.22);
+  margin-top:6px;
+  font-family:var(--font-sub);
+  font-size:0.63rem;
+  color:var(--or);
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+}
+.feats-sub-header:first-child { margin-top:0; }
+.feats-sub-header:hover { color:var(--or-clair); }
 .feats-badge {
   font-family:var(--font-corps);
   font-size:0.68rem;
@@ -2997,7 +3027,7 @@ select.field-input optgroup {
 .feats-type-btn {
   font-family:var(--font-corps);
   font-size:0.72rem;
-  background:none;
+  background:#1a1a2a;
   border:1px solid rgba(201,168,76,0.28);
   color:var(--parchemin-s);
   border-radius:3px;
@@ -3009,7 +3039,7 @@ select.field-input optgroup {
 .feats-type-btn.active,
 .feats-type-btn:hover {
   background:rgba(201,168,76,0.14);
-  color:var(--or-clair);
+  color:#1a0a0a;
   border-color:rgba(201,168,76,0.55);
 }
 .feats-form-footer {
@@ -4815,7 +4845,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.1';
+var FILE_VERSION = '13.5';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -5925,6 +5955,7 @@ function genTypedId() {
 function updateFeats() {
   var list = document.getElementById('feats-list');
   if (!list) return;
+  if (!S.panelsOpen) S.panelsOpen = {};
   var traits = (S.traits||[]).slice().sort(function(a,b){ return String(a.name).localeCompare(String(b.name)); });
   var dons   = (S.dons||[]).slice().sort(function(a,b){
     var ia=DON_CATEGORIES.indexOf(a.categorie); if(ia<0)ia=99;
@@ -5937,18 +5968,38 @@ function updateFeats() {
     if(la!==lb) return la-lb;
     return String(a.name).localeCompare(String(b.name));
   });
+
+  function buildCollapsibleGroup(key, label, items, renderRow) {
+    var isOpen = (S.panelsOpen[key] !== false); /* default open */
+    var collapsedCls = isOpen ? '' : ' collapsed';
+    var html = '<div class="feats-sub-header section-title collapsible' + collapsedCls + '" data-feats-group="' + key + '">' +
+      '<span style="flex:1;">' + label + ' <span class="feats-group-count">' + items.length + '</span></span>' +
+      '</div>';
+    html += '<div class="panel-body' + (isOpen ? '' : ' collapsed') + '" id="feats-group-body-' + key + '">';
+    if (items.length === 0) {
+      html += '<div class="inv-placeholder">Aucun enregistré.</div>';
+    } else {
+      for (var i = 0; i < items.length; i++) html += renderRow(items[i]);
+    }
+    html += '</div>';
+    return html;
+  }
+
   var html = '';
-  html += buildGroupHeader("Traits d'esp\u00e8ce", traits.length);
-  if(traits.length===0){ html += '<div class="inv-placeholder">Aucun enregistr\u00e9.</div>'; }
-  else { for(var i=0;i<traits.length;i++) html += buildTypedRow(traits[i], 'trait', ''); }
-  html += buildGroupHeader('Dons', dons.length);
-  if(dons.length===0){ html += '<div class="inv-placeholder">Aucun enregistr\u00e9.</div>'; }
-  else { for(var i=0;i<dons.length;i++) html += buildTypedRow(dons[i], 'don', escapeHtml(dons[i].categorie||'')); }
-  html += buildGroupHeader('Aptitudes', aptitudes.length);
-  if(aptitudes.length===0){ html += '<div class="inv-placeholder">Aucune enregistr\u00e9e.</div>'; }
-  else { for(var i=0;i<aptitudes.length;i++){ var niv=parseInt(aptitudes[i].niveau)||1; html += buildTypedRow(aptitudes[i], 'aptitude', 'Niv.\u00a0'+niv); } }
+  html += buildCollapsibleGroup('feats-group-trait', "Traits d'espèce", traits, function(item) {
+    return buildTypedRow(item, 'trait', '');
+  });
+  html += buildCollapsibleGroup('feats-group-don', 'Dons', dons, function(item) {
+    return buildTypedRow(item, 'don', escapeHtml(item.categorie||''));
+  });
+  html += buildCollapsibleGroup('feats-group-aptitude', 'Aptitudes', aptitudes, function(item) {
+    var niv = parseInt(item.niveau)||1;
+    return buildTypedRow(item, 'aptitude', 'Niv. '+niv);
+  });
   list.innerHTML = html;
+  initFeatGroupCollapsibles();
 }
+
 
 function buildGroupHeader(label, count) {
   return '<div class="feats-group-header">' +
@@ -5981,6 +6032,32 @@ function toggleFeatExpand(id) {
   if(row) row.classList.toggle('hidden');
 }
 
+/* Re-attach collapsible handlers to feats group headers after updateFeats() re-renders.
+   initPanels() is not idempotent on dynamic content — this dedicated helper is required. */
+function initFeatGroupCollapsibles() {
+  var headers = document.querySelectorAll('.feats-sub-header.section-title.collapsible');
+  headers.forEach(function(titleEl) {
+    titleEl.addEventListener('click', function() {
+      var key = titleEl.getAttribute('data-feats-group');
+      var body = getPanelBody(titleEl);
+      if (!body) return;
+      var isCollapsed = body.classList.contains('collapsed');
+      if (isCollapsed) {
+        body.classList.remove('collapsed');
+        titleEl.classList.remove('collapsed');
+        if (!S.panelsOpen) S.panelsOpen = {};
+        S.panelsOpen[key] = true;
+      } else {
+        body.classList.add('collapsed');
+        titleEl.classList.add('collapsed');
+        if (!S.panelsOpen) S.panelsOpen = {};
+        S.panelsOpen[key] = false;
+      }
+      sauvegarder();
+    });
+  });
+}
+
 function supprimerTypedItem(type, id) {
   var arr = type==='trait' ? (S.traits||[]) : type==='don' ? (S.dons||[]) : (S.aptitudes||[]);
   var item = null;
@@ -6005,64 +6082,79 @@ function supprimerTypedItem(type, id) {
 function editTypedItem(type, id) { ouvrirFormTyped(type, id); }
 
 function ouvrirFormTyped(type, id) {
-  var area = document.getElementById('feats-form-area'); if(!area) return;
-  var isEdit = (id!==undefined && id!==null && id!=='');
-  var curType = type||'trait';
+  var isEdit = (id !== undefined && id !== null && id !== '');
+  var curType = type || 'trait';
   var editItem = null;
-  if(isEdit){
-    var src = curType==='trait' ? (S.traits||[]) : curType==='don' ? (S.dons||[]) : (S.aptitudes||[]);
-    for(var i=0;i<src.length;i++){ if(src[i].id===id){ editItem=src[i]; break; } }
-    if(!editItem) return;
+  if (isEdit) {
+    var src = curType === 'trait' ? (S.traits||[]) : curType === 'don' ? (S.dons||[]) : (S.aptitudes||[]);
+    for (var i = 0; i < src.length; i++) { if (src[i].id === id) { editItem = src[i]; break; } }
+    if (!editItem) return;
   }
-  var tlist=[{k:'trait',l:'Trait d\u2019esp\u00e8ce'},{k:'don',l:'Don'},{k:'aptitude',l:'Aptitude'}];
-  var typeSel = '<div class="feats-type-row">';
-  for(var ti=0;ti<tlist.length;ti++){
-    var act = (tlist[ti].k===curType) ? ' active' : '';
-    typeSel += '<button class="feats-type-btn'+act+'" onclick="switchFeatType(\''+tlist[ti].k+'\')">' + tlist[ti].l + '</button>';
+
+  var ov = creerOverlay({
+    id: 'overlay-form-typed',
+    maxWidth: '480px',
+    titleHtml: '<p class="overlay-title">' + (isEdit ? '✏️ Modifier' : '⋹ Nouvel élément') + '</p>' +
+               '<p class="overlay-subtitle">' + formSub(isEdit) + '</p>',
+    onFermer: fermerFormTyped
+  });
+
+  /* Build type selector — escaped quotes in onclick for WKWebView safety */
+  var tlist = [
+    {k:'trait',     l:'Trait d’espèce'},
+    {k:'don',       l:'Don'},
+    {k:'aptitude',  l:'Aptitude'}
+  ];
+  var typeSelHtml = '<div class="feats-type-row">';
+  for (var ti = 0; ti < tlist.length; ti++) {
+    var act = (tlist[ti].k === curType) ? ' active' : '';
+    typeSelHtml += '<button class="feats-type-btn' + act +
+      '" onclick="switchFeatType(\'' + tlist[ti].k + '\')">' + tlist[ti].l + '</button>';
   }
-  typeSel += '</div>';
+  typeSelHtml += '</div>';
+
   var nomVal = isEdit ? escapeHtml(editItem.name) : '';
-  var nomField = '<div class="grimoire-form-field">' +
-    '<label class="grimoire-form-label" for="fform-nom">Nom <span class="req">*</span></label>' +
-    '<input type="text" id="fform-nom" class="grimoire-form-input" placeholder="Nom" value="' + nomVal + '" autocomplete="off">' +
-    '</div>';
-  var catStyle = (curType==='don') ? '' : 'display:none;';
-  var catField = '<div class="grimoire-form-field" id="fform-cat-wrap" style="margin-top:8px;'+catStyle+'">' +
-    '<label class="grimoire-form-label" for="fform-cat">Cat\u00e9gorie</label>' +
-    '<select id="fform-cat" class="grimoire-form-input">';
-  for(var ci=0;ci<DON_CATEGORIES.length;ci++){
-    var sel = (isEdit && editItem.categorie===DON_CATEGORIES[ci]) ? ' selected' : '';
-    catField += '<option value="' + escapeHtml(DON_CATEGORIES[ci]) + '"'+sel+'>' + escapeHtml(DON_CATEGORIES[ci]) + '</option>';
+  var catStyle = (curType === 'don') ? '' : 'display:none;';
+  var catOpts = '';
+  for (var ci = 0; ci < DON_CATEGORIES.length; ci++) {
+    var sel = (isEdit && editItem.categorie === DON_CATEGORIES[ci]) ? ' selected' : '';
+    catOpts += '<option value="' + escapeHtml(DON_CATEGORIES[ci]) + '"' + sel + '>' + escapeHtml(DON_CATEGORIES[ci]) + '</option>';
   }
-  catField += '</select></div>';
-  var nivStyle = (curType==='aptitude') ? '' : 'display:none;';
+  var nivStyle = (curType === 'aptitude') ? '' : 'display:none;';
   var nivVal = (isEdit && editItem.niveau) ? parseInt(editItem.niveau) : 1;
-  var nivField = '<div class="grimoire-form-field" id="fform-niv-wrap" style="margin-top:8px;'+nivStyle+'">' +
-    '<label class="grimoire-form-label" for="fform-niv">Niveau (1\u201320)</label>' +
-    '<input type="number" id="fform-niv" class="grimoire-form-input" min="1" max="20" value="'+nivVal+'" style="width:72px;">' +
-    '</div>';
   var descVal = (isEdit && editItem.description) ? escapeHtml(editItem.description) : '';
-  var descField = '<div class="grimoire-form-field" style="margin-top:8px;">' +
-    '<label class="grimoire-form-label" for="fform-desc">Description</label>' +
-    '<textarea id="fform-desc" class="grimoire-form-textarea" placeholder="Description (facultatif)" rows="4">' + descVal + '</textarea>' +
-    '</div>';
-  var errDiv = '<div id="fform-error" class="grimoire-form-error" style="margin-top:6px;"></div>';
-  var footer = '<div class="feats-form-footer">' +
-    '<button class="overlay-btn overlay-btn-cancel" onclick="fermerFormTyped()">Annuler</button>' +
-    '<button class="overlay-btn overlay-btn-primary" onclick="enregistrerTyped()">Enregistrer</button>' +
-    '</div>';
-  area.innerHTML =
-    '<input type="hidden" id="fform-id"       value="' + (isEdit?escapeHtml(id):'') + '">' +
+
+  ov.body.innerHTML =
+    '<input type="hidden" id="fform-id"       value="' + (isEdit ? escapeHtml(id) : '') + '">' +
     '<input type="hidden" id="fform-type"     value="' + curType + '">' +
     '<input type="hidden" id="fform-origtype" value="' + curType + '">' +
-    typeSel + nomField + catField + nivField + descField + errDiv + footer;
-  area.style.display = '';
-  var ni = document.getElementById('fform-nom'); if(ni) setTimeout(function(){ni.focus();}, 60);
+    typeSelHtml +
+    '<div class="grimoire-form-field">' +
+      '<label class="grimoire-form-label" for="fform-nom">Nom <span class="req">*</span></label>' +
+      '<input type="text" id="fform-nom" class="grimoire-form-input" placeholder="Nom" value="' + nomVal + '" autocomplete="off">' +
+    '</div>' +
+    '<div class="grimoire-form-field" id="fform-cat-wrap" style="margin-top:8px;' + catStyle + '">' +
+      '<label class="grimoire-form-label" for="fform-cat">Catégorie</label>' +
+      '<select id="fform-cat" class="grimoire-form-input">' + catOpts + '</select>' +
+    '</div>' +
+    '<div class="grimoire-form-field" id="fform-niv-wrap" style="margin-top:8px;' + nivStyle + '">' +
+      '<label class="grimoire-form-label" for="fform-niv">Niveau (1–20)</label>' +
+      '<input type="number" id="fform-niv" class="grimoire-form-input" min="1" max="20" value="' + nivVal + '" style="width:72px;">' +
+    '</div>' +
+    '<div class="grimoire-form-field" style="margin-top:8px;">' +
+      '<label class="grimoire-form-label" for="fform-desc">Description</label>' +
+      '<textarea id="fform-desc" class="grimoire-form-textarea" placeholder="Description (facultatif)" rows="4">' + descVal + '</textarea>' +
+    '</div>' +
+    '<div id="fform-error" class="grimoire-form-error" style="margin-top:6px;"></div>';
+
+  ov.footer.innerHTML = mkFormFooter('fermerFormTyped', 'enregistrerTyped');
+
+  var ni = document.getElementById('fform-nom');
+  if (ni) setTimeout(function() { ni.focus(); }, 60);
 }
 
 function fermerFormTyped() {
-  var area = document.getElementById('feats-form-area');
-  if(area){ area.innerHTML=''; area.style.display='none'; }
+  fermerOverlayById('overlay-form-typed');
 }
 
 function switchFeatType(type) {
@@ -6221,6 +6313,17 @@ function creerOverlay(opts) {
     if (e.target === backdrop && typeof opts.onFermer === 'function') opts.onFermer();
   });
   document.body.appendChild(backdrop);
+  /* Safari/iPadOS external keyboard fix: after Safari's native (broken) scroll-into-view fires,
+     correct it by scrolling the focused element into view within .overlay-body (the true scroll
+     container). The 120ms delay ensures this runs after Safari's own scroll attempt. */
+  backdrop.addEventListener('focusin', function(e) {
+    var el = e.target;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+      setTimeout(function() {
+        el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }, 120);
+    }
+  });
   return { backdrop: backdrop, panel: panel, body: body, footer: footer };
 }
 function fermerOverlayById(id) {
@@ -8991,8 +9094,9 @@ window.toggleArmorTypeFields = toggleArmorTypeFields;
 window.enregistrerArmure     = enregistrerArmure;
 window.updateMonture         = updateMonture;
 window.updateDDSorts         = updateDDSorts;
-window.updateFeats           = updateFeats;
-window.toggleFeatExpand      = toggleFeatExpand;
+window.updateFeats               = updateFeats;
+window.toggleFeatExpand          = toggleFeatExpand;
+window.initFeatGroupCollapsibles = initFeatGroupCollapsibles;
 window.supprimerTypedItem    = supprimerTypedItem;
 window.editTypedItem         = editTypedItem;
 window.ouvrirFormTyped       = ouvrirFormTyped;
@@ -9124,100 +9228,12 @@ function initApp() {
 initApp();
 
 /* ==================== CHANGELOG ====================
-v7.7 — 2026-03-04 : Sprint 4 — Section Armures, auto-calcul CA, avertissement Discrétion.
-v8.0 — 2026-03-05 : Bump majeur 7.7 → 8.0.
-v8.1 — 2026-03-05 : Sprint 2 Monture — réactivité complète et intégration Attaque Rapide.
-v8.2 — 2026-03-05 : Corrections Monture, renommage Imposition des mains, sorts niveau 0.
-v8.3 — 2026-03-05 : Panneau parent Magie regroupant Emplacements, Mains, Monture.
-v8.4 — 2026-03-05 : Panneau Magie converti en sous-sections plates.
-v8.5 — 2026-03-05 : Panneau Aptitudes et Dons ajouté dans la colonne centrale.
-v9.0 — 2026-03-06 : Bump majeur 8.5 → 9.0 ; Attaque Rapide et Grimoire déplacés en bas, Reliquaire créé.
-v9.1 — 2026-03-06 : Audit HTML ; title/document.title mojibake fix, <style> déplacé dans <head>.
-v9.2 — 2026-03-06 : Réparation complète mojibake CP1251 (icônes et accents), commentaire INSTRUCTIONS corrigé.
-v9.3 — 2026-03-06 : Sprint 2/3 — grille 1fr|1fr|1fr, bottom-section flex colonne pleine largeur.
-v9.4 — 2026-03-06 : Sprint 3/3 — Reliquaire widescreen : 3 zones flex-row largeurs égales, breakpoints préservés.
-v9.5 — 2026-03-06 : 3 panneaux indépendants en section basse, suppression .bottom-layout, correction panel-body manquant.
-v9.6 — 2026-03-06 : Relocation Aptitudes → sous-section Identité ; Magie → colonne droite avant Inventaire.
-v9.7 — 2026-03-06 : Correction commentaire imbriqué dans [EX-M-F53] (fuite de texte visible).
-v9.8 — 2026-03-06 : Sprint 2/3 — Aptitudes restructurées en 3 groupes typés (Traits, Dons, Aptitudes) ; formulaire inline ; migration legacy feats[].
-v9.9 — 2026-03-06 : Sprint 3/3 — Identité : ajout champs Classe/Espèce/Historique ; Niveau/Maîtrise compactés.
-v9.10 — 2026-03-06 : Suppression catégorie "Aptitude de classe" de DON_CATEGORIES.
-v9.11 — 2026-03-06 : SVG+span HM renommés ; 6 titres stylés ; 19 clés retirées de export/import.
-v9.13 — 2026-03-07 : Bugfix ouvrirFormTyped (2 lignes orphelines) ; factory creerOverlay (6 overlays refactorisés).
-v9.14 — 2026-03-07 : Défauts Paladin/Aasimar/Fermier pour classe, espèce, historique.
-v9.15 — 2026-03-07 : Helpers mkActionBtns+mkDetailSpan ; refactoring updateItems/updateWeapons/updateArmors.
-v10.0 — 2026-03-07 : Version majeure — passage v9.15 → v10.0 (user request).
-v10.14 — 2026-03-09 : Revert checkboxes Grimoire/Armures — retour accent-color:var(--or) natif (fond blanc non coché, or coché).
-v10.13 — 2026-03-09 : Checkboxes — coche blanche (\u2714) via span.cb-tick frère (input replaced element incompatible avec ::after).
-v10.12 — 2026-03-09 : Checkboxes Grimoire/Armures — état coché restauré en fond or + coche blanche (identique accent-color natif).
-v10.11 — 2026-03-09 : Checkboxes Grimoire (Préparé/T. prêt) et Armures (Équiper) — fond violet gothique sombre (#1a0b2e) non coché, or+lueur au coché (appearance:none).
-v10.10 — 2026-03-09 : Grimoire — cases Préparé / T. prêt converties en native checkbox (accent-color gold, style identique à Inventaire Équiper armure).
-v10.9 — 2026-03-09 : Bugfix portrait mobile — bouton + Grimoire toujours visible (barre filter réorganisée en 2 rangées via flex-wrap + .gfb-top-row/.gfb-filter-row).
-v10.8 — 2026-03-08 : Scénario B token-reduction — ouvrirFormObjet remplacé par shim vers driver générique ouvrirFormSimple(cfg) [EX-M-F55/F56]. ouvrirFormSort restauré en createElement (WKWebView-safe — innerHTML driver incompatible). Saving net : ~350 chars.
-v10.7 — 2026-03-08 : UX — smite-block déplacé à l'intérieur de .dmg-half (après dmg-mastery-note) pour les 2 attaques via makeCombatBlock. [EX-M-F31] mis à jour.
-v10.6 — 2026-03-08 : Sprint token-reduction — combat-block-1/2 remplacés par makeCombatBlock(n) template + combat-blocks-container. Saving : ~4 483 chars.
-v10.5 — 2026-03-08 : Sprint token-reduction F5 — 112 SVG <use href="#sp"> étoiles remplacées par HM_STARS data array + générateur JS. Saving : ~11 121 chars.
-v10.4 — 2026-03-08 : Mise à jour du processus IA obligatoire de 6 à 7 étapes — ajout Step 5 Component Testing, Step 6 Integration & Regression, Step 7 Documentation & UAT.
-v10.3 — 2026-03-08 : Sprint token-reduction F6/F7/F8 — lireStr/lireChk helpers (19 double-lookups), mkFormFooter helper (3 footer blocks), formSub helper (4 subtitle ternaries). Saving : ~873 chars.
-v10.2 — 2026-03-08 : Sprint token-reduction F2/F3/F4 — inline styles → CSS class (×8), bubble groups → JS expansion (×5), sanList helper + CATS→DON_CATEGORIES dans sanitiserDonnees. Saving : ~2 015 chars.
-v10.1 — 2026-03-07 : SVG déduplication géométrie bouclier (ca-shield-outer + ca-shield-inner) ; 11 <path> remplacés par <use href>.
-v11.15 — 2026-03-10 : Fix UAT : panneau diagnostic masqué au chargement (display:none CSS), emplacements sorts alignés à droite (margin-left:auto sur label Max).
-v11.16 — 2026-03-10 : Icônes Sprint 2 — remplacement emoji restants : 🐎🐴→stag-head (SVG game-icons.net), ❤/&#x2665;→heart-organ (SVG), 🎒→knapsack (SVG), 📦→ra-hourglass (RPG Awesome) ; ajout CSS .gi-icon ; [EX-G-F47][EX-M-F52][EX-G-F46][EX-T-F37] mis à jour ; [EX-G-F48] et [EX-G-DICE] créés.
-v11.17 — 2026-03-10 : Couleurs et tailles icônes gi-icon : stag-head section-title→or, stag-head combat-title→rouge bordeaux, heart-organ+knapsack→or ; CSS .gi-icon-gold/.gi-icon-red ajoutés ; Aide aux Tests : ra-perspective-dice-random → d20 SVG game-icons.net (or).
-v11.18 — 2026-03-10 : A) Correction couleur gi-icon : filtre CSS remplacé par encodage couleur dans URL game-icons.net (#c9a84c or exact, #b52a2a bordeaux exact) ; CSS .gi-icon-gold/.gi-icon-red → .gi-icon-lg/.gi-icon-md (taille seule). B) Critique : icône de tête supprimée, icônes dés après le texte (N×type correspondant) via critDiceIcons() + CRIT_DICE_ICON_MAP.
-v11.19 — 2026-03-10 : Fix icônes gi-icon disparues — URL couleur game-icons.net non fiable ; passage à CSS mask-image (background-color:var(--or/--bordeaux-clair) + -webkit-mask-image:url(blanc)) sur <span> ; img → span pour tous les éléments gi-icon ; critDiceIcons() mis à jour idem.
-v11.20 — 2026-03-10 : Restauration icônes gi-icon — retour <img> + filter CSS (mask-image non fonctionnel) ; filter or ajusté : sepia(1) saturate(2.2) hue-rotate(6deg) brightness(0.92) ; filter rouge : sepia(1) saturate(8) hue-rotate(315deg) brightness(0.75) ; critDiceIcons() produit <img> identique au d20 Aide aux Tests.
-v11.21 — 2026-03-10 : Fix dés critique invisibles — <img> dans .crit-label (display:none) non chargées par WebKit ; src CDN remplacé par data URI SVG inline pour d4/d6/d8/d10 dans CRIT_DICE_ICON_MAP et img statiques ; chargement garanti avant affichage.
-v11.22 — 2026-03-10 : A) Dés critique 3D — d4 et d10 passent au style Delapouite (dice-four-faces-four / dice-ten-faces-ten) pour cohérence visuelle avec le d20 ; B) Icône d20 ajoutée à droite de chaque champ D20 dans Attaque Rapide (mnt-atk-d20 statique + atk+n-d20 template).
-v11.23 — 2026-03-10 : 6 nouvelles icônes game-icons.net (gi-icon-gold) : spinning-sword→Attaque Rapide, icicles-aura→Caractéristiques, breastplate→Armures, diamond-hilt→Armes, scroll-quill→Grimoire, unfurling-scroll→Emplacements & Conduit ; remplacement ra-crossed-swords / ra-shield / ra-book correspondants.
-v11.24 — 2026-03-10 : Suppression ⬡ et ✧ devant Caractéristiques et Emplacements — icône gi-icon suffit.
-v11.25 — 2026-03-10 : Fix icônes 5/6 absentes — CDN URLs non fiables (slugs incertains) ; remplacement par data URI SVG inline pour spinning-sword, breastplate, diamond-hilt, scroll-quill, unfurling-scroll.
-v11.26 — 2026-03-10 : 11 icônes gi-icon mises à jour avec URLs correctes : sword-clash/Attaque Rapide, breastplate/Armures, diamond-hilt/Armes, scroll-quill/Emplacements, secret-book/Grimoire, fire-ray/Magie, shield-bash/Combat, finger-print/Identité, potion-ball/Reliquaire, glowing-hands/Imposition (titre+sphère). Data URIs provisoires supprimées.
-v11.26 — 2026-03-11 : Correction slugs + 6 nouvelles icônes panneaux. Tous les gi-icons utilisent des CDN URLs correctes (plus de data URIs approximatifs). Remplacements : sword-clash→Attaque Rapide, breastplate(lorc)→Armures, diamond-hilt(delapouite)→Armes, scroll-quill(delapouite)→Emplacements, secret-book→Grimoire, fire-ray→Magie, shield-bash→Combat, finger-print→Identité, potion-ball→Reliquaire, glowing-hands→Imposition+sphère soins, spinning-sword(lorc)→Attaque 1&2.
-v11.34 — 2026-03-11 : Icône Aptitudes/Traits/Dons : ra-book remplacée par gi-icon lorc/dna2.
-v12.0 — 2026-03-11 : Version majeure — passage v11.34 → v12.0 (user request).
-v12.1 — 2026-03-11 : Ajout Caractéristique d'incantation (select #carac-incantation) et DD sorts auto-calculé (#dd-sorts) dans le panneau Magie — formule DD = 8 + mod carac + mod maîtrise.
-v12.2 — 2026-03-11 : Déplacement Carac. d'incantation / DD sorts en tête du panneau Magie, avant la sous-section Emplacements & Conduit Divin.
-v12.3 — 2026-03-11 : Aura de Protection (niv. 6) — case à cocher dans Jets de Sauvegarde ; modificateur CHA ajouté au total de sauvegarde quand actif et niveau ≥ 6.
-v12.4 — 2026-03-12 : CSS uniquement — espacement vertical (1.2rem) avant chaque sous-titre de panneau ; taille de police sous-titres portée à 0.69rem ; exception : "Objets" dans Inventaire reçoit l'espacement même en première position.
-v12.5 — 2026-03-12 : Aide aux Tests — classe subsection-header ajoutée aux deux sous-titres inline (Tests de Caractéristique, Jets de Sauvegarde) ; espacements et taille de police désormais cohérents avec les autres panneaux.
-v12.7 — 2026-03-12 : Sprint Sémantique — remplacement de tous les div.section-title par des éléments sémantiques H2–H5 ; CSS reset h1-h5 ajouté ; .mnt-stats-title créé ; combat-title "Attaque N" → H4 dans makeCombatBlock() ; spell-level-header → H3 dans updateGrimoire() ; combat-title "Initiative" et "Points de Vie" supprimés (R5 — redondants) ; mnt-ability-title → H5 ; aucune modification game-logic, aucun changement visuel ; [EX-G-F44] mis à jour.
-v12.8 — 2026-03-12 : Bugfix BUG-01 — modifierConduit() : clamp hardcodé Math.min(2,…) remplacé par lecture de inp.max (valeur correcte écrite par updateConduitDivin) ; [EX-G-F21] corrigé (max fixe → niveau-dépendant).
-v12.9 — 2026-03-12 : Nettoyage — RPG Awesome : version 0.3.4 → 0.2.0 dans tous les commentaires ([EX-G-F47], [EX-T-F37], commentaire <link>) ; suppression complète du panneau diagnostic #rpa-diag (CSS orphelin, HTML, script window.onerror/onunhandledrejection/ouvrirDiagnostic, bouton menu).
-v12.10 — 2026-03-12 : Refactor — data URI d8 extraite en constante const D8_DATA_URI ; 8 occurrences inline remplacées (CRIT_DICE_ICON_MAP, getDiceIconUrl, makeCombatBlock ×4, HTML statique injecté par initApp) ; [EX-G-DICE] réécrit.
-v12.11 — 2026-03-13 : Icônes SVG ×1.4 — CSS .gi-icon (1→1.4em), .gi-icon-lg (1.3→1.82em), .gi-icon-md (1.2→1.68em) ; attributs width/height synchronisés sur tous les éléments statiques HTML, critDiceIcons(), makeCombatBlock() ; [EX-G-F48] mis à jour.
-v12.12 — 2026-03-13 : Icônes dés ×1.3 — .gi-icon-dice-lg (3.08em) et .gi-icon-dice-md (2.83em) appliquées aux seules icônes dés ; correction v12.11 (gi-icon-dice-lg retiré de heart-organ, icicles-aura, potion-ball) ; mnt-dmg-die-icon et dice-fire rattrapés ; [EX-G-F48] et [EX-G-DICE] mis à jour.
-v12.13 — 2026-03-13 : Icônes stag-head ×1.4 — .gi-icon-stag-lg (2.55em) section-title Monture, .gi-icon-stag-md (2.35em) combat-title Monture ; [EX-G-F48] mis à jour.
-v12.14 — 2026-03-13 : Restauration d20 Aide aux Tests — gi-icon-dice-lg retiré, retour à gi-icon-lg standard (1.82em) ; hors scope des redimensionnements dés ; [EX-G-F48] et [EX-G-DICE] mis à jour.
-v12.15 — 2026-03-13 : Sprint documentation — 5 entrées [EX-*] réécrites : [EX-G-F44] .section-title-rapide correctement documentée (non supprimée) ; [EX-G-F23] structure H2/H3 + collapsible corrigé ; [EX-G-F46] structure H2/H3 + champ Carac. incantation ; [EX-M-F52] structure H3/H4/H5 ; [EX-T-F38] updateAll() 28 étapes réelles (vs 16 obsolètes). Aucun changement de code.
-v12.16 — 2026-03-13 : Sprint documentation — 7 nouvelles entrées [EX-*] créées : [EX-M-F59] injectDefaults() ; [EX-M-F60] updateStealthWarning() ; [EX-M-F61] S.caManualOverride ; [EX-M-F62] finesse toggle FOR/DEX ; [EX-T-F43] applyPanelStates() stub ; [EX-G-F55] HM_STARS génération étoiles ; [EX-G-F56] getDiceIconUrl(). Aucun changement de code.
-v12.17 — 2026-03-13 : Quatre corrections indépendantes — (A) [EX-T-F37] catalogue window.* exhaustif 108 entrées ajouté ; (B) [EX-T-F03] liste champs persistés réécrite (ajout slot3Cur, atk*, armors, weapons, items, mount, traits, dons, aptitudes, caracIncantation, auraProtectionActive ; retrait slot1Max/slot2Max) ; (C) window.reposLong alias obsolète supprimé (onclick utilise confirmerReposLong directement) ; (D) #version-label valeur statique corrigée v11.0 → v12.17.
-v12.6 — 2026-03-12 : Suppression du conteneur .bottom-section — bordure, fond, padding et texture décoratifs retirés ; les 3 panneaux bas (Attaque Rapide, Grimoire, Reliquaire) sont désormais enfants directs de #app, largeur pleine, empilés en flux block normal.
-v13.0 — 2026-03-19 : Version majeure — passage v12.17 → 13.0 ; armes consommables (champ consommable + quantity, badge inv-qty-badge dans la liste) ; [EX-M-F63] créé (modèle objet arme) ; [EX-T-F40] whitelist mise à jour.
-v13.1 — 2026-03-19 : Quantité arme consommable éditable en ligne — contrôle −/input/+ (.inv-qty-ctrl) remplace le badge statique ; setWeaponQuantity() et setWeaponQuantityDirect() exposés sur window.* ; [EX-M-F63] mis à jour.
-v11.33 — 2026-03-11 : d8 : URL CDN skoll/d8 introuvable — icône encodée en data URI base64 (SVG delapouite/dice-eight-faces-eight, fond noir supprimé, chemin blanc conservé). 10 occurrences remplacées.
-v11.32 — 2026-03-11 : (1) Icone smite: ligne Niv.emplacement -> ligne Des lancés + id smite+n+-die-icon. (2) updateSmite: getElementById. (3) Diagnostic: test img.onerror/onload chaque URL CDN dé.
-v11.31 — 2026-03-11 : (1) d8 slug corrigé : delapouite/dice-eight-faces-eight → skoll/d8 (cohérent avec skoll/d4 et skoll/d10) — 10 occurrences. (2) updateSmite : icône dé mise à jour dynamiquement (d8 pour Châtiment Divin, d6 pour Châtiment de la Fournaise).
-v11.30 — 2026-03-11 : Fix d8 : src base64 bruts résiduels (sans préfixe data:) dans mnt-dmg-crit-label et template makeCombatBlock remplacés par CDN URL dice-eight-faces-eight.
-v11.29 — 2026-03-11 : Suppression icône finger-print en double sur titre Identité.
-v11.28 — 2026-03-11 : CRIT_DICE_ICON_MAP : data URIs remplacées par CDN URLs (d4→skoll/d4, d6→perspective-dice-six, d8→dice-eight-faces-eight, d10→skoll/d10). Règle data URI supprimée — app hébergée sur GitHub Pages.
-v11.27 — 2026-03-11 : (1) Dés crídice CRIT_DICE_ICON_MAP slugs mis à jour : d4→skoll/d4, d6→delapouite/perspective-dice-six, d8→delapouite/dice-eight-faces-eight, d10→skoll/d10 (data URIs à remplacer — slugs corrects, SVGs non encore fournis) ; (2) dice-fire (delapouite) : Dés de Vie section-title + Reliquaire hd-vial-label ; (3) Retrait ❆ devant Identité ; (4) magic-potion (delapouite) : Objets ; (5) reaper-scythe (lorc) : Jets de Sauvegarde Mort ; (6) Chevrons ▼▶ remplacés par ▾▸ (sans variante emoji) ; (7) Géndice icons dynamiques sur inputs dégâts : atk1/atk2 (mise à jour via updateCombat/getDiceIconUrl), mnt-dmg-d8 (statique d8), smite-dice (statique d8).
-v11.22 — 2026-03-10 : A) Dés critique 3D — remplacement SVGs 2D plats par SVGs isométriques (tétraèdre/cube/octaèdre/trapézoèdre) dans CRIT_DICE_ICON_MAP ; B) Icône d20 ajoutée à droite de chaque champ d20 du panneau Attaque Rapide : init-d20, mnt-atk-d20, atk1/2-d20 (template).
-v11.14 — 2026-03-09 : 5 corrections UI : diag plus auto-ouvert, ordre boutons aptitudes (édition avant suppression), icônes ra dans popups confirmation/édition, flèche ra-angle-right menu, label Max emplacements sorts.
-v11.13 — 2026-03-09 : 6 améliorations UI : diag accessible depuis menu+erreurs globales, icônes ra aptitudes, couleurs or/rouge boutons, icônes reliquaire or, lune popup repos long, Metamorphous sur texte sphères.
-v11.12 — 2026-03-09 : Fix URL CDN rpg-awesome 0.3.4→0.2.0 (seule version publiée sur npm).
-v11.11 — 2026-03-09 : Panneau diagnostic RPG Awesome ajouté (debug temporaire).
-v11.10 — 2026-03-09 : Fix commentaire HTML cassé dans [EX-G-F47] (marqueur SCRIPTABLE_RPA_INJECT imbriqué).
-v11.9 — 2026-03-09 : Fix icônes RPG Awesome — @import remplacé par <link> dans <head> (GitHub Pages CSP).
-v11.8 — 2026-03-09 : Retour icônes RPG Awesome ra-* via @import CDN — déployement GitHub Pages.
-v11.7 — 2026-03-09 : Remplacement RPG Awesome (CDN) par SVG inline — zéro dépendance, fonctionne offline et dans Scriptable.
-v11.6 — 2026-03-09 : Fix RPG Awesome — <link> remplacé par @import dans <style> (même pattern Google Fonts) ; [EX-T-F37] et [EX-G-F47] mis à jour.
-v11.5 — 2026-03-09 : Fix commentaire HTML cassé dans [EX-G-F47] ; contrainte WKWebView loadHTML documentée — icônes Scriptable requièrent modification launcher (sprint suivant).
-v11.4 — 2026-03-09 : Fix icônes RPG Awesome Scriptable — @import CSS remplacé par <link rel="stylesheet"> dans <head> (WKWebView loadHTML null-origin policy) ; filename corrigé (major uniquement).
-v11.3 — 2026-03-09 : Icônes RPG Awesome (CDN, amélioration progressive) — 15 emojis remplacés par ra-* ; marqueur SCRIPTABLE_RPA_INJECT ajouté ; [EX-G-F47] créé.
-v11.2 — 2026-03-09 : Typographie — suppression sélecteur de polices et Eagle Lake ; Metamorphous (Google Fonts) appliquée à tout le texte, fallback système garanti.
-v11.1 — 2026-03-09 : Typographie globale — --font-sub et --font-corps pointent vers --font-titre-active ; le sélecteur de police s'applique à tout le texte.
-v11.0 — 2026-03-09 : Version majeure — passage v10.14 —> v11.0 (user request). Ajout système de polices double (Metamorphous / Eagle Lake) avec sélecteur dans le menu et persistance localStorage. Amendement [EX-T-F37] / [EX-G-F02] pour autoriser les polices Google Fonts avec fallback système garanti.
+v13.0 — 2026-03-19 : Version majeure — passage v12.17 → 13.0 ; armes consommables (champ consommable + quantity) ; [EX-M-F63] créé ; [EX-T-F40] mis à jour.
+v13.1 — 2026-03-19 : Quantité arme consommable éditable en ligne — contrôle −/input/+ (.inv-qty-ctrl) ; setWeaponQuantity() et setWeaponQuantityDirect() exposés sur window.*.
+v13.2 — 2026-03-19 : Sprint 2 — formulaire Aptitudes/Traits/Dons converti en overlay (creerOverlay, id overlay-form-typed) ; 3 sous-sections collapsibles dans updateFeats() avec persistance S.panelsOpen[feats-group-*] ; initFeatGroupCollapsibles() ré-attache les handlers après chaque rendu ; [EX-M-F53] réécrit ; [EX-T-F40] panelsOpen mis à jour.
+v13.3 — 2026-03-19 : Boutons type (Trait/Don/Aptitude) dans l'overlay formulaire — fond sombre #1a1a2a (identique aux champs de saisie) pour améliorer la lisibilité et le contraste.
+v13.4 — 2026-03-19 : Bouton type sélectionné — texte #1a0a0a (sombre) sur fond or pâle pour contraste lisible ; remplacement de var(--or-clair) qui était illisible.
+v13.5 — 2026-03-19 : Fix Safari/iPadOS clavier externe — champ édité reste visible : .overlay-panel max-height 90vh→85svh (fallback 85vh), .overlay-body min-height:0 + -webkit-overflow-scrolling:touch, focusin listener dans creerOverlay() corrige le scroll-into-view après 120ms.
 ====================================================== */
 </script>
 
