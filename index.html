@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.12 — 2026-03-19 -->
+<!-- dnd-sheet-v13 | version complète : 13.13 — 2026-03-19 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -3546,6 +3546,10 @@ select.field-input optgroup {
           <span class="di-icon">▾</span> Tout déplier
         </button>
         <div class="dropdown-sep"></div>
+        <button class="dropdown-item" onclick="closeMenu();diagToggle()">
+          <span class="di-icon">⚙</span> Diagnostic scroll
+        </button>
+        <div class="dropdown-sep"></div>
         <!-- Sous-menu Effets visuels — voir [EX-G-F45] -->
         <button class="dropdown-submenu-header" id="vfx-submenu-btn" onclick="toggleVfxSubmenu()">
           <span class="di-icon"><i class="ra ra-burning-embers rpa-icon" aria-hidden="true"></i></span> Effets visuels
@@ -4859,7 +4863,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.12';
+var FILE_VERSION = '13.13';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -6704,16 +6708,7 @@ var _hdRestoreToMax = false;
 /* ============================================================
    FONCTION CENTRALE updateAll()
    ============================================================ */
-function updateAll(sourceEl) {
-  /* ── Skip .value writes on the element that triggered this call.
-     In WKWebView standalone (iPad + hardware keyboard), programmatic .value
-     writes on the focused input trigger a scroll-into-view recalculation
-     that miscalculates because no on-screen keyboard is present.
-     document.activeElement is unreliable in WKWebView standalone;
-     event.target (passed as sourceEl from attachListeners) is used instead. ── */
-  var _activeEl = sourceEl || null;
-  function setVal(el, v) { if (el && el !== _activeEl) el.value = v; }
-
+function updateAll() {
   var niv     = Math.max(1, Math.min(20, lireInt('niveau', 1)));
   var robuste = lireChk('check-robuste');
   var maîtBns = calcMaitrise(niv);
@@ -6729,19 +6724,19 @@ function updateAll(sourceEl) {
   var pvM = calcPvMax(niv, robuste, valCon);
   if (pvM < 1) pvM = 1;
   var _pvMaxEl = document.getElementById('pv-max');
-  setVal(_pvMaxEl, pvM);
+  if (_pvMaxEl) _pvMaxEl.value = pvM;
 
   var pvAEl = document.getElementById('pv-actuels');
   if (pvAEl) {
-    if (_nivChanged) { setVal(pvAEl, pvM); }  /* restore to max on level change */
+    if (_nivChanged) { pvAEl.value = pvM; }  /* restore to max on level change */
     var va = parseInt(pvAEl.value) || 0;
-    if (va > pvM) { setVal(pvAEl, pvM); }
-    if (va < 0)   { setVal(pvAEl, 0);   }
+    if (va > pvM) { pvAEl.value = pvM; }
+    if (va < 0)   { pvAEl.value = 0;   }
   }
   var pvTEl = document.getElementById('pv-temp');
-  if (pvTEl && (parseInt(pvTEl.value)||0) < 0) setVal(pvTEl, 0);
+  if (pvTEl && (parseInt(pvTEl.value)||0) < 0) pvTEl.value = 0;
   var bm = document.getElementById('bonus-maitrise');
-  setVal(bm, sgn(maîtBns));
+  if (bm) bm.value = sgn(maîtBns);
   STATS_DEF.forEach(function(stat) {
     var el = document.getElementById('stat-' + stat.id);
     if (!el) return;
@@ -6762,14 +6757,14 @@ function updateAll(sourceEl) {
   updateDDSorts(); /* sync DD when stats or proficiency change [EX-M-F57] */
   var hmM = 5 * niv;
   var hmx = document.getElementById('hm-max');
-  setVal(hmx, hmM);
+  if (hmx) hmx.value = hmM;
   var hmd = document.getElementById('hm-max-display');
   if (hmd) hmd.textContent = hmM;
   var hmC = document.getElementById('hm-cur');
   if (hmC) {
-    if (_nivChanged) { setVal(hmC, hmM); }  /* restore to max on level change */
-    if ((parseInt(hmC.value)||0) > hmM) setVal(hmC, hmM);
-    if ((parseInt(hmC.value)||0) < 0)   setVal(hmC, 0);
+    if (_nivChanged) { hmC.value = hmM; }  /* restore to max on level change */
+    if ((parseInt(hmC.value)||0) > hmM) hmC.value = hmM;
+    if ((parseInt(hmC.value)||0) < 0)   hmC.value = 0;
   }
   _hdRestoreToMax = _nivChanged;  /* signal updateHD to restore hd-cur to max */
   updateHD();
@@ -6781,16 +6776,16 @@ function updateAll(sourceEl) {
     if (!inp) return;
     /* slot cur restore on niveau change is handled inside updateSpellSlots */
     var c = parseInt(inp.value) || 0;
-    if (c > mx) setVal(inp, mx);
-    if (c < 0)  setVal(inp, 0);
+    if (c > mx) inp.value = mx;
+    if (c < 0)  inp.value = 0;
   });
   var ci = document.getElementById('conduit-cur');
   if (ci) {
     var ciMax = parseInt(ci.max) || 2;
-    if (_nivChanged) { setVal(ci, ciMax); }  /* restore to max on level change */
+    if (_nivChanged) { ci.value = ciMax; }  /* restore to max on level change */
     var cc    = parseInt(ci.value) || 0;
-    if (cc > ciMax) setVal(ci, ciMax);
-    if (cc < 0)     setVal(ci, 0);
+    if (cc > ciMax) ci.value = ciMax;
+    if (cc < 0)     ci.value = 0;
   }
   updateSpellSlots(lireInt('niveau', 1), _nivChanged);
   updateConduitDivin(lireInt('niveau', 1));
@@ -7789,10 +7784,6 @@ function flashMsg(msg) {
   document.body.appendChild(el);
   setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 2200);
 }
-
-/* ============================================================
-   ATTACHER LES LISTENERS
-   ============================================================ */
 function clampNiveau(el) {
   var v = parseInt(el.value);
   if (isNaN(v) || v < 1)  { el.value = 1; }
@@ -7803,11 +7794,11 @@ function attachListeners() {
   /* Exclure les checkboxes — déjà gérées séparément */
   var inputs = document.querySelectorAll('input:not([type="checkbox"])');
   inputs.forEach(function(el) {
-    el.addEventListener('input', function(e) { updateAll(e.target); });
+    el.addEventListener('input', updateAll);
   });
   var checks = document.querySelectorAll('input[type="checkbox"]');
   checks.forEach(function(el) {
-    el.addEventListener('change', function(e) { updateAll(e.target); });
+    el.addEventListener('change', updateAll);
   });
 }
 
@@ -9137,6 +9128,147 @@ window.genTypedId            = genTypedId;
 window.FILE_VERSION          = FILE_VERSION;
 
 /* ============================================================
+   DIAGNOSTIC SCROLL — temporaire, à retirer après investigation
+   Objectif : comparer le comportement Safari vs Standalone iPad
+   + clavier externe pour identifier la cause du scroll parasite.
+   ============================================================ */
+var DIAG = {
+  logs: [],
+  maxLogs: 60,
+  lastScrollY: 0,
+  active: false
+};
+
+function diagLog(msg) {
+  if (!DIAG.active) return;
+  var ts = Date.now() % 100000; /* ms relative, 5 chiffres */
+  var entry = '[' + ts + '] ' + msg;
+  DIAG.logs.unshift(entry);
+  if (DIAG.logs.length > DIAG.maxLogs) DIAG.logs.length = DIAG.maxLogs;
+  diagRefresh();
+}
+
+function diagRefresh() {
+  var pre = document.getElementById('diag-pre');
+  if (pre) pre.textContent = DIAG.logs.join('\n');
+}
+
+function diagToggle() {
+  DIAG.active = !DIAG.active;
+  var btn = document.getElementById('diag-toggle-btn');
+  var panel = document.getElementById('diag-panel');
+  if (btn) btn.textContent = DIAG.active ? '⏹ Stop diag' : '▶ Start diag';
+  if (panel) panel.style.display = DIAG.active ? 'flex' : 'none';
+  if (DIAG.active) {
+    DIAG.logs = [];
+    DIAG.lastScrollY = window.scrollY;
+    diagLog('=== DIAG START === scrollY=' + window.scrollY +
+            ' | standalone=' + (window.navigator.standalone === true) +
+            ' | UA=' + navigator.userAgent.slice(-60));
+  }
+}
+
+function diagClear() {
+  DIAG.logs = [];
+  diagRefresh();
+}
+
+/* Inject diagnostic UI into the page */
+function diagInit() {
+  /* Floating toggle button — always visible */
+  var btn = document.createElement('button');
+  btn.id = 'diag-toggle-btn';
+  btn.textContent = '▶ Start diag';
+  btn.setAttribute('style',
+    'position:fixed;bottom:70px;right:10px;z-index:99999;' +
+    'background:#1a0a2a;border:1px solid #c9a84c;color:#c9a84c;' +
+    'font-size:11px;padding:5px 9px;border-radius:4px;cursor:pointer;' +
+    'font-family:monospace;opacity:0.85;');
+  btn.onclick = diagToggle;
+  document.body.appendChild(btn);
+
+  /* Scrollable log panel */
+  var panel = document.createElement('div');
+  panel.id = 'diag-panel';
+  panel.setAttribute('style',
+    'display:none;position:fixed;bottom:106px;right:10px;z-index:99998;' +
+    'width:min(420px,96vw);height:320px;' +
+    'background:rgba(8,4,16,0.97);border:1px solid #c9a84c;border-radius:4px;' +
+    'flex-direction:column;overflow:hidden;');
+
+  var header = document.createElement('div');
+  header.setAttribute('style',
+    'display:flex;align-items:center;justify-content:space-between;' +
+    'padding:4px 8px;border-bottom:1px solid rgba(201,168,76,0.3);flex-shrink:0;');
+  header.innerHTML =
+    '<span style="color:#c9a84c;font-size:10px;font-family:monospace;">SCROLL DIAGNOSTIC</span>' +
+    '<button onclick="diagClear()" style="background:none;border:1px solid #8b1a1a;color:#b52a2a;' +
+    'font-size:9px;padding:2px 6px;border-radius:2px;cursor:pointer;font-family:monospace;">Clear</button>';
+
+  var pre = document.createElement('pre');
+  pre.id = 'diag-pre';
+  pre.setAttribute('style',
+    'flex:1;overflow-y:auto;margin:0;padding:6px 8px;' +
+    'font-size:9px;line-height:1.45;color:#a0e8a0;font-family:monospace;' +
+    'white-space:pre-wrap;word-break:break-all;');
+
+  panel.appendChild(header);
+  panel.appendChild(pre);
+  document.body.appendChild(panel);
+
+  /* Monitor scroll events */
+  window.addEventListener('scroll', function() {
+    var dy = window.scrollY - DIAG.lastScrollY;
+    if (Math.abs(dy) > 1) {
+      diagLog('SCROLL scrollY=' + Math.round(window.scrollY) +
+              ' delta=' + (dy > 0 ? '+' : '') + Math.round(dy) +
+              ' focus=' + (document.activeElement ? document.activeElement.id || document.activeElement.tagName : 'null'));
+    }
+    DIAG.lastScrollY = window.scrollY;
+  }, { passive: true });
+
+  /* Monitor every updateAll call */
+  var _origUpdateAll = updateAll;
+  updateAll = function() {
+    var focusId = document.activeElement ? (document.activeElement.id || document.activeElement.tagName) : 'null';
+    var scrollBefore = window.scrollY;
+    diagLog('updateAll START scrollY=' + Math.round(scrollBefore) + ' focus=' + focusId);
+    _origUpdateAll.apply(this, arguments);
+    var scrollAfter = window.scrollY;
+    if (Math.abs(scrollAfter - scrollBefore) > 1) {
+      diagLog('  >> updateAll caused scroll: ' + Math.round(scrollBefore) + '->' + Math.round(scrollAfter));
+    } else {
+      diagLog('updateAll END scrollY=' + Math.round(scrollAfter) + ' (no scroll)');
+    }
+  };
+  window.updateAll = updateAll;
+
+  /* Monitor every .value write on inputs via defineProperty on HTMLInputElement.prototype */
+  /* This lets us see WHICH .value write happens just before a scroll */
+  var _origValueSet = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+  var _origValueGet = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').get;
+  Object.defineProperty(HTMLInputElement.prototype, 'value', {
+    set: function(v) {
+      if (DIAG.active && this.id) {
+        var old = _origValueGet.call(this);
+        if (String(old) !== String(v)) {
+          diagLog('  .value [' + this.id + '] ' + JSON.stringify(String(old).slice(0,12)) +
+                  ' -> ' + JSON.stringify(String(v).slice(0,12)));
+        }
+      }
+      _origValueSet.call(this, v);
+    },
+    get: _origValueGet,
+    configurable: true
+  });
+}
+
+window.diagToggle = diagToggle;
+window.diagClear  = diagClear;
+window.diagInit   = diagInit;
+
+
+/* ============================================================
    initApp() — voir [EX-T-F37]
    Appelé directement, JAMAIS via DOMContentLoaded
    ============================================================ */
@@ -9258,10 +9390,33 @@ function initApp() {
   updateWeapons();   /* also calls updateWeaponDropdowns() */
   updateGrimoire();
   updateFeats();
+
+  /* Diagnostic — capture visualViewport resize events (keyboard appear/disappear) */
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function() {
+      if (!DIAG.active) return;
+      var vH  = Math.round(window.visualViewport.height);
+      var vOY = Math.round(window.visualViewport.offsetTop);
+      var sY  = Math.round(window.scrollY);
+      var mode = window.navigator.standalone ? 'standalone' : 'browser';
+      diagLog('VP-RESIZE | ' + mode + ' | vpH=' + vH + ' vpOffY=' + vOY + ' scrollY=' + sY);
+    });
+  }
+
+  /* Diagnostic — capture scroll events on window */
+  window.addEventListener('scroll', function() {
+    if (!DIAG.active) return;
+    var sY   = Math.round(window.scrollY);
+    var ae   = document.activeElement;
+    var aeId = ae ? (ae.id || ae.tagName) : 'null';
+    var mode = window.navigator.standalone ? 'standalone' : 'browser';
+    diagLog('SCROLL-EVT | ' + mode + ' | scrollY=' + sY + ' | activeEl=' + aeId);
+  }, { passive: true });
 }
 
 /* Appel direct, sans event listener */
 initApp();
+diagInit(); /* crée le bouton flottant + panel diag scroll */
 
 /* ==================== CHANGELOG ====================
 v13.0 — 2026-03-19 : Version majeure — passage v12.17 → 13.0 ; armes consommables (champ consommable + quantity) ; [EX-M-F63] créé ; [EX-T-F40] mis à jour.
@@ -9277,6 +9432,7 @@ v13.9 — 2026-03-19 : Retrait de 5 appels redondants de updateAll() — updateA
 v13.10 — 2026-03-19 : Fix régression v13.9 — tables vides au chargement : ajout de 5 appels initiaux dans initApp() après updateAll() (updateArmors, updateItems, updateWeapons, updateGrimoire, updateFeats) pour le rendu initial depuis localStorage.
 v13.11 — 2026-03-19 : Fix scroll bug iPad standalone + clavier externe — updateAll() ne réécrit plus .value sur l'élément actuellement focalisé ; helper local setVal(el,v) avec garde _activeEl ajouté.
 v13.12 — 2026-03-19 : Fix scroll bug v2 — document.activeElement non fiable dans WKWebView standalone ; updateAll(sourceEl) accepte maintenant event.target ; attachListeners() passe e.target explicitement.
+v13.13 — 2026-03-19 : Revert v13.11/v13.12 + diagnostic scroll complet : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
 ====================================================== */
 </script>
 
