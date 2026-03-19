@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v12 | version complète : 12.14 — 2026-03-13 -->
+<!-- dnd-sheet-v13 | version complète : 13.1 — 2026-03-19 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -439,17 +439,24 @@ CHANGELOG entry format:
        Surface wave : compositor-thread GPU transform (translateX) — coût négligeable.
 -->
 
-<!-- [EX-G-F23] ATTAQUE RAPIDE — STRUCTURE VISUELLE
+<!-- [EX-G-F23] ATTAQUE RAPIDE — STRUCTURE VISUELLE (v12.14)
 
-     Titre principal : .section-title-rapide (non collapsible — voir [EX-G-F44])
-       · font-family var(--font-titre), font-size ≥ 1.3rem, font-weight 700
+     Structure sémantique (v12.7+) :
+       <h2 class="section-title collapsible section-title-rapide">  ← collapsible, icône sword-clash
+         [panel-body]
+           <h3 class="section-title collapsible">✦ Sorts Actifs</h3>
+           [panel-body] → 3 cases .spell-toggle
+           <h3 class="section-title collapsible">✦ Initiative</h3>
+           [panel-body] → init-d20, init-mod-dex, init-total
+           <h3 class="section-title collapsible">✦ Round</h3>
+           [panel-body] → .round-zone (encadré bordeaux, voir [EX-G-F29])
+       </h2>
+
+     Style H2 (via .section-title-rapide — voir [EX-G-F44]) :
+       · font-family var(--font-titre), font-size 1.3rem, font-weight 700
        · color var(--or), letter-spacing 0.12em, text-transform uppercase
        · border-bottom 2px solid rgba(201,168,76,0.55)
        · text-shadow : 0 0 18px rgba(201,168,76,0.5) + 0 2px 4px rgba(0,0,0,0.9)
-     3 sous-titres .section-title.collapsible :
-       · "✦ Sorts Actifs"   → 3 cases .spell-toggle
-       · "✦ Initiative"     → init-d20, init-mod-dex, init-total
-       · "✦ Round"          → .round-zone (encadré bordeaux, voir [EX-G-F29])
 -->
 
 <!-- [EX-G-F29] ZONE ROUND — ENCADRÉ VISUEL
@@ -530,15 +537,20 @@ CHANGELOG entry format:
        Classes CSS : .grimoire-switch.active, .grimoire-filter-bar.filter-active.
 -->
 
-<!-- [EX-M-F52] MONTURE D'OUTREMONDE (Sprint 1)
+<!-- [EX-M-F52] MONTURE D'OUTREMONDE (Sprint 1, structure v12.14)
 
      Sous-section collapsible dans le panneau Magie (à la suite de Imposition des mains).
-     Structure HTML : <div class="section-title collapsible">
-                        <img class="gi-icon" src="game-icons.net/stag-head.svg"> Monture d'outremonde
-                      </div>
-                      <div class="panel-body">..contenu..</div>
-     Icône : stag-head (Lorc, game-icons.net, CC BY 3.0) via <img class="gi-icon"> [EX-G-F48]
-     (plus de <div class="panel" id="panel-monture"> wrapper — supprimé en v8.4)
+     Structure sémantique (v12.7+) :
+       <h3 class="section-title collapsible">  ← icône gi-icon stag-head (lorc) [EX-G-F48]
+       <div class="panel-body">
+         ... configuration + PV + table de stats ...
+         <h4 class="mnt-stats-title">Caractéristiques</h4>        ← table statique
+         <h5 class="mnt-ability-title">Coup d'outremonde</h5>     ← dans .mnt-ability-block
+         <h4 class="section-title collapsible">✦ Capacités spéciales</h4>  ← collapsible
+         <div class="panel-body">... mnt-ability-celeste/fee/fielon ...</div>
+       </div>
+     Icône : stag-head (Lorc, game-icons.net, CC BY 3.0) — classe gi-icon-stag-lg [EX-G-F48]
+     (pas de <div class="panel" id="panel-monture"> wrapper — supprimé en v8.4)
 
      CHAMPS DE CONFIGURATION :
        · #mnt-spell-level : number input, min 2, max 5, défaut 2
@@ -604,6 +616,33 @@ CHANGELOG entry format:
        collecterDonnees() + charger() + sanitiserDonnees()
        Migration v9.8 : legacy raw.feats[] (v≤9.7) → aptitudes[] niveau=1
        Whitelist [EX-T-F40] : traits, dons, aptitudes (feats retiré)
+-->
+
+<!-- [EX-M-F63] MODÈLE OBJET ARME — CHAMPS & PERSISTANCE (v13.0)
+
+     Chaque entrée de S.weapons[] est un objet avec les champs suivants :
+       id             : string  — identifiant unique généré à la création
+       name           : string  — nom de l'arme (requis)
+       attackStat     : 'FOR'|'DEX' — caractéristique d'attaque
+       diceType       : 'd4'|'d6'|'d8'|'d10' — type de dé de dégâts
+       diceCount      : 1|2    — nombre de dés
+       damageTypes    : string[] — types de dégâts (ex. ['Tranchant'])
+       range          : { type:'contact'|'distance', r1:int, r2:int }
+       properties     : string[] — propriétés (ex. ['Finesse','Légère'])
+       attackModifier : int    — modificateur de jet de toucher supplémentaire
+       damageModifier : int    — modificateur de dégâts supplémentaire
+       mastery        : string — botte d'arme (ou '' si aucune)
+       description    : string — notes libres
+       consommable    : bool   — true = arme à usage unique (flèche, carreau, etc.)
+       quantity       : int ≥ 0 — quantité disponible ; pertinent uniquement si consommable=true.
+                        Sanitisé à 0 quand consommable=false.
+
+     AFFICHAGE QUANTITÉ (si consommable=true) :
+       · .inv-qty-ctrl inline dans la ligne d'inventaire : bouton − | input | bouton +
+       · setWeaponQuantity(id, delta) : ±1, plancher 0, sauvegarde sans re-rendu
+       · setWeaponQuantityDirect(id, val) : saisie directe dans l'input, plancher 0
+     Persisté dans localStorage via S.weapons — passé tel quel par collecterDonnees().
+     Sanitisé par sanitiserDonnees() : whitelist stricte, champs inconnus ignorés.
 -->
 
 <!-- [EX-M-F55] DRIVER GÉNÉRIQUE FORMULAIRE SIMPLE (v10.8)
@@ -705,6 +744,38 @@ CHANGELOG entry format:
      EXPOSITION : window.updateAuraProtection
 -->
 
+<!-- [EX-M-F59] INJECTION DES DONNÉES PAR DÉFAUT (v12.15)
+     Fonction : injectDefaults() — appelée par initApp() après charger().
+     Si S.armors est vide, injecte deux armures équipées par défaut : Cotte de mailles
+     (lourde, CA fixe 16, stealthDisadvantage true) et Bouclier (bouclier, acBonus 0).
+     Si S.weapons est vide, injecte une arme par défaut : Épée longue (d8, FOR,
+     Polyvalente) et assigne son id aux deux blocs Attaque (S.atk1WeaponId, S.atk2WeaponId).
+     N'agit que sur des tableaux vides — ne surcharge jamais des données déjà chargées.
+-->
+
+<!-- [EX-M-F60] AVERTISSEMENT DISCRÉTION EN ARMURE LOURDE (v12.15)
+     Fonction : updateStealthWarning() — appelée par updateCA().
+     Affiche #armor-stealth-warning uniquement si #aide-test-target vaut
+     'skill:discretion:dex' ET qu'au moins une armure dans S.armors est équipée
+     (equipped true) avec stealthDisadvantage true ; masquée dans tous les autres cas.
+-->
+
+<!-- [EX-M-F61] VERROUILLAGE MANUEL DE LA CA (v12.15)
+     Flag : S.caManualOverride (bool, défaut false).
+     updateCA() retourne immédiatement sans calcul si S.caManualOverride est true.
+     Le flag est mis à true par l'oninput de #ca (saisie directe par l'utilisateur).
+     Il est réinitialisé à false par charger(), toggleArmorEquipped(), et
+     editArmure() — permettant au calcul automatique de reprendre.
+-->
+
+<!-- [EX-M-F62] TOGGLE FINESSE (FOR / DEX) PAR BLOC D'ATTAQUE (v12.15)
+     Fonctions : _syncFinesseToggle(n), toggleFinesseStat(n).
+     _syncFinesseToggle(n) : affiche #atkN-finesse-toggle (radios FOR/DEX) si et
+     seulement si l'arme sélectionnée dans le bloc N possède 'Finesse' dans sa
+     propriété properties[] ; restaure le choix persisté depuis S.atkNFinesseStat.
+     toggleFinesseStat(n) : écrit la valeur radio cochée dans S.atkNFinesseStat,
+     puis appelle updateCombat() et sauvegarder().
+-->
 <!-- [EX-G-F54] HTML RENDER HELPERS (v9.15)
 
      mkActionBtns(editFn,delFn,id) → string
@@ -756,21 +827,36 @@ CHANGELOG entry format:
      L’action réelle s’exécute dans le callback onOui après fermeture de l’overlay.
 -->
 
-<!-- [EX-T-F03] PERSISTANCE LOCALSTORAGE
-     
+<!-- [EX-T-F43] RESTAURATION DE L'ÉTAT DES PANNEAUX (v12.15)
+     Fonction : applyPanelStates() — appelée par initApp() après initPanels().
+     Dans la version actuelle (v12.15), la fonction est un stub vide :
+     function applyPanelStates() {}
+     L'état collapse/expand des panneaux n'est pas persisté dans localStorage
+     et n'est pas restauré au rechargement. Tous les panneaux s'ouvrent à l'état
+     par défaut défini par initPanels(). Implémentation future prévue.
+-->
+
+<!-- [EX-T-F03] PERSISTANCE LOCALSTORAGE (v12.17)
+
      Clé   : 'paladin_strahd_v3'
      Écriture : sauvegarder() → JSON.stringify(collecterDonnees())
                 → appelée en fin de updateAll()
      Lecture  : initApp()     → JSON.parse(localStorage.getItem(...))
      Les deux opérations sont enveloppées dans try/catch obligatoire
      Fallback en cas d'échec lecture : objet DEFAULTS
-     Données persistées :
-       nom, classe, espèce, historique, niveau, robuste, pvMax, pvActuels, pvTemp, deplacement, ca,
-       stats{}, sauvegardes{}, competences{}, skillsOpen{}, panelsOpen{},
-       conduitCur, slot1Max, slot1Cur, slot2Max, slot2Cur, hmCur,
-       hdCur, deathSuccess[], deathFail[],
-       spells[],
-       spellGroupsOpen{}
+     Données persistées (collecterDonnees() — liste exhaustive v12.17) :
+       Identité     : nom, classe, espece, historique
+       Combat       : niveau, robuste, pvMax, pvActuels, pvTemp, deplacement, ca
+       Stats        : stats{}, sauvegardes{}, competences{}, skillsOpen{}, panelsOpen{}
+       Ressources   : conduitCur, slot1Cur, slot2Cur, slot3Cur, hmCur, hdCur
+                      (slot max non persistés — recalculés par updateSpellSlots())
+       Mort         : deathSuccess[], deathFail[]
+       Attaque      : atk1WeaponId, atk2WeaponId, atk1FinesseStat, atk2FinesseStat
+       Inventaire   : items[], weapons[], armors[]
+       Sorts        : spells[], spellGroupsOpen{}
+       Monture      : mount{ spellLevel, type, currentHP }
+       Aptitudes    : traits[], dons[], aptitudes[]
+       Magie        : caracIncantation, auraProtectionActive
 -->
 
 <!-- [EX-T-F33] EXPORT JSON — MÉCANISME COPY-PASTE
@@ -849,13 +935,17 @@ CHANGELOG entry format:
        [feats retiré v9.8 — migration automatique dans sanitiserDonnees()]
        caracIncantation (string : 'for'|'dex'|'con'|'int'|'sag'|'cha'|'' — défaut 'cha')
        auraProtectionActive (bool — défaut false) [EX-M-F58]
+       weapons (tableau, chaque élément via whitelist stricte [EX-M-F63] ;
+         champs sanitisés : id, name, attackStat, diceType, diceCount, damageTypes,
+         range, properties, attackModifier, damageModifier, mastery, description,
+         consommable (bool), quantity (int ≥ 0, forcé à 0 si consommable=false))
 -->
 
 <!-- [EX-T-F41] VERSIONNAGE DU FICHIER (v9.0)
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '12.7'
+       · Valeur courante : '13.1'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -880,7 +970,7 @@ CHANGELOG entry format:
      DEFAULTS = Valeria Dawnbringer niv.5, CON 16, pvMax 59, robuste true
 -->
 
-<!-- [EX-T-F37] COMPATIBILITÉ iOS / SCRIPTABLE (WKWebView)
+<!-- [EX-T-F37] COMPATIBILITÉ iOS / SCRIPTABLE (WKWebView) (v12.17)
 
      Règles IMPÉRATIVES — ne jamais enfreindre :
        1. Zéro CDN, zéro framework — fichier 100% autonome sauf trois exceptions
@@ -894,7 +984,48 @@ CHANGELOG entry format:
        2. initApp() appelé DIRECTEMENT à la fin du script
           → JAMAIS via DOMContentLoaded ou window.onload
        3. Toutes les fonctions appelées via onclick="..." DOIVENT être
-          exposées sur window.* (liste exhaustive dans le bloc window.*)
+          exposées sur window.*. Catalogue exhaustif (108 entrées, v12.17) :
+
+          BLOC 1 — Menu & VFX (L≈7719)
+            toggleMenu, closeMenu, menuReinitialiser, menuImporter, menuExporter,
+            menuToutReplier, menuToutDeployer,
+            toggleVfxSubmenu, toggleVfxGlow, toggleVfxBlood, toggleVfxStars,
+            toggleVfxBubbles, toggleVfxFlask,
+            reinitialiser, exporterJSON, importerJSON,
+            afficherOverlayExport, fermerOverlayExport,
+            afficherOverlayImport, fermerOverlayImport,
+            confirmerImport, sanitiserDonnees,
+            appliquerBlessure, appliquerSoin, appliquerSoinMains, restaurerMains,
+            confirmerReposLong, resetPvMax,
+            modifierConduit, modifierSlot, modifierHD, toggleDeath, toggleSkills,
+            togglePanel, getPanelBody, initPanels,
+            updateAll, updateCaShield, updateVersionLabel,
+            updateTestRoll [alias→updateAideTests],
+            updateSaveRoll [alias→updateAideTests],
+            updateAideTests, updateAuraProtection, buildAideTestsOptions
+
+          BLOC 2 — Combat, Sorts, Inventaire (L≈8736)
+            checkCritique, updateSmite, finDuRound, showNotification, clampNiveau,
+            updateSpellSlots, updateConduitDivin, updateGrimoire,
+            toggleGrimoireFilter, toggleSpellGroup, toggleSpellDesc,
+            toggleSpellPrepared, toggleSpellAlwaysReady, supprimerSort,
+            mkActionBtns, mkDetailSpan, creerOverlay, fermerOverlayById,
+            ouvrirConfirmation, fermerConfirmation,
+            editSort, ouvrirFormSort, fermerFormSort, enregistrerSort,
+            updateItems, toggleItemDesc, supprimerObjet, editObjet,
+            ouvrirFormObjet, fermerFormObjet, enregistrerObjet,
+            updateWeapons, toggleWeaponDetail, supprimerArme, editArme,
+            ouvrirFormArme, fermerFormArme, toggleRangeInputs, enregistrerArme,
+            updateWeaponDropdowns, applyWeaponToBlock, toggleFinesseStat,
+            updateCA, updateArmors, toggleArmorDetail, toggleArmorEquipped,
+            supprimerArmure, editArmure, ouvrirFormArmure, fermerFormArmure,
+            toggleArmorTypeFields, enregistrerArmure,
+            updateMonture, updateDDSorts,
+            updateFeats, toggleFeatExpand, supprimerTypedItem, editTypedItem,
+            ouvrirFormTyped, fermerFormTyped, switchFeatType, enregistrerTyped,
+            genTypedId,
+            FILE_VERSION [constante]
+
        4. confirm() natif INTERDIT partout — reinitialiser() utilise ouvrirConfirmation() [EX-G-F51]
        5. font-size ≥ 14px sur les inputs (évite le zoom automatique iOS)
           → .field-input : 0.88rem (~14.1px) ✅
@@ -908,27 +1039,45 @@ CHANGELOG entry format:
           (CSS animations sur éléments SVG non fiables sur WKWebView)
 -->
 
-<!-- [EX-T-F38] ARCHITECTURE JS — UPDATEALL()
+<!-- [EX-T-F38] ARCHITECTURE JS — UPDATEALL() (v12.14)
 
-     updateAll() est la FONCTION CENTRALE — appelée à chaque modification
-     Ordre d'exécution garanti :
-       1.  Lecture niv, robuste → calcul modCON
-       2.  Lecture pv-max → borner pv-actuels [0, pvMax] → borner pv-temp ≥ 0
-       3.  Afficher bonus-maitrise = sgn(calcMaitrise(niv))
-       4.  Pour chaque stat (CON/FOR/CHA/DEX/SAG/INT) :
-             modif, valeur sauvegarde, valeurs compétences
-       5.  hmMax = 5×niveau → borner hm-cur [0, hmMax] → afficher hm-max + hm-max-display
-       6.  updateHD()
-       7.  updateSpherePV()
-       8.  updateSphereHM()
-       9.  Borner slot1-cur/slot2-cur [0, max] → borner conduit-cur [0, 2]
-       10. updateFioles()
-       11. updateCaBouclier()
-       12. updateCombat()
-       13. updateAideTests()
-       14. updateGrimoire()
-       15. updateTitre()
-       16. sauvegarder()
+     updateAll() est la FONCTION CENTRALE — appelée à chaque modification.
+     Ordre d'exécution garanti (26 étapes — 10 blocs inline + 16 appels nommés) :
+
+     BLOCS INLINE :
+       1.  calcPvMax(niv, robuste, valCon) → borner pv-actuels [0, pvMax], pv-temp ≥ 0
+           → detect _nivChanged (data-prev-niveau) : si vrai, restaure pv-actuels = pvMax
+       2.  bonus-maitrise = sgn(calcMaitrise(niv))
+       3.  STATS_DEF.forEach : mod, saveval, skillval pour CON/FOR/CHA/DEX/SAG/INT
+       4.  hmMax = 5×niveau → hm-max, hm-max-display → borner hm-cur [0, hmMax]
+           → si _nivChanged : restaure hm-cur = hmMax
+       5.  _hdRestoreToMax = _nivChanged (signal pour updateHD)
+       6.  Borner slot1/slot2/slot3-cur [0, slot-max]
+       7.  Borner conduit-cur [0, inp.max] → si _nivChanged : restaure conduit-cur = max
+
+     APPELS NOMMÉS (dans l'ordre) :
+       8.  updateDDSorts()         — sync DD sorts quand stat/maîtrise change [EX-M-F57]
+       9.  updateHD()              — Dés de Vie
+       10. updateSpherePV()        — sphère PV animée
+       11. updateSphereHM()        — sphère Imposition des mains
+       12. updateSpellSlots()      — emplacements de sort (niv, _nivChanged)
+       13. updateConduitDivin()    — conduit divin max label
+       14. updateFioles()          — fioles Reliquaire
+       15. updateCaBouclier()      — CA + bouclier de la foi
+       16. updateCaShield()        — bouclier SVG héraldique [EX-T-F12]
+       17. updateWeaponDropdowns() — selects arme dans blocs Attaque
+       18. updateCombat()          — totaux toucher/dégâts [EX-T-F11]
+       19. updateAideTests()       — drops + calculs Aide aux Tests [EX-M-F43]
+       20. updateCA()              — CA effective
+       21. updateArmors()          — liste armures Inventaire
+       22. updateItems()           — liste objets Inventaire
+       23. updateWeapons()         — liste armes Inventaire
+       24. updateMonture()         — CA/PV/HD/stats Monture [EX-M-F52]
+       25. updateGrimoire()        — table des sorts [EX-M-F50]
+       26. updateFeats()           — aptitudes/traits/dons [EX-M-F53]
+       27. updateTitre()           — titre onglet/document
+       28. sauvegarder()           — persistance localStorage
+
      Listeners attachés par attachListeners() lors de initApp() :
        · input  → updateAll() sur tous les inputs (sauf checkbox)
        · change → updateAll() sur tous les checkboxes
@@ -1051,12 +1200,21 @@ CHANGELOG entry format:
      Exception : case #aura-protection-active — persistée (état de personnage) [EX-M-F58].
 -->
 
-<!-- [EX-G-F44] PANNEAUX COLLAPSIBLES (v5.3+, mis à jour v12.7)
+<!-- [EX-G-F44] PANNEAUX COLLAPSIBLES (v5.3+, mis à jour v12.14)
      COMPORTEMENT :
        · Clic sur .section-title.collapsible → toggle classe .collapsed sur .panel-body
        · Indicateur chevron : ▶ (fermé) / ▼ (ouvert) — géré par CSS ::before
        · Transition CSS smooth : max-height + opacity
-       · .section-title-rapide supprimé : Attaque Rapide utilise désormais .section-title.collapsible (v7.7+)
+
+     CLASSE .section-title-rapide (active, v12.7+) :
+       · Appliquée sur TOUS les H2 de panneau principal (8 panneaux) :
+         Identité, Vie, Combat, Caractéristiques & Compétences, Aide aux Tests,
+         Magie, Inventaire, Attaque Rapide.
+       · Toujours combinée avec .section-title et .collapsible.
+       · Apporte : font-size 1.3rem, color var(--or), letter-spacing 0.12em,
+         text-transform uppercase, border-bottom 2px solid or, text-shadow dorée, font-weight 700.
+       · CSS ceiling rule : .panel-body > .section-title:not(.section-title-rapide)
+         passe à 0.69rem — évite que les H3 internes héritent de 1.3rem.
 
      STRUCTURE HTML requise (v12.7 — éléments sémantiques) :
        <div class="panel">
@@ -1221,27 +1379,48 @@ CHANGELOG entry format:
        · smite icon         : <img> dans template makeCombatBlock() via D8_DATA_URI
 -->
 
-<!-- [EX-G-F46] PANNEAU MAGIE PARENT
-     Panneau parent collapsible regroupant trois sous-sections :
-       1. ✧ Emplacements & Conduit Divin
-       2. ra-hand Imposition des mains  (icône RPG Awesome ra-hand, emoji 🤲 remplacé)
-       3. gi-icon stag-head Monture d'outremonde  (SVG game-icons.net, voir [EX-G-F48])
-     Colonne droite, en tête avant Inventaire.
-     Structure : <div class="panel" id="panel-magie">
-                   <div class="section-title collapsible">lorc/fire-ray Magie</div>
-                   <div class="panel-body panel-magie-body">
-                     <div class="section-title collapsible" style="margin-top:6px;">... sous-titre A</div>
-                     <div class="panel-body">... contenu A</div>
-                     <div class="sep"></div>
-                     <div class="section-title collapsible">... sous-titre B</div>
-                     <div class="panel-body">... contenu B</div>
-                     <div class="sep"></div>
-                     <div class="section-title collapsible">... sous-titre C</div>
-                     <div class="panel-body">... contenu C</div>
-                   </div>
-                 </div>
-     Patron identique à [EX-G-F44] — sous-sections directement dans panel-body (pas de panel imbriqué).
-     Chaque sous-section est indépendamment collapsible via getPanelBody() / togglePanel().
+<!-- [EX-G-F55] ÉTOILES SPHÈRE IMPOSITION DES MAINS — HM_STARS (v12.15)
+     Constante : HM_STARS (array déclaré avant initApp(), ligne ~8808).
+     Structure : 4 groupes (un par #star-g1..#star-g4), chaque groupe contenant
+     28 étoiles décrites par [cx, cy, scale, rotate, opacity].
+     Au démarrage, l'IIFE dans initApp() itère HM_STARS et injecte des éléments
+     SVG <use href="#sp" transform="translate(cx,cy) scale(s) rotate(r)" opacity="o"
+     fill="url(#goldDust)"> dans chaque groupe cible — remplace les 112 balises
+     SVG statiques (économie ~11 121 chars, Sprint token-reduction v10.5).
+-->
+
+<!-- [EX-G-F56] ICÔNE DE DÉ DYNAMIQUE SUR INPUT DÉGÂTS (v12.15)
+     Fonction : getDiceIconUrl(diceType) — retourne une URL string, jamais un élément HTML.
+     Mapping : d4→skoll/d4.svg (CDN), d6→perspective-dice-six.svg (CDN),
+     d8→D8_DATA_URI (data URI, pas de CDN), d10→skoll/d10.svg (CDN),
+     d12→D8_DATA_URI (réutilise d8, pré-existant), fallback→D8_DATA_URI.
+     Appelée par updateCombat() qui affecte le résultat au .src de #dmgN-die-icon,
+     et par updateSmite() pour l'icône de dé du Châtiment.
+-->
+
+<!-- [EX-G-F46] PANNEAU MAGIE PARENT (v12.14)
+     Panneau principal collapsible (colonne droite, avant Inventaire).
+     Trois sous-sections indépendamment collapsibles + un champ fixe en tête.
+
+     Structure sémantique (v12.7+) :
+       <div class="panel" id="panel-magie">
+         <h2 class="section-title collapsible section-title-rapide">  ← icône gi-icon fire-ray (lorc)
+         <div class="panel-body panel-magie-body">
+           <div class="field-row">  ← Carac. d'incantation (select) + DD sorts (readonly) — non collapsible
+           <div class="sep">
+           <h3 class="section-title collapsible">  ← icône scroll-quill : Emplacements & Conduit Divin
+           <div class="panel-body">... slot1/slot2/slot3 + conduit divin ...</div>
+           <div class="sep">
+           <h3 class="section-title collapsible">  ← icône glowing-hands : Imposition des mains
+           <div class="panel-body">... hm-cur, hm-max, aasimar-heal ...</div>
+           <div class="sep">
+           <h3 class="section-title collapsible">  ← icône gi-icon stag-head : Monture d'outremonde
+           <div class="panel-body">... [EX-M-F52] ...</div>
+         </div>
+       </div>
+
+     Patron : sous-sections H3 directement dans panel-magie-body (pas de panel imbriqué).
+     Chaque H3 est collapsible via getPanelBody() / togglePanel() [EX-G-F44].
      État par défaut : ouvert. Aucune persistance localStorage.
 -->
 
@@ -2877,6 +3056,58 @@ select.field-input optgroup {
   border-bottom:1px solid rgba(201,168,76,0.10);
 }
 .inv-item-row:last-of-type { border-bottom:none; }
+.inv-qty-badge {
+  font-family: var(--font-corps);
+  font-size: 0.72rem;
+  color: var(--or-clair);
+  background: rgba(201,168,76,0.10);
+  border: 1px solid rgba(201,168,76,0.30);
+  border-radius: 3px;
+  padding: 1px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.inv-qty-ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.inv-qty-btn {
+  background: rgba(201,168,76,0.08);
+  border: 1px solid rgba(201,168,76,0.28);
+  border-radius: 3px;
+  color: var(--or);
+  font-size: 0.85rem;
+  line-height: 1;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+  padding: 0;
+}
+.inv-qty-btn:hover {
+  background: rgba(201,168,76,0.22);
+  border-color: var(--or);
+}
+.inv-qty-input {
+  width: 36px;
+  text-align: center;
+  background: rgba(10,10,22,0.85);
+  border: 1px solid rgba(201,168,76,0.30);
+  border-radius: 3px;
+  color: var(--or-clair);
+  font-family: var(--font-corps);
+  font-size: 0.78rem;
+  padding: 1px 2px;
+  outline: none;
+  -webkit-appearance: none;
+  height: 20px;
+}
 .inv-item-name-btn {
   flex:1;
   background:none;
@@ -3309,7 +3540,7 @@ select.field-input optgroup {
 
     <!-- Version label — miroir symétrique du menu-wrapper, voir [EX-T-F41] -->
     <div class="version-wrapper">
-      <span id="version-label">v11.0</span>
+      <span id="version-label">v12.17</span>
     </div>
   </div>
 
@@ -4584,7 +4815,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '12.14';
+var FILE_VERSION = '13.1';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -7248,7 +7479,10 @@ function sanitiserDonnees(raw) {
           attackModifier: typeof w.attackModifier === 'number' ? w.attackModifier : 0,
           damageModifier: typeof w.damageModifier === 'number' ? w.damageModifier : 0,
           mastery:        typeof w.mastery === 'string' ? w.mastery : '',
-          description:    typeof w.description === 'string' ? w.description : ''
+          description:    typeof w.description === 'string' ? w.description : '',
+          consommable:    !!w.consommable,
+          quantity:       (!!w.consommable && typeof w.quantity === 'number' && w.quantity >= 0)
+                            ? Math.floor(w.quantity) : 0
         });
       }
       return out;
@@ -7641,7 +7875,6 @@ window.appliquerBlessure     = appliquerBlessure;
 window.appliquerSoin         = appliquerSoin;
 window.appliquerSoinMains    = appliquerSoinMains;
 window.restaurerMains        = restaurerMains;
-window.reposLong             = confirmerReposLong;
 window.confirmerReposLong    = confirmerReposLong;
 window.resetPvMax            = resetPvMax;
 window.modifierConduit       = modifierConduit;
@@ -7871,6 +8104,15 @@ function updateWeapons() {
         '<button class="inv-item-name-btn" onclick="toggleWeaponDetail(\'' + safeId + '\')">' +
           escapeHtml(w.name) +
         '</button>' +
+        (w.consommable
+          ? '<span class="inv-qty-ctrl" id="inv-qty-ctrl-' + w.id + '">' +
+              '<button class="inv-qty-btn" onclick="event.stopPropagation();setWeaponQuantity(\'' + safeId + '\',-1)" title="Retirer 1">−</button>' +
+              '<input class="inv-qty-input" type="number" id="inv-qty-' + w.id + '" min="0" value="' + (w.quantity >= 0 ? w.quantity : 0) + '" ' +
+                'onchange="event.stopPropagation();setWeaponQuantityDirect(\'' + safeId + '\',this.value)" ' +
+                'onclick="event.stopPropagation()">' +
+              '<button class="inv-qty-btn" onclick="event.stopPropagation();setWeaponQuantity(\'' + safeId + '\',1)" title="Ajouter 1">+</button>' +
+            '</span>'
+          : '') +
         mkActionBtns('editArme','supprimerArme',safeId) +
       '</div>' +
       '<div class="inv-weapon-detail hidden" id="inv-wdetail-' + w.id + '">' +
@@ -7894,6 +8136,37 @@ function updateWeapons() {
 function toggleWeaponDetail(id) {
   var row = document.getElementById('inv-wdetail-' + id);
   if (row) row.classList.toggle('hidden');
+}
+
+/* Inline quantity editing — delta = +1 or -1 */
+function setWeaponQuantity(id, delta) {
+  var weapons = S.weapons || [];
+  for (var i = 0; i < weapons.length; i++) {
+    if (weapons[i].id === id) {
+      var cur = (typeof weapons[i].quantity === 'number') ? weapons[i].quantity : 0;
+      weapons[i].quantity = Math.max(0, cur + delta);
+      var inp = document.getElementById('inv-qty-' + id);
+      if (inp) inp.value = weapons[i].quantity;
+      sauvegarder();
+      return;
+    }
+  }
+}
+
+/* Inline quantity editing — direct input change */
+function setWeaponQuantityDirect(id, val) {
+  var q = parseInt(val);
+  if (isNaN(q) || q < 0) q = 0;
+  var weapons = S.weapons || [];
+  for (var i = 0; i < weapons.length; i++) {
+    if (weapons[i].id === id) {
+      weapons[i].quantity = q;
+      var inp = document.getElementById('inv-qty-' + id);
+      if (inp) inp.value = q;
+      sauvegarder();
+      return;
+    }
+  }
 }
 
 function supprimerArme(id) {
@@ -8058,6 +8331,21 @@ function ouvrirFormArme(id) {
       '<textarea id="wform-desc" class="grimoire-form-textarea" rows="3">' + (weapon ? escapeHtml(weapon.description) : '') + '</textarea>' +
     '</div>' +
 
+    // Consommable
+    '<div style="margin-bottom:6px;">' +
+      '<span class="wform-section-label">Consommable</span>' +
+      '<label class="wform-check-item" style="margin-top:4px;">' +
+        '<input type="checkbox" id="wform-consommable"' + (weapon && weapon.consommable ? ' checked' : '') + ' onchange="toggleWformConsommable()"> ' +
+        'Arme à usage unique (flèche, carreau, etc.)' +
+      '</label>' +
+    '</div>' +
+    '<div class="wform-row' + (weapon && weapon.consommable ? '' : ' hidden') + '" id="wform-qty-row" style="margin-bottom:10px;">' +
+      '<div class="wform-col">' +
+        '<label class="wform-section-label" for="wform-qty">Quantité</label>' +
+        '<input type="number" id="wform-qty" class="wform-number" min="0" step="1" value="' + (weapon && weapon.consommable ? (weapon.quantity >= 0 ? weapon.quantity : 0) : 0) + '">' +
+      '</div>' +
+    '</div>' +
+
     // Error
     '<div id="wform-error" class="grimoire-form-error"></div>';
 
@@ -8077,6 +8365,13 @@ function toggleRangeInputs() {
   var lanceeCb = document.querySelector('input[name="wform-prop"][value="Lancée"]');
   var show = (distRadio && distRadio.checked) || (lanceeCb && lanceeCb.checked);
   fields.classList.toggle('hidden', !show);
+}
+
+function toggleWformConsommable() {
+  var chk = document.getElementById('wform-consommable');
+  var row = document.getElementById('wform-qty-row');
+  if (!chk || !row) return;
+  row.classList.toggle('hidden', !chk.checked);
 }
 
 function enregistrerArme() {
@@ -8151,7 +8446,14 @@ function enregistrerArme() {
     attackModifier: atkmodEl ? (parseInt(atkmodEl.value) || 0) : 0,
     damageModifier: dmgmodEl ? (parseInt(dmgmodEl.value) || 0) : 0,
     mastery:        masteryEl ? masteryEl.value : '',
-    description:    descEl ? descEl.value : ''
+    description:    descEl ? descEl.value : '',
+    consommable:    !!(document.getElementById('wform-consommable') && document.getElementById('wform-consommable').checked),
+    quantity:       (function() {
+      var c = document.getElementById('wform-consommable');
+      if (!c || !c.checked) return 0;
+      var q = parseInt(document.getElementById('wform-qty') ? document.getElementById('wform-qty').value : 0);
+      return isNaN(q) || q < 0 ? 0 : q;
+    }())
   };
 
   if (!S.weapons) S.weapons = [];
@@ -8665,11 +8967,14 @@ window.fermerFormObjet       = fermerFormObjet;
 window.enregistrerObjet      = enregistrerObjet;
 window.updateWeapons         = updateWeapons;
 window.toggleWeaponDetail    = toggleWeaponDetail;
+window.setWeaponQuantity     = setWeaponQuantity;
+window.setWeaponQuantityDirect = setWeaponQuantityDirect;
 window.supprimerArme         = supprimerArme;
 window.editArme              = editArme;
 window.ouvrirFormArme        = ouvrirFormArme;
 window.fermerFormArme        = fermerFormArme;
 window.toggleRangeInputs     = toggleRangeInputs;
+window.toggleWformConsommable = toggleWformConsommable;
 window.enregistrerArme       = enregistrerArme;
 window.updateWeaponDropdowns = updateWeaponDropdowns;
 window.applyWeaponToBlock    = applyWeaponToBlock;
@@ -8884,7 +9189,12 @@ v12.11 — 2026-03-13 : Icônes SVG ×1.4 — CSS .gi-icon (1→1.4em), .gi-icon
 v12.12 — 2026-03-13 : Icônes dés ×1.3 — .gi-icon-dice-lg (3.08em) et .gi-icon-dice-md (2.83em) appliquées aux seules icônes dés ; correction v12.11 (gi-icon-dice-lg retiré de heart-organ, icicles-aura, potion-ball) ; mnt-dmg-die-icon et dice-fire rattrapés ; [EX-G-F48] et [EX-G-DICE] mis à jour.
 v12.13 — 2026-03-13 : Icônes stag-head ×1.4 — .gi-icon-stag-lg (2.55em) section-title Monture, .gi-icon-stag-md (2.35em) combat-title Monture ; [EX-G-F48] mis à jour.
 v12.14 — 2026-03-13 : Restauration d20 Aide aux Tests — gi-icon-dice-lg retiré, retour à gi-icon-lg standard (1.82em) ; hors scope des redimensionnements dés ; [EX-G-F48] et [EX-G-DICE] mis à jour.
+v12.15 — 2026-03-13 : Sprint documentation — 5 entrées [EX-*] réécrites : [EX-G-F44] .section-title-rapide correctement documentée (non supprimée) ; [EX-G-F23] structure H2/H3 + collapsible corrigé ; [EX-G-F46] structure H2/H3 + champ Carac. incantation ; [EX-M-F52] structure H3/H4/H5 ; [EX-T-F38] updateAll() 28 étapes réelles (vs 16 obsolètes). Aucun changement de code.
+v12.16 — 2026-03-13 : Sprint documentation — 7 nouvelles entrées [EX-*] créées : [EX-M-F59] injectDefaults() ; [EX-M-F60] updateStealthWarning() ; [EX-M-F61] S.caManualOverride ; [EX-M-F62] finesse toggle FOR/DEX ; [EX-T-F43] applyPanelStates() stub ; [EX-G-F55] HM_STARS génération étoiles ; [EX-G-F56] getDiceIconUrl(). Aucun changement de code.
+v12.17 — 2026-03-13 : Quatre corrections indépendantes — (A) [EX-T-F37] catalogue window.* exhaustif 108 entrées ajouté ; (B) [EX-T-F03] liste champs persistés réécrite (ajout slot3Cur, atk*, armors, weapons, items, mount, traits, dons, aptitudes, caracIncantation, auraProtectionActive ; retrait slot1Max/slot2Max) ; (C) window.reposLong alias obsolète supprimé (onclick utilise confirmerReposLong directement) ; (D) #version-label valeur statique corrigée v11.0 → v12.17.
 v12.6 — 2026-03-12 : Suppression du conteneur .bottom-section — bordure, fond, padding et texture décoratifs retirés ; les 3 panneaux bas (Attaque Rapide, Grimoire, Reliquaire) sont désormais enfants directs de #app, largeur pleine, empilés en flux block normal.
+v13.0 — 2026-03-19 : Version majeure — passage v12.17 → 13.0 ; armes consommables (champ consommable + quantity, badge inv-qty-badge dans la liste) ; [EX-M-F63] créé (modèle objet arme) ; [EX-T-F40] whitelist mise à jour.
+v13.1 — 2026-03-19 : Quantité arme consommable éditable en ligne — contrôle −/input/+ (.inv-qty-ctrl) remplace le badge statique ; setWeaponQuantity() et setWeaponQuantityDirect() exposés sur window.* ; [EX-M-F63] mis à jour.
 v11.33 — 2026-03-11 : d8 : URL CDN skoll/d8 introuvable — icône encodée en data URI base64 (SVG delapouite/dice-eight-faces-eight, fond noir supprimé, chemin blanc conservé). 10 occurrences remplacées.
 v11.32 — 2026-03-11 : (1) Icone smite: ligne Niv.emplacement -> ligne Des lancés + id smite+n+-die-icon. (2) updateSmite: getElementById. (3) Diagnostic: test img.onerror/onload chaque URL CDN dé.
 v11.31 — 2026-03-11 : (1) d8 slug corrigé : delapouite/dice-eight-faces-eight → skoll/d8 (cohérent avec skoll/d4 et skoll/d10) — 10 occurrences. (2) updateSmite : icône dé mise à jour dynamiquement (d8 pour Châtiment Divin, d6 pour Châtiment de la Fournaise).
