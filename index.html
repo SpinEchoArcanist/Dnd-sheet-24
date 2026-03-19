@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.8 — 2026-03-19 -->
+<!-- dnd-sheet-v13 | version complète : 13.9 — 2026-03-19 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -953,7 +953,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '13.8'
+       · Valeur courante : '13.9'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -1047,10 +1047,10 @@ CHANGELOG entry format:
           (CSS animations sur éléments SVG non fiables sur WKWebView)
 -->
 
-<!-- [EX-T-F38] ARCHITECTURE JS — UPDATEALL() (v12.14)
+<!-- [EX-T-F38] ARCHITECTURE JS — UPDATEALL() (v13.9)
 
      updateAll() est la FONCTION CENTRALE — appelée à chaque modification.
-     Ordre d'exécution garanti (26 étapes — 10 blocs inline + 16 appels nommés) :
+     Ordre d'exécution garanti (24 étapes — 7 blocs inline + 17 appels nommés) :
 
      BLOCS INLINE :
        1.  calcPvMax(niv, robuste, valCon) → borner pv-actuels [0, pvMax], pv-temp ≥ 0
@@ -1064,27 +1064,30 @@ CHANGELOG entry format:
        7.  Borner conduit-cur [0, inp.max] → si _nivChanged : restaure conduit-cur = max
 
      APPELS NOMMÉS (dans l'ordre) :
-       8.  updateDDSorts()         — sync DD sorts quand stat/maîtrise change [EX-M-F57]
-       9.  updateHD()              — Dés de Vie
-       10. updateSpherePV()        — sphère PV animée
-       11. updateSphereHM()        — sphère Imposition des mains
-       12. updateSpellSlots()      — emplacements de sort (niv, _nivChanged)
-       13. updateConduitDivin()    — conduit divin max label
-       14. updateFioles()          — fioles Reliquaire
-       15. updateCaBouclier()      — CA + bouclier de la foi
-       16. updateCaShield()        — bouclier SVG héraldique [EX-T-F12]
-       17. updateWeaponDropdowns() — selects arme dans blocs Attaque
-       18. updateCombat()          — totaux toucher/dégâts [EX-T-F11]
-       19. updateAideTests()       — drops + calculs Aide aux Tests [EX-M-F43]
-       20. updateCA()              — CA effective
-       21. updateArmors()          — liste armures Inventaire
-       22. updateItems()           — liste objets Inventaire
-       23. updateWeapons()         — liste armes Inventaire
-       24. updateMonture()         — CA/PV/HD/stats Monture [EX-M-F52]
-       25. updateGrimoire()        — table des sorts [EX-M-F50]
-       26. updateFeats()           — aptitudes/traits/dons [EX-M-F53]
-       27. updateTitre()           — titre onglet/document
-       28. sauvegarder()           — persistance localStorage
+       8.  updateDDSorts()          — sync DD sorts quand stat/maîtrise change [EX-M-F57]
+       9.  updateHD()               — Dés de Vie
+       10. updateSpherePV()         — sphère PV animée
+       11. updateSphereHM()         — sphère Imposition des mains
+       12. updateSpellSlots()       — emplacements de sort (niv, _nivChanged)
+       13. updateConduitDivin()     — conduit divin max label
+       14. updateFioles()           — fioles Reliquaire
+       15. updateCaBouclier()       — CA + bouclier de la foi
+       16. updateCaShield()         — bouclier SVG héraldique [EX-T-F12]
+       17. updateWeaponDropdowns()  — selects arme dans blocs Attaque
+       18. updateCombat()           — totaux toucher/dégâts [EX-T-F11]
+       19. updateAideTests()        — drops + calculs Aide aux Tests [EX-M-F43]
+       20. updateCA()               — CA effective
+       21. updateMonture()          — CA/PV/HD/stats Monture [EX-M-F52]
+       22. updateGrimoireCounter()  — compteur préparation sorts (niveau seul) [EX-M-F50]
+       23. updateTitre()            — titre onglet/document
+       24. sauvegarder()            — persistance localStorage
+
+     FONCTIONS RETIRÉES (v13.9) — appelées uniquement par leurs propres actions :
+       · updateArmors()   → enregistrerArmure / supprimerArmure / toggleArmorEquipped
+       · updateItems()    → enregistrerObjet / supprimerObjet
+       · updateWeapons()  → enregistrerArme / supprimerArme (inclut updateWeaponDropdowns)
+       · updateGrimoire() → toutes les actions Grimoire (add/edit/delete/toggle)
+       · updateFeats()    → enregistrerTyped / supprimerTypedItem
 
      Listeners attachés par attachListeners() lors de initApp() :
        · input  → updateAll() sur tous les inputs (sauf checkbox)
@@ -4845,7 +4848,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.8';
+var FILE_VERSION = '13.9';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -5821,6 +5824,27 @@ function toggleGrimoireFilter() {
   updateGrimoire();
 }
 
+/* Updates only the spell preparation counter — called by updateAll() when niveau
+   changes. Does not re-render the spell list. [EX-M-F50] */
+function updateGrimoireCounter() {
+  var niv = parseInt(lireStr('niveau'), 10) || 1;
+  if (niv < 1) niv = 1;
+  if (niv > 20) niv = 20;
+  var maxPrep = SPELL_PREP_MAX[niv] || 0;
+  var spells = S.spells || [];
+  var prepared = 0;
+  for (var i = 0; i < spells.length; i++) {
+    if (spells[i].prepared && !spells[i].alwaysReady) prepared++;
+  }
+  var counter = document.getElementById('grimoire-prep-counter');
+  if (counter) {
+    counter.textContent = prepared + '/' + maxPrep;
+    counter.className = (prepared > maxPrep)
+      ? 'grimoire-prep-counter prep-over-limit'
+      : 'grimoire-prep-counter';
+  }
+}
+
 function updateGrimoire() {
   var niv = parseInt(lireStr('niveau'), 10) || 1;
   if (niv < 1)  niv = 1;
@@ -6670,11 +6694,6 @@ var _hdRestoreToMax = false;
    FONCTION CENTRALE updateAll()
    ============================================================ */
 function updateAll() {
-  /* Option 3 — scroll anchor: preserve window.scrollY across the full update.
-     DOM mutations (innerHTML replacements in updateFeats/Grimoire/Items/Weapons/Armors)
-     trigger WKWebView standalone scroll-anchor adjustments that scroll the page.
-     Capturing and restoring scrollY prevents the visible jump on every keystroke. */
-  var _scrollY = window.scrollY !== undefined ? window.scrollY : (window.pageYOffset || 0);
   var niv     = Math.max(1, Math.min(20, lireInt('niveau', 1)));
   var robuste = lireChk('check-robuste');
   var maîtBns = calcMaitrise(niv);
@@ -6762,18 +6781,10 @@ function updateAll() {
   updateCombat();
   updateAideTests();
   updateCA();
-  updateArmors();
-  updateItems();
-  updateWeapons();
   updateMonture();
-  updateGrimoire();
-  updateFeats();
+  updateGrimoireCounter();
   updateTitre();
   sauvegarder();
-  /* Restore scroll position — prevents WKWebView standalone scroll-anchor jump */
-  if (window.scrollY !== _scrollY) {
-    window.scrollTo(0, _scrollY);
-  }
 }
 
 /* ============================================================
@@ -9043,6 +9054,7 @@ window.clampNiveau           = clampNiveau;
 window.updateSpellSlots      = updateSpellSlots;
 window.updateConduitDivin    = updateConduitDivin;
 window.updateGrimoire        = updateGrimoire;
+window.updateGrimoireCounter = updateGrimoireCounter;
 window.toggleGrimoireFilter  = toggleGrimoireFilter;
 window.toggleSpellGroup      = toggleSpellGroup;
 window.toggleSpellDesc       = toggleSpellDesc;
@@ -9235,6 +9247,7 @@ v13.5 — 2026-03-19 : Fix Safari/iPadOS clavier externe — champ édité reste
 v13.6 — 2026-03-19 : Fix Safari/iPadOS clavier externe — champs page principale (PV, D20, etc.) : suppression maximum-scale=1.0/user-scalable=no du viewport meta (inutile car font-size≥14px partout) ; focusin global dans attachListeners() corrige scroll-into-view 120ms après focus, en excluant les overlays qui ont leur propre correction.
 v13.7 — 2026-03-19 : Revert scroll corrections v13.5/v13.6 — en mode standalone (Add to Home Screen) avec clavier externe, aucun clavier n'est affiché à l'écran donc aucun scroll n'est nécessaire ; les focusin listeners dans creerOverlay() et attachListeners() causaient le défilement parasite. Suppression complète des deux blocs.
 v13.8 — 2026-03-19 : Option 3 — fix scroll parasite en standalone WKWebView : capture de window.scrollY en début de updateAll() et restauration après sauvegarder() ; empêche les mutations innerHTML (updateFeats/Grimoire/Items/Weapons/Armors) de déclencher l'ajustement scroll-anchor du navigateur à chaque frappe.
+v13.9 — 2026-03-19 : Retrait de 5 appels redondants de updateAll() — updateArmors/updateItems/updateWeapons/updateGrimoire/updateFeats retirés (chacun déjà appelé par ses propres actions) ; updateWeaponDropdowns() direct retiré (couvert par updateWeapons()) ; updateGrimoireCounter() créé pour le seul cas utile (compteur préparation selon niveau) ; [EX-T-F38] réécrit. Élimine la recréation de ~100–500 nœuds DOM à chaque frappe.
 ====================================================== */
 </script>
 
