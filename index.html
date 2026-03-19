@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.10 — 2026-03-19 -->
+<!-- dnd-sheet-v13 | version complète : 13.11 — 2026-03-19 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1047,9 +1047,18 @@ CHANGELOG entry format:
           (CSS animations sur éléments SVG non fiables sur WKWebView)
 -->
 
-<!-- [EX-T-F38] ARCHITECTURE JS — UPDATEALL() (v13.9)
+<!-- [EX-T-F38] ARCHITECTURE JS — UPDATEALL() (v13.11)
 
      updateAll() est la FONCTION CENTRALE — appelée à chaque modification.
+
+     GARDE SCROLL (v13.11) :
+       var _activeEl = document.activeElement capturé en tête de fonction.
+       Toutes les écritures .value sur des inputs passent par le helper local
+       setVal(el, v) { if (el && el !== _activeEl) el.value = v; }
+       Raison : WKWebView standalone (iPad + clavier externe) déclenche un
+       scroll-into-view à chaque écriture .value sur l'élément focalisé,
+       provoquant un saut de page indésirable à chaque frappe.
+
      Ordre d'exécution garanti (24 étapes — 7 blocs inline + 17 appels nommés) :
 
      BLOCS INLINE :
@@ -4850,7 +4859,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.10';
+var FILE_VERSION = '13.11';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -6696,6 +6705,14 @@ var _hdRestoreToMax = false;
    FONCTION CENTRALE updateAll()
    ============================================================ */
 function updateAll() {
+  /* ── Capture focused element — skip .value writes on it to prevent
+     WKWebView standalone from scroll-jumping the page on every keystroke.
+     In standalone mode with a hardware keyboard, programmatic .value writes
+     on the focused input trigger a scroll-into-view recalculation that
+     miscalculates because no on-screen keyboard is present. ── */
+  var _activeEl = document.activeElement;
+  function setVal(el, v) { if (el && el !== _activeEl) el.value = v; }
+
   var niv     = Math.max(1, Math.min(20, lireInt('niveau', 1)));
   var robuste = lireChk('check-robuste');
   var maîtBns = calcMaitrise(niv);
@@ -6711,19 +6728,19 @@ function updateAll() {
   var pvM = calcPvMax(niv, robuste, valCon);
   if (pvM < 1) pvM = 1;
   var _pvMaxEl = document.getElementById('pv-max');
-  if (_pvMaxEl) _pvMaxEl.value = pvM;
+  setVal(_pvMaxEl, pvM);
 
   var pvAEl = document.getElementById('pv-actuels');
   if (pvAEl) {
-    if (_nivChanged) { pvAEl.value = pvM; }  /* restore to max on level change */
+    if (_nivChanged) { setVal(pvAEl, pvM); }  /* restore to max on level change */
     var va = parseInt(pvAEl.value) || 0;
-    if (va > pvM) { pvAEl.value = pvM; }
-    if (va < 0)   { pvAEl.value = 0;   }
+    if (va > pvM) { setVal(pvAEl, pvM); }
+    if (va < 0)   { setVal(pvAEl, 0);   }
   }
   var pvTEl = document.getElementById('pv-temp');
-  if (pvTEl && (parseInt(pvTEl.value)||0) < 0) pvTEl.value = 0;
+  if (pvTEl && (parseInt(pvTEl.value)||0) < 0) setVal(pvTEl, 0);
   var bm = document.getElementById('bonus-maitrise');
-  if (bm) bm.value = sgn(maîtBns);
+  setVal(bm, sgn(maîtBns));
   STATS_DEF.forEach(function(stat) {
     var el = document.getElementById('stat-' + stat.id);
     if (!el) return;
@@ -6744,14 +6761,14 @@ function updateAll() {
   updateDDSorts(); /* sync DD when stats or proficiency change [EX-M-F57] */
   var hmM = 5 * niv;
   var hmx = document.getElementById('hm-max');
-  if (hmx) hmx.value = hmM;
+  setVal(hmx, hmM);
   var hmd = document.getElementById('hm-max-display');
   if (hmd) hmd.textContent = hmM;
   var hmC = document.getElementById('hm-cur');
   if (hmC) {
-    if (_nivChanged) { hmC.value = hmM; }  /* restore to max on level change */
-    if ((parseInt(hmC.value)||0) > hmM) hmC.value = hmM;
-    if ((parseInt(hmC.value)||0) < 0)   hmC.value = 0;
+    if (_nivChanged) { setVal(hmC, hmM); }  /* restore to max on level change */
+    if ((parseInt(hmC.value)||0) > hmM) setVal(hmC, hmM);
+    if ((parseInt(hmC.value)||0) < 0)   setVal(hmC, 0);
   }
   _hdRestoreToMax = _nivChanged;  /* signal updateHD to restore hd-cur to max */
   updateHD();
@@ -6763,16 +6780,16 @@ function updateAll() {
     if (!inp) return;
     /* slot cur restore on niveau change is handled inside updateSpellSlots */
     var c = parseInt(inp.value) || 0;
-    if (c > mx) inp.value = mx;
-    if (c < 0)  inp.value = 0;
+    if (c > mx) setVal(inp, mx);
+    if (c < 0)  setVal(inp, 0);
   });
   var ci = document.getElementById('conduit-cur');
   if (ci) {
     var ciMax = parseInt(ci.max) || 2;
-    if (_nivChanged) { ci.value = ciMax; }  /* restore to max on level change */
+    if (_nivChanged) { setVal(ci, ciMax); }  /* restore to max on level change */
     var cc    = parseInt(ci.value) || 0;
-    if (cc > ciMax) ci.value = ciMax;
-    if (cc < 0)     ci.value = 0;
+    if (cc > ciMax) setVal(ci, ciMax);
+    if (cc < 0)     setVal(ci, 0);
   }
   updateSpellSlots(lireInt('niveau', 1), _nivChanged);
   updateConduitDivin(lireInt('niveau', 1));
@@ -9257,6 +9274,7 @@ v13.7 — 2026-03-19 : Revert scroll corrections v13.5/v13.6 — en mode standal
 v13.8 — 2026-03-19 : Option 3 — fix scroll parasite en standalone WKWebView : capture de window.scrollY en début de updateAll() et restauration après sauvegarder() ; empêche les mutations innerHTML (updateFeats/Grimoire/Items/Weapons/Armors) de déclencher l'ajustement scroll-anchor du navigateur à chaque frappe.
 v13.9 — 2026-03-19 : Retrait de 5 appels redondants de updateAll() — updateArmors/updateItems/updateWeapons/updateGrimoire/updateFeats retirés (chacun déjà appelé par ses propres actions) ; updateWeaponDropdowns() direct retiré (couvert par updateWeapons()) ; updateGrimoireCounter() créé pour le seul cas utile (compteur préparation selon niveau) ; [EX-T-F38] réécrit. Élimine la recréation de ~100–500 nœuds DOM à chaque frappe.
 v13.10 — 2026-03-19 : Fix régression v13.9 — tables vides au chargement : ajout de 5 appels initiaux dans initApp() après updateAll() (updateArmors, updateItems, updateWeapons, updateGrimoire, updateFeats) pour le rendu initial depuis localStorage.
+v13.11 — 2026-03-19 : Fix scroll bug iPad standalone + clavier externe — updateAll() ne réécrit plus .value sur l'élément actuellement focalisé ; helper local setVal(el,v) avec garde _activeEl ajouté.
 ====================================================== */
 </script>
 
