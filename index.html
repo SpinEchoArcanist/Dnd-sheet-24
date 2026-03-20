@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.29 — 2026-03-20 -->
+<!-- dnd-sheet-v13 | version complète : 13.30 — 2026-03-20 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1374,8 +1374,8 @@ CHANGELOG entry format:
        · const D8_DATA_URI (déclarée en tête de <script>) — SVG octaèdre 3D inline base64
        · Utilisée dans : CRIT_DICE_ICON_MAP['d8'], getDiceIconUrl()['d8'],
          makeCombatBlock() template (src=\"'+D8_DATA_URI+'\"),
-         et injectée au runtime par initApp() dans #mnt-dmg-die-icon
-         et #mnt-dmg-crit-label img (éléments HTML statiques sans accès aux constantes JS).
+         Utilisée par renderDiceIcons() et getDiceIconUrl() pour le d8.
+         initApp() n'injecte plus D8_DATA_URI dans des éléments statiques (éléments convertis en spans).
        · Aucun CDN game-icons.net disponible pour le slug dice-eight-faces-eight (Delapouite).
      TAILLES ICÔNES DÉS (v12.12) :
        · .gi-icon-dice-lg : 3.08em×3.08em — dice-fire (Dés de Vie, hd-vial-label)
@@ -1396,8 +1396,10 @@ CHANGELOG entry format:
      Icône spéciale :
        dice-fire (delapouite) — Dés de Vie section + hd-vial-label Reliquaire
      Damage input icons (v11.27) :
-       · dmg1/dmg2-die-icon : <img> after damage input, src mis à jour par updateCombat()
-       · mnt-dmg-die-icon   : <img> statique injectée par initApp() via D8_DATA_URI
+       · dmg1/dmg2-die-icons : <span> container, N <img> rendus par renderDiceIcons() dans updateCombat()
+         N = diceCount du weapon sélectionné (1 ou 2) ; ×2 si D20 = 20 (crit)
+       · mnt-dmg-die-icons  : <span> container, mis à jour par updateMonture()
+         N = 1 (monture toujours 1d8) ; ×2 si mnt-atk-d20 = 20
        · smite icon         : <img> dans template makeCombatBlock() via D8_DATA_URI
 -->
 
@@ -4146,8 +4148,8 @@ select.field-input optgroup {
               </div>
               <div class="dmg-half">
                 <div class="half-title">Dégâts</div>
-                <div class="combat-row"><span class="lbl">D8</span><input class="combat-input" type="number" id="mnt-dmg-d8" min="1" max="8"><img id="mnt-dmg-die-icon" src="" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-left:4px;"></div>
-                <div class="crit-label" id="mnt-dmg-crit-label">Critique : saisir la somme de 2d8 <img src="" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-right:0.15em;"><img src="" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-right:0.15em;"></div>
+                <div class="combat-row"><span class="lbl">D8</span><input class="combat-input" type="number" id="mnt-dmg-d8" min="1" max="8"><span id="mnt-dmg-die-icons" style="display:inline-flex;gap:2px;vertical-align:middle;margin-left:2px;"></span></div>
+                <div class="crit-label" id="mnt-dmg-crit-label">Critique : saisir la somme de 2d8</div>
                 <div class="combat-row"><span class="lbl">Mod</span><span class="val" id="mnt-dmg-mod">+2</span></div>
                 <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="mnt-dmg-total">—</span><span class="dmg-type-lbl" id="mnt-dmg-type-atk"></span></div>
               </div>
@@ -4857,7 +4859,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.29';
+var FILE_VERSION = '13.30';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -5445,6 +5447,28 @@ function updateFioles() {
 /* ============================================================
    MISE À JOUR DES TOTAUX COMBAT
    ============================================================ */
+
+/* renderDiceIcons(containerId, diceType, count)
+   Clears the container span and appends `count` die <img> elements.
+   Uses CDN URLs (container is always visible — no data URI needed). */
+function renderDiceIcons(containerId, diceType, count) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  var url = getDiceIconUrl(diceType);
+  for (var i = 0; i < count; i++) {
+    var img = document.createElement('img');
+    img.src = url;
+    img.className = 'gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold';
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    img.width  = '2.83em';
+    img.height = '2.83em';
+    img.style.cssText = 'vertical-align:middle;margin-left:2px;';
+    el.appendChild(img);
+  }
+}
+
 function getDiceIconUrl(diceType) {
   var map = {
     'd4':  'https://game-icons.net/icons/ffffff/transparent/1x1/skoll/d4.svg',
@@ -5522,9 +5546,16 @@ function updateCombat() {
     if (dieLbl) {
       dieLbl.textContent = weapon ? (weapon.diceCount + weapon.diceType) : 'D8';
     }
-    var dieType = weapon ? weapon.diceType : 'd8';
-    var dieIconEl = document.getElementById(dmgP + '-die-icon');
-    if (dieIconEl) dieIconEl.src = getDiceIconUrl(dieType);
+    var dieType  = weapon ? weapon.diceType  : 'd8';
+    var diceCount = weapon ? weapon.diceCount : 1;
+
+    /* Detect crit for icon count: d20 input value === 20 */
+    var d20ElForCrit = document.getElementById(atkP + '-d20');
+    var isCritNow = d20ElForCrit && parseInt(d20ElForCrit.value) === 20;
+    var iconCount = isCritNow ? diceCount * 2 : diceCount;
+
+    /* Render N die icons next to damage input (always visible → CDN OK) */
+    renderDiceIcons(dmgP + '-die-icons', dieType, iconCount);
 
     /* Update atk total */
     var d20  = parseInt(document.getElementById(atkP + '-d20') && document.getElementById(atkP + '-d20').value);
@@ -5585,12 +5616,12 @@ function updateCombat() {
       mastNote.classList.toggle('hidden', !mastDesc);
     }
 
-    /* Crit-label: dynamic dice text based on selected weapon */
+    /* Crit-label: text only — icons shown on damage input row (count = diceCount or ×2 on crit) */
     var critLbl = document.getElementById(dmgP + '-crit-label');
     if (critLbl) {
       var critDiceCount = weapon ? (weapon.diceCount * 2) : 2;
       var critDiceType  = weapon ? weapon.diceType : 'd8';
-      critLbl.innerHTML = 'Critique : saisir la somme de ' + critDiceCount + critDiceType + ' ' + critDiceIcons(critDiceCount, critDiceType);
+      critLbl.textContent = 'Critique : saisir la somme de ' + critDiceCount + critDiceType;
     }
   });
 
@@ -5795,6 +5826,15 @@ function updateMonture() {
       atkTypeLbl.style.fontWeight = '';
     }
   }
+
+  /* Die icons next to damage input — always 1d8 for Monture, ×2 on crit */
+  var mntD20El = document.getElementById('mnt-atk-d20');
+  var mntIsCrit = mntD20El && parseInt(mntD20El.value) === 20;
+  renderDiceIcons('mnt-dmg-die-icons', 'd8', mntIsCrit ? 2 : 1);
+
+  /* Crit-label — text only, dynamic count */
+  var mntCritLbl = document.getElementById('mnt-dmg-crit-label');
+  if (mntCritLbl) mntCritLbl.textContent = 'Critique : saisir la somme de 2d8';
 
   /* Persist */
   sauvegarder();
@@ -9285,7 +9325,7 @@ function injectDefaults() {
 }
 
 function makeCombatBlock(n){
-  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <h4 class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/spinning-sword.svg" class="gi-icon gi-icon-md gi-icon-red" alt="" aria-hidden="true" width="1.68em" height="1.68em" style="vertical-align:middle;">Attaque '+n+'</h4>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"><img src=\"https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg\" class=\"gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold\" alt=\"\" aria-hidden=\"true\" width=\"2.83em\" height=\"2.83em\" style=\"vertical-align:middle;margin-left:4px;\"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"><img id="dmg'+n+'-die-icon" src="'+D8_DATA_URI+'" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-left:4px;"></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">Critique : saisir la somme de 2d8 <img src="'+D8_DATA_URI+'" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-right:0.15em;"><img src="'+D8_DATA_URI+'" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-right:0.15em;"></div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')"><img id="smite'+n+'-die-icon" src="'+D8_DATA_URI+'" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-left:4px;">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
+  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <h4 class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/spinning-sword.svg" class="gi-icon gi-icon-md gi-icon-red" alt="" aria-hidden="true" width="1.68em" height="1.68em" style="vertical-align:middle;">Attaque '+n+'</h4>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"><img src=\"https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg\" class=\"gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold\" alt=\"\" aria-hidden=\"true\" width=\"2.83em\" height=\"2.83em\" style=\"vertical-align:middle;margin-left:4px;\"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"><span id="dmg'+n+'-die-icons" style="display:inline-flex;gap:2px;vertical-align:middle;margin-left:2px;"></span></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">Critique : saisir la somme de 2d8 </div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')"><img id="smite'+n+'-die-icon" src="'+D8_DATA_URI+'" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-left:4px;">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
 }
 var HM_STARS=[
   [[98.3,55.3,1.21,320,0.52],[49.4,54.3,1,209,0.9],[94.4,133,1.05,60,0.38],[93.2,49.4,0.89,230,0.7],[97.3,42.5,1.49,260,0.54],[113,99.5,1.07,286,0.29],[105.2,63.9,0.79,123,0.68],[49.5,79.9,1.27,242,0.6],[110.9,87,1.49,163,0.59],[126.3,103.6,1.06,312,0.63],[70,58.2,1.54,286,0.54],[113.7,84,0.77,83,0.67],[125.3,55.6,1.15,121,0.75],[37.2,115.1,1.49,93,0.87],[84.3,97.5,1.15,228,0.57],[76.6,51.4,1.28,158,0.52],[59,105,1.48,340,0.86],[56.5,66.7,0.84,62,0.46],[88.2,114.5,1.18,51,0.54],[120.9,113.4,1.52,347,0.87],[94.6,29.5,1,2,0.49],[118.6,54.7,0.81,86,0.57],[82.7,29.1,1.13,295,0.33],[82.9,79.5,0.79,105,0.45],[59.9,32.2,1.12,324,0.67],[124.5,49.9,0.88,283,0.56],[31.5,58.1,1.34,168,0.62],[47.3,31.4,0.97,3,0.41]],
@@ -9310,13 +9350,6 @@ function initApp() {
   })();
   document.getElementById('combat-blocks-container').innerHTML=
     makeCombatBlock(1)+makeCombatBlock(2);
-  // Inject D8_DATA_URI into static HTML img elements (src cannot reference JS constants)
-  (function() {
-    var el = document.getElementById('mnt-dmg-die-icon');
-    if (el) el.src = D8_DATA_URI;
-    var critImgs = document.querySelectorAll('#mnt-dmg-crit-label img');
-    for (var i = 0; i < critImgs.length; i++) critImgs[i].src = D8_DATA_URI;
-  })();
   var data;
   try {
     var raw = localStorage.getItem('paladin_strahd_v3');
@@ -9378,7 +9411,8 @@ v13.25 — 2026-03-19 : Remove all diagnostic code ; weapon/armor edit now refre
 v13.26 — 2026-03-20 : Monture — (1) Caractéristiques collapsible ; (2) Coup d'outremonde déplacé dans Capacités spéciales ; (3) Lien vital ajouté.
 v13.27 — 2026-03-20 : Fix couleur titre Caractéristiques monture.
 v13.28 — 2026-03-20 : Aide aux Tests — sous-titres collapsibles H3 ; placeholder 1–20 supprimé.
-v13.29 — 2026-03-20 : Imposition des mains — suppression ligne info redondante PV Max (5×niveau) ; label Max (auto) renommé PV Max (5 × niv). — sous-titres convertis en H3 section-title collapsible (Tests de Caractéristique, Jets de Sauvegarde) ; placeholder 1–20 supprimé des champs d20 ; CSS .subsection-header retiré. Caractéristiques monture — suppression classe mnt-stats-title (bordeaux) du H4 collapsible, section-title seul suffit (or). — (1) Caractéristiques collapsible (H4 + panel-body) ; (2) Coup d'outremonde déplacé dans Capacités spéciales ; (3) Lien vital ajouté dans Capacités spéciales ; Coup d'outremonde et Lien vital indépendants du type. ; weapon/armor edit now refreshes Attaque Rapide — updateCombat() added to enregistrerArme, enregistrerArmure, supprimerArme, supprimerArmure, toggleArmorEquipped. — removed Node.prototype.textContent intercept (caused silent WebKit exceptions during createElement/appendChild in overlay construction, aborting afficherOverlayExport mid-execution). + overlay fix — guard now covers ALL arrow keys (fixes number input up/down) ; window._scrollGuardClear() exposed publicly ; creerOverlay() calls it to ensure overlays never blocked ; guard 400ms ; clears itself after first cancel. — replaced continuous lock with targeted 300ms guard window on input/Shift+Arrow ; cancels only single jumps >50px (WKWebView spurious) ; trackpad and touch scroll free at all times ; overlays unaffected. — _lockY/_lockX promoted to module-level globals ; creerOverlay() releases lock (overlay positioning fix) ; touchstart releases lock (intentional swipe) ; >2px threshold on scroll restore ; overlay-backdrop check removed from blur (was preventing lock release on overlay input blur). — missing closing brace on attachListeners() causing uncaught JS error and app loading as v12.17 fallback. — scroll lock continu pendant focus input : _onFocusLock mémorise lockY/X, _onScrollLock restaure si scroll parasite détecté, _onBlurUnlock libère ; couvre typing ET Shift+Arrow ET mutations DOM ; overlays exclus. — intercept textContent (Node.prototype) et localStorage.setItem pour identifier le vrai déclencheur scroll après confirmation que les .value SKIP n'ont pas résolu le problème. — IIFE defineProperty HTMLInputElement.value bloque les écritures sans changement de valeur (no-op) ; actif en permanence indépendamment du diagnostic ; coupable identifié : .val[ca] 2e écriture déclenchait le scroll. — .value loggué sur toutes les écritures (même sans changement) avec sY courant ; timestamps relatifs +Xms depuis start ; maxLogs 200 ; bouton Copy (textarea execCommand) ; diagCopy() exposé sur window. — timestamps relatifs (+Xms depuis start), FOCUS/FOCUS-RESTORE/FOCUS-16ms/FOCUS-SCROLLTO loggés ; test double délai 0ms+16ms dans focus fix pour identifier si scrollTo fonctionne. — cause identifiée (focus déclenche scroll WKWebView via vpH=-32) ; attachListeners() ajoute listener focus capture-phase sur navigator.standalone : mémorise scrollY/X avant, restaure via setTimeout(0) si WKWebView a scrollé ; overlays exclus. : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
+v13.29 — 2026-03-20 : Imposition des mains — suppression ligne info redondante.
+v13.30 — 2026-03-20 : Attaque Rapide dice icons — crit-label texte seul (icônes supprimées) ; #dmgN-die-icons et #mnt-dmg-die-icons : N icônes dynamiques selon diceCount weapon (×2 si crit D20=20) ; updateMonture() gère mnt-dmg-die-icons et mnt-dmg-crit-label ; injection D8_DATA_URI initApp() supprimée ; critDiceIcons() inutilisé mais conservé. — suppression ligne info redondante PV Max (5×niveau) ; label Max (auto) renommé PV Max (5 × niv). — sous-titres convertis en H3 section-title collapsible (Tests de Caractéristique, Jets de Sauvegarde) ; placeholder 1–20 supprimé des champs d20 ; CSS .subsection-header retiré. Caractéristiques monture — suppression classe mnt-stats-title (bordeaux) du H4 collapsible, section-title seul suffit (or). — (1) Caractéristiques collapsible (H4 + panel-body) ; (2) Coup d'outremonde déplacé dans Capacités spéciales ; (3) Lien vital ajouté dans Capacités spéciales ; Coup d'outremonde et Lien vital indépendants du type. ; weapon/armor edit now refreshes Attaque Rapide — updateCombat() added to enregistrerArme, enregistrerArmure, supprimerArme, supprimerArmure, toggleArmorEquipped. — removed Node.prototype.textContent intercept (caused silent WebKit exceptions during createElement/appendChild in overlay construction, aborting afficherOverlayExport mid-execution). + overlay fix — guard now covers ALL arrow keys (fixes number input up/down) ; window._scrollGuardClear() exposed publicly ; creerOverlay() calls it to ensure overlays never blocked ; guard 400ms ; clears itself after first cancel. — replaced continuous lock with targeted 300ms guard window on input/Shift+Arrow ; cancels only single jumps >50px (WKWebView spurious) ; trackpad and touch scroll free at all times ; overlays unaffected. — _lockY/_lockX promoted to module-level globals ; creerOverlay() releases lock (overlay positioning fix) ; touchstart releases lock (intentional swipe) ; >2px threshold on scroll restore ; overlay-backdrop check removed from blur (was preventing lock release on overlay input blur). — missing closing brace on attachListeners() causing uncaught JS error and app loading as v12.17 fallback. — scroll lock continu pendant focus input : _onFocusLock mémorise lockY/X, _onScrollLock restaure si scroll parasite détecté, _onBlurUnlock libère ; couvre typing ET Shift+Arrow ET mutations DOM ; overlays exclus. — intercept textContent (Node.prototype) et localStorage.setItem pour identifier le vrai déclencheur scroll après confirmation que les .value SKIP n'ont pas résolu le problème. — IIFE defineProperty HTMLInputElement.value bloque les écritures sans changement de valeur (no-op) ; actif en permanence indépendamment du diagnostic ; coupable identifié : .val[ca] 2e écriture déclenchait le scroll. — .value loggué sur toutes les écritures (même sans changement) avec sY courant ; timestamps relatifs +Xms depuis start ; maxLogs 200 ; bouton Copy (textarea execCommand) ; diagCopy() exposé sur window. — timestamps relatifs (+Xms depuis start), FOCUS/FOCUS-RESTORE/FOCUS-16ms/FOCUS-SCROLLTO loggés ; test double délai 0ms+16ms dans focus fix pour identifier si scrollTo fonctionne. — cause identifiée (focus déclenche scroll WKWebView via vpH=-32) ; attachListeners() ajoute listener focus capture-phase sur navigator.standalone : mémorise scrollY/X avant, restaure via setTimeout(0) si WKWebView a scrollé ; overlays exclus. : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
 ====================================================== */
 </script>
 
