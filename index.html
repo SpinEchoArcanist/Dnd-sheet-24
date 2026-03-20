@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.24 — 2026-03-19 -->
+<!-- dnd-sheet-v13 | version complète : 13.25 — 2026-03-19 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -3546,10 +3546,6 @@ select.field-input optgroup {
           <span class="di-icon">▾</span> Tout déplier
         </button>
         <div class="dropdown-sep"></div>
-        <button class="dropdown-item" onclick="closeMenu();diagToggle()">
-          <span class="di-icon">⚙</span> Diagnostic scroll
-        </button>
-        <div class="dropdown-sep"></div>
         <!-- Sous-menu Effets visuels — voir [EX-G-F45] -->
         <button class="dropdown-submenu-header" id="vfx-submenu-btn" onclick="toggleVfxSubmenu()">
           <span class="di-icon"><i class="ra ra-burning-embers rpa-icon" aria-hidden="true"></i></span> Effets visuels
@@ -4863,7 +4859,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.24';
+var FILE_VERSION = '13.25';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -7839,8 +7835,6 @@ function attachListeners() {
       _guardX = window.scrollX;
       if (_guardTm) clearTimeout(_guardTm);
       _guardTm = setTimeout(window._scrollGuardClear, 400);
-      if (typeof DIAG !== 'undefined' && DIAG.active)
-        diagLog('GUARD-OPEN guardY=' + Math.round(_guardY));
     }
 
     function _onInputGuard(e) {
@@ -7862,8 +7856,6 @@ function attachListeners() {
       var dy = Math.abs(window.scrollY - _guardY);
       var dx = Math.abs(window.scrollX - _guardX);
       if (dy > 50 || dx > 50) {
-        if (typeof DIAG !== 'undefined' && DIAG.active)
-          diagLog('GUARD-CANCEL ' + Math.round(window.scrollY) + '->' + Math.round(_guardY) + ' dy=' + Math.round(dy));
         window.scrollTo(_guardX, _guardY);
         window._scrollGuardClear();
       }
@@ -8379,6 +8371,7 @@ function supprimerArme(id) {
     onOui: function() {
       S.weapons = (S.weapons || []).filter(function(w) { return w.id !== id; });
       updateWeapons();
+      updateCombat();
       sauvegarder();
       showNotification('🗑️ Arme supprimée', 'warning');
     }
@@ -8662,7 +8655,8 @@ function enregistrerArme() {
     S.weapons.push(newWeapon);
   }
   fermerFormArme();
-  updateWeapons();
+  updateWeapons();       /* refreshes inventory list + dropdowns */
+  updateCombat();        /* refreshes Attaque Rapide totals and die icons */
   sauvegarder();
   showNotification(editId ? '\u270f\ufe0f Arme modifiée' : '\u2694\ufe0f Arme ajoutée', 'success');
 }
@@ -8881,6 +8875,7 @@ function toggleArmorEquipped(id, checked) {
   }
   updateArmors();
   updateCA();
+  updateCombat();
   sauvegarder();
 }
 
@@ -8900,6 +8895,7 @@ function supprimerArmure(id) {
       S.armors = (S.armors || []).filter(function(a) { return a.id !== id; });
       updateArmors();
       updateCA();
+      updateCombat();
       sauvegarder();
       showNotification('\ud83d\uddd1\ufe0f Armure supprim\u00e9e', 'warning');
     }
@@ -9124,10 +9120,11 @@ function enregistrerArmure() {
   }
 
   fermerFormArmure();
-  updateArmors();
-  updateCA();
+  updateArmors();        /* refreshes inventory list */
+  updateCA();            /* recalculates CA from equipped armors */
+  updateCombat();        /* refreshes Attaque Rapide (CA displayed there) */
   sauvegarder();
-  showNotification(editId ? '\u270f\ufe0f Armure modifi\u00e9e' : '\ud83d\udee1\ufe0f Armure ajout\u00e9e', 'success');
+  showNotification(editId ? '\u270f\ufe0f Armure modifiée' : '\ud83d\udee1\ufe0f Armure ajoutée', 'success');
 }
 
 window.checkCritique         = checkCritique;
@@ -9205,198 +9202,24 @@ window.FILE_VERSION          = FILE_VERSION;
    Objectif : comparer le comportement Safari vs Standalone iPad
    + clavier externe pour identifier la cause du scroll parasite.
    ============================================================ */
-var DIAG = {
-  logs: [],
-  maxLogs: 200,
-  lastScrollY: 0,
-  active: false,
-  t0: 0  /* set when diag starts — for relative ms timestamps */
-};
 
-function diagLog(msg) {
-  if (!DIAG.active) return;
-  var rel = DIAG.t0 ? (Date.now() - DIAG.t0) : 0;
-  var ts = '+' + rel + 'ms';
-  var entry = '[' + ts + '] ' + msg;
-  DIAG.logs.unshift(entry);
-  if (DIAG.logs.length > DIAG.maxLogs) DIAG.logs.length = DIAG.maxLogs;
-  diagRefresh();
-}
-
-function diagRefresh() {
-  var pre = document.getElementById('diag-pre');
-  if (pre) pre.textContent = DIAG.logs.join('\n');
-}
-
-function diagToggle() {
-  DIAG.active = !DIAG.active;
-  var btn = document.getElementById('diag-toggle-btn');
-  var panel = document.getElementById('diag-panel');
-  if (btn) btn.textContent = DIAG.active ? '⏹ Stop diag' : '▶ Start diag';
-  if (panel) panel.style.display = DIAG.active ? 'flex' : 'none';
-  if (DIAG.active) {
-    DIAG.logs = [];
-    DIAG.t0 = Date.now();
-    DIAG.lastScrollY = window.scrollY;
-    diagLog('=== DIAG START === scrollY=' + window.scrollY +
-            ' | standalone=' + (window.navigator.standalone === true) +
-            ' | UA=' + navigator.userAgent.slice(-60));
-  }
-}
-
-function diagClear() {
-  DIAG.logs = [];
-  diagRefresh();
-}
-
-function diagCopy() {
-  var text = DIAG.logs.slice().reverse().join('\n');
-  /* Use textarea trick — works on WKWebView without Clipboard API */
-  var ta = document.createElement('textarea');
-  ta.value = text;
-  ta.setAttribute('style', 'position:fixed;left:-9999px;top:0;opacity:0;');
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  try { document.execCommand('copy'); } catch(e) {}
-  document.body.removeChild(ta);
-  /* Visual feedback */
-  var btn = document.querySelector('#diag-panel button');
-  /* find copy button specifically */
-  var btns = document.querySelectorAll('#diag-panel button');
-  for (var i = 0; i < btns.length; i++) {
-    if (btns[i].textContent === 'Copy') {
-      btns[i].textContent = '✓ Copied';
-      btns[i].style.color = '#c9a84c';
-      setTimeout(function(b){ return function(){ b.textContent='Copy'; b.style.color='#6bca6b'; }; }(btns[i]), 1500);
-      break;
-    }
-  }
-}
-
-/* Inject diagnostic UI into the page */
-function diagInit() {
-  /* Floating toggle button — always visible */
-  var btn = document.createElement('button');
-  btn.id = 'diag-toggle-btn';
-  btn.textContent = '▶ Start diag';
-  btn.setAttribute('style',
-    'position:fixed;bottom:70px;right:10px;z-index:99999;' +
-    'background:#1a0a2a;border:1px solid #c9a84c;color:#c9a84c;' +
-    'font-size:11px;padding:5px 9px;border-radius:4px;cursor:pointer;' +
-    'font-family:monospace;opacity:0.85;');
-  btn.onclick = diagToggle;
-  document.body.appendChild(btn);
-
-  /* Scrollable log panel */
-  var panel = document.createElement('div');
-  panel.id = 'diag-panel';
-  panel.setAttribute('style',
-    'display:none;position:fixed;bottom:106px;right:10px;z-index:99998;' +
-    'width:min(420px,96vw);height:320px;' +
-    'background:rgba(8,4,16,0.97);border:1px solid #c9a84c;border-radius:4px;' +
-    'flex-direction:column;overflow:hidden;');
-
-  var header = document.createElement('div');
-  header.setAttribute('style',
-    'display:flex;align-items:center;justify-content:space-between;' +
-    'padding:4px 8px;border-bottom:1px solid rgba(201,168,76,0.3);flex-shrink:0;');
-  header.innerHTML =
-    '<span style="color:#c9a84c;font-size:10px;font-family:monospace;">SCROLL DIAGNOSTIC</span>' +
-    '<span style="display:flex;gap:4px;">' +
-    '<button onclick="diagCopy()" style="background:none;border:1px solid #2a6b2a;color:#6bca6b;' +
-    'font-size:9px;padding:2px 6px;border-radius:2px;cursor:pointer;font-family:monospace;">Copy</button>' +
-    '<button onclick="diagClear()" style="background:none;border:1px solid #8b1a1a;color:#b52a2a;' +
-    'font-size:9px;padding:2px 6px;border-radius:2px;cursor:pointer;font-family:monospace;">Clear</button>' +
-    '</span>';
-
-  var pre = document.createElement('pre');
-  pre.id = 'diag-pre';
-  pre.setAttribute('style',
-    'flex:1;overflow-y:auto;margin:0;padding:6px 8px;' +
-    'font-size:9px;line-height:1.45;color:#a0e8a0;font-family:monospace;' +
-    'white-space:pre-wrap;word-break:break-all;');
-
-  panel.appendChild(header);
-  panel.appendChild(pre);
-  document.body.appendChild(panel);
-
-  /* Monitor scroll events */
-  window.addEventListener('scroll', function() {
-    var dy = window.scrollY - DIAG.lastScrollY;
-    if (Math.abs(dy) > 1) {
-      diagLog('SCROLL scrollY=' + Math.round(window.scrollY) +
-              ' delta=' + (dy > 0 ? '+' : '') + Math.round(dy) +
-              ' focus=' + (document.activeElement ? document.activeElement.id || document.activeElement.tagName : 'null'));
-    }
-    DIAG.lastScrollY = window.scrollY;
-  }, { passive: true });
-
-  /* Monitor every updateAll call */
-  var _origUpdateAll = updateAll;
-  updateAll = function() {
-    var focusId = document.activeElement ? (document.activeElement.id || document.activeElement.tagName) : 'null';
-    var scrollBefore = window.scrollY;
-    diagLog('updateAll START scrollY=' + Math.round(scrollBefore) + ' focus=' + focusId);
-    _origUpdateAll.apply(this, arguments);
-    var scrollAfter = window.scrollY;
-    if (Math.abs(scrollAfter - scrollBefore) > 1) {
-      diagLog('  >> updateAll caused scroll: ' + Math.round(scrollBefore) + '->' + Math.round(scrollAfter));
-    } else {
-      diagLog('updateAll END scrollY=' + Math.round(scrollAfter) + ' (no scroll)');
-    }
-  };
-  window.updateAll = updateAll;
-
-}
-
-window.diagToggle = diagToggle;
-window.diagClear  = diagClear;
-window.diagCopy   = diagCopy;
-window.diagInit   = diagInit;
-
-/* ── WKWebView scroll fix — always active, independent of diagnostic ──────
-   Intercepts every HTMLInputElement .value write.
-   If the new value equals the current value, the write is skipped entirely.
-   Rationale: In WKWebView standalone (iPad + hardware keyboard), writing
-   .value on any visible input — even with the same value — can trigger
-   scroll-to-element because WKWebView miscalculates viewport height as -32px.
-   Blocking no-op writes eliminates the trigger with zero functional side effect.
-   Diagnostic logging (DIAG.active) is layered on top. ── */
+/* ── WKWebView scroll fix — always active ──────────────────────────────
+   Blocks no-op .value writes on inputs. In WKWebView standalone with a
+   hardware keyboard, writing .value on an input with the same value can
+   trigger scroll-to-element due to vpH=-32 miscalculation. ── */
 (function() {
-  /* 1. Block no-op .value writes on inputs */
   var _origSet = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
   var _origGet = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').get;
   Object.defineProperty(HTMLInputElement.prototype, 'value', {
     set: function(v) {
-      var old = _origGet.call(this);
-      if (String(old) === String(v)) {
-        if (typeof DIAG !== 'undefined' && DIAG.active && this.id) {
-          diagLog('  .val[' + this.id + ']=SKIP"' + String(v).slice(0,8) + '" sY=' + Math.round(window.scrollY));
-        }
-        return;
-      }
-      if (typeof DIAG !== 'undefined' && DIAG.active && this.id) {
-        diagLog('  .val[' + this.id + ']*"' + String(v).slice(0,8) + '" sY=' + Math.round(window.scrollY));
-      }
+      if (String(_origGet.call(this)) === String(v)) return;
       _origSet.call(this, v);
     },
     get: _origGet,
     configurable: true
   });
-
-  /* 2. textContent intercept removed — caused silent exceptions in WebKit
-     during overlay createElement/appendChild operations. */
-
-  /* 3. DIAGNOSTIC ONLY: intercept localStorage.setItem */
-  var _origLSSet = localStorage.setItem.bind(localStorage);
-  localStorage.setItem = function(key, val) {
-    if (typeof DIAG !== 'undefined' && DIAG.active) {
-      diagLog('  localStorage.set[' + key + '] len=' + String(val).length + ' sY=' + Math.round(window.scrollY));
-    }
-    _origLSSet(key, val);
-  };
 })();
+
 
 
 /* ============================================================
@@ -9522,32 +9345,10 @@ function initApp() {
   updateGrimoire();
   updateFeats();
 
-  /* Diagnostic — capture visualViewport resize events (keyboard appear/disappear) */
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', function() {
-      if (!DIAG.active) return;
-      var vH  = Math.round(window.visualViewport.height);
-      var vOY = Math.round(window.visualViewport.offsetTop);
-      var sY  = Math.round(window.scrollY);
-      var mode = window.navigator.standalone ? 'standalone' : 'browser';
-      diagLog('VP-RESIZE | ' + mode + ' | vpH=' + vH + ' vpOffY=' + vOY + ' scrollY=' + sY);
-    });
-  }
-
-  /* Diagnostic — capture scroll events on window */
-  window.addEventListener('scroll', function() {
-    if (!DIAG.active) return;
-    var sY   = Math.round(window.scrollY);
-    var ae   = document.activeElement;
-    var aeId = ae ? (ae.id || ae.tagName) : 'null';
-    var mode = window.navigator.standalone ? 'standalone' : 'browser';
-    diagLog('SCROLL-EVT | ' + mode + ' | scrollY=' + sY + ' | activeEl=' + aeId);
-  }, { passive: true });
 }
 
 /* Appel direct, sans event listener */
 initApp();
-diagInit(); /* crée le bouton flottant + panel diag scroll */
 
 /* ==================== CHANGELOG ====================
 v13.0 — 2026-03-19 : Version majeure — passage v12.17 → 13.0 ; armes consommables (champ consommable + quantity) ; [EX-M-F63] créé ; [EX-T-F40] mis à jour.
@@ -9574,7 +9375,8 @@ v13.20 — 2026-03-19 : Fix syntax error v13.19
 v13.21 — 2026-03-19 : Fix scroll lock v2
 v13.22 — 2026-03-19 : Fix scroll guard v3
 v13.23 — 2026-03-19 : Fix scroll guard v4
-v13.24 — 2026-03-19 : Fix export overlay broken — removed Node.prototype.textContent intercept (caused silent WebKit exceptions during createElement/appendChild in overlay construction, aborting afficherOverlayExport mid-execution). + overlay fix — guard now covers ALL arrow keys (fixes number input up/down) ; window._scrollGuardClear() exposed publicly ; creerOverlay() calls it to ensure overlays never blocked ; guard 400ms ; clears itself after first cancel. — replaced continuous lock with targeted 300ms guard window on input/Shift+Arrow ; cancels only single jumps >50px (WKWebView spurious) ; trackpad and touch scroll free at all times ; overlays unaffected. — _lockY/_lockX promoted to module-level globals ; creerOverlay() releases lock (overlay positioning fix) ; touchstart releases lock (intentional swipe) ; >2px threshold on scroll restore ; overlay-backdrop check removed from blur (was preventing lock release on overlay input blur). — missing closing brace on attachListeners() causing uncaught JS error and app loading as v12.17 fallback. — scroll lock continu pendant focus input : _onFocusLock mémorise lockY/X, _onScrollLock restaure si scroll parasite détecté, _onBlurUnlock libère ; couvre typing ET Shift+Arrow ET mutations DOM ; overlays exclus. — intercept textContent (Node.prototype) et localStorage.setItem pour identifier le vrai déclencheur scroll après confirmation que les .value SKIP n'ont pas résolu le problème. — IIFE defineProperty HTMLInputElement.value bloque les écritures sans changement de valeur (no-op) ; actif en permanence indépendamment du diagnostic ; coupable identifié : .val[ca] 2e écriture déclenchait le scroll. — .value loggué sur toutes les écritures (même sans changement) avec sY courant ; timestamps relatifs +Xms depuis start ; maxLogs 200 ; bouton Copy (textarea execCommand) ; diagCopy() exposé sur window. — timestamps relatifs (+Xms depuis start), FOCUS/FOCUS-RESTORE/FOCUS-16ms/FOCUS-SCROLLTO loggés ; test double délai 0ms+16ms dans focus fix pour identifier si scrollTo fonctionne. — cause identifiée (focus déclenche scroll WKWebView via vpH=-32) ; attachListeners() ajoute listener focus capture-phase sur navigator.standalone : mémorise scrollY/X avant, restaure via setTimeout(0) si WKWebView a scrollé ; overlays exclus. : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
+v13.24 — 2026-03-19 : Fix export overlay broken
+v13.25 — 2026-03-19 : Remove all diagnostic code ; weapon/armor edit now refreshes Attaque Rapide — updateCombat() added to enregistrerArme, enregistrerArmure, supprimerArme, supprimerArmure, toggleArmorEquipped. — removed Node.prototype.textContent intercept (caused silent WebKit exceptions during createElement/appendChild in overlay construction, aborting afficherOverlayExport mid-execution). + overlay fix — guard now covers ALL arrow keys (fixes number input up/down) ; window._scrollGuardClear() exposed publicly ; creerOverlay() calls it to ensure overlays never blocked ; guard 400ms ; clears itself after first cancel. — replaced continuous lock with targeted 300ms guard window on input/Shift+Arrow ; cancels only single jumps >50px (WKWebView spurious) ; trackpad and touch scroll free at all times ; overlays unaffected. — _lockY/_lockX promoted to module-level globals ; creerOverlay() releases lock (overlay positioning fix) ; touchstart releases lock (intentional swipe) ; >2px threshold on scroll restore ; overlay-backdrop check removed from blur (was preventing lock release on overlay input blur). — missing closing brace on attachListeners() causing uncaught JS error and app loading as v12.17 fallback. — scroll lock continu pendant focus input : _onFocusLock mémorise lockY/X, _onScrollLock restaure si scroll parasite détecté, _onBlurUnlock libère ; couvre typing ET Shift+Arrow ET mutations DOM ; overlays exclus. — intercept textContent (Node.prototype) et localStorage.setItem pour identifier le vrai déclencheur scroll après confirmation que les .value SKIP n'ont pas résolu le problème. — IIFE defineProperty HTMLInputElement.value bloque les écritures sans changement de valeur (no-op) ; actif en permanence indépendamment du diagnostic ; coupable identifié : .val[ca] 2e écriture déclenchait le scroll. — .value loggué sur toutes les écritures (même sans changement) avec sY courant ; timestamps relatifs +Xms depuis start ; maxLogs 200 ; bouton Copy (textarea execCommand) ; diagCopy() exposé sur window. — timestamps relatifs (+Xms depuis start), FOCUS/FOCUS-RESTORE/FOCUS-16ms/FOCUS-SCROLLTO loggés ; test double délai 0ms+16ms dans focus fix pour identifier si scrollTo fonctionne. — cause identifiée (focus déclenche scroll WKWebView via vpH=-32) ; attachListeners() ajoute listener focus capture-phase sur navigator.standalone : mémorise scrollY/X avant, restaure via setTimeout(0) si WKWebView a scrollé ; overlays exclus. : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
 ====================================================== */
 </script>
 
