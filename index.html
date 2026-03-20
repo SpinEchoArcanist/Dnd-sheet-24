@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.34 — 2026-03-20 -->
+<!-- dnd-sheet-v13 | version complète : 13.40 — 2026-03-20 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -110,11 +110,16 @@ CHANGELOG entry format:
 -->
 
 <!-- [EX-M-F05] PV ACTUELS — SEUILS VISUELS
-     Champ pv-actuels borné : [0, PV Max]
-     Seuils CSS appliqués dynamiquement par updateSpherePV() :
-       · > 50% PV Max  → classe .pv-ok     (vert)
-       · 25–50% PV Max → classe .pv-blesse (orange)
-       · < 25% PV Max  → classe .pv-crit   (rouge pulsant, animation pulserCrit)
+     Champs concernés : #pv-actuels (Vie) et #mnt-pv-cur (Monture).
+     Seuils CSS appliqués par pvColorClass(pct) — 5 paliers :
+       · ≥ 75%  → .pv-ok     (vert vif)
+       · 50–75% → .pv-ok-low (vert-jaune)
+       · 25–50% → .pv-blesse (orange)
+       · 10–25% → .pv-warn   (orange-rouge pulsant, animation pulserWarn)
+       · < 10%  → .pv-crit   (rouge pulsant intense, animation pulserCrit)
+     pvColorClass(pct) retourne le suffixe nu ('ok','ok-low','blesse','warn','crit').
+     Appelants : préfixent 'pv-' pour les champs, 'sphere-pv-' pour la sphère.
+     Sphère PV : classe .sphere-pv-{suffix} avec @keyframes sphereGlow* correspondants.
 -->
 
 <!-- [EX-M-F06] PV TEMPORAIRES
@@ -888,6 +893,8 @@ CHANGELOG entry format:
            1. JSON.parse(textarea.value) — erreur → div#import-error.visible
            2. sanitiserDonnees(data) → dataPropre (voir [EX-T-F40])
            3. charger() → genererStats() → syncInputs() → restoreDeathBoxes() → updateAll()
+              → updateArmors() → updateItems() → updateWeapons() → updateGrimoire() → updateFeats()
+              (ces 5 fonctions sont hors périmètre de updateAll() [EX-T-F38])
            4. fermerOverlayImport()
            5. showNotification('↑ Importé : …', 'success')
               + si fallbacks > 0 : showNotification('⚠ N champ(s) manquants…', 'warning')
@@ -1097,8 +1104,9 @@ CHANGELOG entry format:
        · updateWeapons()  → enregistrerArme / supprimerArme (inclut updateWeaponDropdowns)
        · updateGrimoire() → toutes les actions Grimoire (add/edit/delete/toggle)
        · updateFeats()    → enregistrerTyped / supprimerTypedItem
-     Ces 5 fonctions sont appelées une fois au démarrage dans initApp() après updateAll(),
-     pour le rendu initial des tables (données chargées depuis localStorage).
+     Ces 5 fonctions sont regroupées dans updateAllLists() — appelée depuis initApp(),
+     reinitialiser() et confirmerImport() après updateAll(). Aussi accessible via le bouton
+     "Rafraîchir" du menu ⚙ pour forcer un re-rendu complet.
 
      Listeners attachés par attachListeners() lors de initApp() :
        · input  → updateAll() sur tous les inputs (sauf checkbox)
@@ -1717,11 +1725,14 @@ body {
 .field-input.auto-calc { background:rgba(28,22,40,0.75); border-color:rgba(201,168,76,0.15); color:var(--or-clair); }
 .field-input[readonly] { background:rgba(32,26,45,0.6); border-color:rgba(201,168,76,0.1); color:var(--or-clair); cursor:default; font-weight:600; }
 
-/* Seuils PV */
-.pv-ok    { border-color:rgba(45,122,45,0.5)  !important; color:#6fca6f !important; }
-.pv-blesse{ border-color:rgba(210,80,10,0.5) !important; color:#e05510 !important; }
-.pv-crit  { border-color:rgba(204,34,34,0.7)  !important; color:var(--rouge-crit) !important; animation:pulserCrit 1.4s infinite; }
+/* Seuils PV — 5 paliers : >75% vert / 50-75% vert-jaune / 25-50% orange / 10-25% orange-rouge / <10% rouge */
+.pv-ok      { border-color:rgba(45,122,45,0.5)   !important; color:#6fca6f !important; }
+.pv-ok-low  { border-color:rgba(120,160,20,0.55)  !important; color:#a8c832 !important; }
+.pv-blesse  { border-color:rgba(210,140,10,0.55)  !important; color:#d4920a !important; }
+.pv-warn    { border-color:rgba(210,60,10,0.6)    !important; color:#e05510 !important; animation:pulserWarn 1.4s infinite; }
+.pv-crit    { border-color:rgba(204,34,34,0.7)    !important; color:var(--rouge-crit) !important; animation:pulserCrit 1.4s infinite; }
 @keyframes pulserCrit { 0%,100%{box-shadow:0 0 4px rgba(204,34,34,0.2);}50%{box-shadow:0 0 14px rgba(204,34,34,0.7),0 0 28px rgba(204,34,34,0.25);} }
+@keyframes pulserWarn { 0%,100%{box-shadow:0 0 4px rgba(210,60,10,0.15);}50%{box-shadow:0 0 12px rgba(210,60,10,0.55),0 0 22px rgba(210,60,10,0.20);} }
 
 .field-row { display:flex; gap:6px; align-items:flex-end; }
 .field-row .field-group { flex:1; margin-bottom:0; }
@@ -1956,16 +1967,26 @@ body {
   50%     { filter: blur(3px)    drop-shadow(0 0 12px rgba(255,230,80,0.95)) drop-shadow(0 0 22px rgba(210,160,20,0.55)); }
 }
 /* Glow PV — 3 états selon seuils [EX-M-F05] */
-.sphere-pv.sphere-pv-ok     { animation:sphereGlowGreen  4.0s ease-in-out infinite; }
-.sphere-pv.sphere-pv-blesse { animation:sphereGlowYellow 4.0s ease-in-out infinite; }
-.sphere-pv.sphere-pv-crit   { animation:sphereGlowRed    4.0s ease-in-out infinite; }
+.sphere-pv.sphere-pv-ok      { animation:sphereGlowGreen    4.0s ease-in-out infinite; }
+.sphere-pv.sphere-pv-ok-low  { animation:sphereGlowGreenLow  4.0s ease-in-out infinite; }
+.sphere-pv.sphere-pv-blesse  { animation:sphereGlowYellow    4.0s ease-in-out infinite; }
+.sphere-pv.sphere-pv-warn    { animation:sphereGlowOrangeRed 4.0s ease-in-out infinite; }
+.sphere-pv.sphere-pv-crit    { animation:sphereGlowRed       4.0s ease-in-out infinite; }
 @keyframes sphereGlowGreen {
   0%,100% { filter:drop-shadow(0 0 6px rgba(20,100,20,0.45)); }
   50%     { filter:drop-shadow(0 0 24px rgba(50,200,50,0.88)) drop-shadow(0 0 48px rgba(20,140,20,0.45)); }
 }
+@keyframes sphereGlowGreenLow {
+  0%,100% { filter:drop-shadow(0 0 6px rgba(80,130,10,0.45)); }
+  50%     { filter:drop-shadow(0 0 22px rgba(140,200,20,0.85)) drop-shadow(0 0 44px rgba(90,150,10,0.40)); }
+}
 @keyframes sphereGlowYellow {
-  0%,100% { filter:drop-shadow(0 0 6px rgba(200,70,10,0.50)); }
-  50%     { filter:drop-shadow(0 0 24px rgba(230,90,12,0.92)) drop-shadow(0 0 48px rgba(200,60,8,0.50)); }
+  0%,100% { filter:drop-shadow(0 0 6px rgba(180,120,5,0.50)); }
+  50%     { filter:drop-shadow(0 0 24px rgba(215,165,10,0.90)) drop-shadow(0 0 48px rgba(180,120,5,0.45)); }
+}
+@keyframes sphereGlowOrangeRed {
+  0%,100% { filter:drop-shadow(0 0 6px rgba(200,60,8,0.50)); }
+  50%     { filter:drop-shadow(0 0 24px rgba(230,85,10,0.92)) drop-shadow(0 0 48px rgba(200,50,8,0.50)); }
 }
 @keyframes sphereGlowRed {
   0%,100% { filter:drop-shadow(0 0 6px rgba(160,20,20,0.45)); }
@@ -3532,8 +3553,12 @@ select.field-input optgroup {
           <span class="di-icon">↓</span> Exporter
         </button>
         <div class="dropdown-sep"></div>
+        <button class="dropdown-item" onclick="menuRafraichir()">
+          <span class="di-icon">↺</span> Rafraîchir
+        </button>
+        <div class="dropdown-sep"></div>
         <button class="dropdown-item" onclick="menuToutReplier()">
-          <span class="di-icon"><i class="ra ra-angle-right rpa-icon" aria-hidden="true"></i></span> Tout replier
+          <span class="di-icon">▸</span> Tout replier
         </button>
         <button class="dropdown-item" onclick="menuToutDeployer()">
           <span class="di-icon">▾</span> Tout déplier
@@ -3957,7 +3982,7 @@ select.field-input optgroup {
               <label class="field-label">PV actuels</label>
               <input class="field-input" type="number" id="mnt-pv-cur"
                 min="0" max="25" value="25"
-                oninput="sauvegarder()">
+                oninput="updateMonture()">
             </div>
 
             <div class="sep"></div>
@@ -4859,7 +4884,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.34';
+var FILE_VERSION = '13.40';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -5268,6 +5293,19 @@ function setWave(animId, topY, botY) {
 /* ============================================================
    MISE À JOUR SPHÈRE PV
    ============================================================ */
+/* ============================================================
+   PV COLOUR HELPER — 5-step gradient
+   Returns the CSS class suffix for a given pct [0..1].
+   >75% ok | 50-75% ok-low | 25-50% blesse | 10-25% warn | <10% crit
+   ============================================================ */
+function pvColorClass(pct) {
+  if      (pct < 0.10) return 'crit';
+  else if (pct < 0.25) return 'warn';
+  else if (pct < 0.50) return 'blesse';
+  else if (pct < 0.75) return 'ok-low';
+  else                 return 'ok';
+}
+
 function updateSpherePV() {
   var pvM = lireInt('pv-max', 1);   if (pvM < 1) pvM = 1;
   var pvC = lireInt('pv-actuels', 0);
@@ -5311,20 +5349,15 @@ function updateSpherePV() {
   }
   var pvInp = document.getElementById('pv-actuels');
   if (pvInp) {
-    pvInp.className = 'field-input';
     var pct = pvM > 0 ? pvC / pvM : 0;
-    if      (pct < 0.25) pvInp.classList.add('pv-crit');
-    else if (pct < 0.50) pvInp.classList.add('pv-blesse');
-    else                 pvInp.classList.add('pv-ok');
+    pvInp.className = 'field-input pv-' + pvColorClass(pct);
   }
-  /* Task 3: sync glow color on .sphere-pv to match HP threshold */
+  /* Sync glow color on .sphere-pv to match HP threshold — 5 steps */
   var sphereEl = document.querySelector('.sphere-pv');
   if (sphereEl) {
-    sphereEl.classList.remove('sphere-pv-ok','sphere-pv-blesse','sphere-pv-crit');
+    sphereEl.classList.remove('sphere-pv-ok','sphere-pv-ok-low','sphere-pv-blesse','sphere-pv-warn','sphere-pv-crit');
     var pctPv = pvM > 0 ? pvC / pvM : 0;
-    if      (pctPv < 0.25) sphereEl.classList.add('sphere-pv-crit');
-    else if (pctPv < 0.50) sphereEl.classList.add('sphere-pv-blesse');
-    else                   sphereEl.classList.add('sphere-pv-ok');
+    sphereEl.classList.add('sphere-pv-' + pvColorClass(pctPv));
   }
 }
 
@@ -5833,6 +5866,14 @@ function updateMonture() {
   /* Crit-label — text only, dynamic count */
   var mntCritLbl = document.getElementById('mnt-dmg-crit-label');
   if (mntCritLbl) mntCritLbl.textContent = 'Critique : saisir la somme de 2d8';
+
+  /* Mount PV colour — same 5-step thresholds as main pv-actuels [EX-M-F05] */
+  var mntPvInp = document.getElementById('mnt-pv-cur');
+  if (mntPvInp) {
+    var mntCur = parseInt(mntPvInp.value) || 0;
+    var mntPct = pvMax > 0 ? mntCur / pvMax : 0;
+    mntPvInp.className = 'field-input pv-' + pvColorClass(mntPct);
+  }
 
   /* Persist */
   sauvegarder();
@@ -6989,6 +7030,12 @@ function menuExporter() {
   closeMenu();
   exporterJSON();
 }
+function menuRafraichir() {
+  closeMenu();
+  updateAll();
+  updateAllLists();
+  showNotification('↺ Affichage rafraîchi', 'success');
+}
 function menuToutReplier() {
   closeMenu();
   document.querySelectorAll('.section-title.collapsible').forEach(function(titleEl) {
@@ -7106,6 +7153,20 @@ function toggleVfxFlask(chk) {
 /* ============================================================
    RÉINITIALISATION
    ============================================================ */
+/* ============================================================
+   HELPER — RENDER ALL LIST TABLES
+   Calls the 5 render functions excluded from updateAll() scope.
+   Must be called after any full data load: initApp, import, reinit.
+   See [EX-T-F38] for scope rationale.
+   ============================================================ */
+function updateAllLists() {
+  updateArmors();
+  updateItems();
+  updateWeapons();   /* also calls updateWeaponDropdowns() */
+  updateGrimoire();
+  updateFeats();
+}
+
 function reinitialiser() {
   ouvrirConfirmation({
     title:    '⚠️ Réinitialiser',
@@ -7120,6 +7181,7 @@ function reinitialiser() {
       syncInputs();
       document.querySelectorAll('.death-box').forEach(function(b) { b.classList.remove('filled'); });
       updateAll();
+      updateAllLists(); /* render tables not covered by updateAll() [EX-T-F38] */
       showNotification('✦ Feuille réinitialisée', 'warning');
     }
   });
@@ -7302,6 +7364,7 @@ function confirmerImport(textarea, errDiv) {
     syncInputs();
     restoreDeathBoxes(dataPropre);
     updateAll();
+    updateAllLists(); /* render tables not covered by updateAll() [EX-T-F38] */
     fermerOverlayImport();
 
     /* Notification principale */
@@ -8116,6 +8179,7 @@ window.closeMenu             = closeMenu;
 window.menuReinitialiser     = menuReinitialiser;
 window.menuImporter          = menuImporter;
 window.menuExporter          = menuExporter;
+window.menuRafraichir        = menuRafraichir;
 window.menuToutReplier       = menuToutReplier;
 window.menuToutDeployer      = menuToutDeployer;
 window.toggleVfxSubmenu      = toggleVfxSubmenu;
@@ -8147,7 +8211,9 @@ window.toggleSkills          = toggleSkills;
 window.togglePanel           = togglePanel;
 window.getPanelBody          = getPanelBody;
 window.initPanels            = initPanels;
+window.pvColorClass          = pvColorClass;
 window.updateAll             = updateAll;
+window.updateAllLists        = updateAllLists;
 window.updateCaShield        = updateCaShield;
 window.updateVersionLabel    = updateVersionLabel;
 window.updateTestRoll        = updateAideTests;
@@ -9405,12 +9471,7 @@ function initApp() {
   applyPanelStates();        /* Restaure l'état collapse/expand des panels [EX-G-F44] */
   updateVersionLabel();      /* Affiche FILE_VERSION dans #version-label [EX-T-F41] */
   updateAll();
-  /* Initial render of tables not covered by updateAll() [EX-T-F38] */
-  updateArmors();
-  updateItems();
-  updateWeapons();   /* also calls updateWeaponDropdowns() */
-  updateGrimoire();
-  updateFeats();
+  updateAllLists(); /* initial render of tables not covered by updateAll() [EX-T-F38] */
 
 }
 
@@ -9452,7 +9513,13 @@ v13.30 — 2026-03-20 : Attaque Rapide dice icons — crit-label texte seul ; N 
 v13.31 — 2026-03-20 : Châtiment — icônes dés dynamiques, note undead divin, note fournaise dynamique.
 v13.32 — 2026-03-20 : Fix \\n dans template smite-fields.
 v13.33 — 2026-03-20 : Fix oninput updateSmite() dans template.
-v13.34 — 2026-03-20 : Fix renderDiceIcons() — img.width/height sont des propriétés entières DOM, pas des strings CSS ; remplacé par img.style.cssText incluant width:2.83em;height:2.83em. Les icônes dés Châtiment sont maintenant visibles. Fix oninput updateSmite() dans template — les handlers slot/dice utilisaient \'+n+\' au lieu de '+n+' dans l'attribut HTML, produisant du JS invalide au runtime. \\n → \n dans le template smite-fields (les \\n causaient du texte littéral au lieu de nouvelles lignes HTML). — icônes dés dynamiques (type×niveau×crit) ; Divin : note undead avec icône vampire-cape + Nd8 ; Fournaise : note Nd6 dynamique or+gras ; hint supprimé ; finDuRound nettoyage mis à jour. — crit-label texte seul (icônes supprimées) ; #dmgN-die-icons et #mnt-dmg-die-icons : N icônes dynamiques selon diceCount weapon (×2 si crit D20=20) ; updateMonture() gère mnt-dmg-die-icons et mnt-dmg-crit-label ; injection D8_DATA_URI initApp() supprimée ; critDiceIcons() inutilisé mais conservé. — suppression ligne info redondante PV Max (5×niveau) ; label Max (auto) renommé PV Max (5 × niv). — sous-titres convertis en H3 section-title collapsible (Tests de Caractéristique, Jets de Sauvegarde) ; placeholder 1–20 supprimé des champs d20 ; CSS .subsection-header retiré. Caractéristiques monture — suppression classe mnt-stats-title (bordeaux) du H4 collapsible, section-title seul suffit (or). — (1) Caractéristiques collapsible (H4 + panel-body) ; (2) Coup d'outremonde déplacé dans Capacités spéciales ; (3) Lien vital ajouté dans Capacités spéciales ; Coup d'outremonde et Lien vital indépendants du type. ; weapon/armor edit now refreshes Attaque Rapide — updateCombat() added to enregistrerArme, enregistrerArmure, supprimerArme, supprimerArmure, toggleArmorEquipped. — removed Node.prototype.textContent intercept (caused silent WebKit exceptions during createElement/appendChild in overlay construction, aborting afficherOverlayExport mid-execution). + overlay fix — guard now covers ALL arrow keys (fixes number input up/down) ; window._scrollGuardClear() exposed publicly ; creerOverlay() calls it to ensure overlays never blocked ; guard 400ms ; clears itself after first cancel. — replaced continuous lock with targeted 300ms guard window on input/Shift+Arrow ; cancels only single jumps >50px (WKWebView spurious) ; trackpad and touch scroll free at all times ; overlays unaffected. — _lockY/_lockX promoted to module-level globals ; creerOverlay() releases lock (overlay positioning fix) ; touchstart releases lock (intentional swipe) ; >2px threshold on scroll restore ; overlay-backdrop check removed from blur (was preventing lock release on overlay input blur). — missing closing brace on attachListeners() causing uncaught JS error and app loading as v12.17 fallback. — scroll lock continu pendant focus input : _onFocusLock mémorise lockY/X, _onScrollLock restaure si scroll parasite détecté, _onBlurUnlock libère ; couvre typing ET Shift+Arrow ET mutations DOM ; overlays exclus. — intercept textContent (Node.prototype) et localStorage.setItem pour identifier le vrai déclencheur scroll après confirmation que les .value SKIP n'ont pas résolu le problème. — IIFE defineProperty HTMLInputElement.value bloque les écritures sans changement de valeur (no-op) ; actif en permanence indépendamment du diagnostic ; coupable identifié : .val[ca] 2e écriture déclenchait le scroll. — .value loggué sur toutes les écritures (même sans changement) avec sY courant ; timestamps relatifs +Xms depuis start ; maxLogs 200 ; bouton Copy (textarea execCommand) ; diagCopy() exposé sur window. — timestamps relatifs (+Xms depuis start), FOCUS/FOCUS-RESTORE/FOCUS-16ms/FOCUS-SCROLLTO loggés ; test double délai 0ms+16ms dans focus fix pour identifier si scrollTo fonctionne. — cause identifiée (focus déclenche scroll WKWebView via vpH=-32) ; attachListeners() ajoute listener focus capture-phase sur navigator.standalone : mémorise scrollY/X avant, restaure via setTimeout(0) si WKWebView a scrollé ; overlays exclus. : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
+v13.34 — 2026-03-20 : Fix renderDiceIcons() — img.width/height via style.cssText.
+v13.35 — 2026-03-20 : Fix import JSON — 5 fonctions de rendu appelées après updateAll().
+v13.36 — 2026-03-20 : updateAllLists() helper + reinitialiser() fix + bouton Rafraîchir.
+v13.37 — 2026-03-20 : Fix icône Tout replier — ▸ Unicode.
+v13.38 — 2026-03-20 : PV Monture — couleur dynamique 3 paliers.
+v13.39 — 2026-03-20 : Dégradé PV 5 paliers — pvColorClass() helper.
+v13.40 — 2026-03-20 : Fix sphère PV sans glow (double préfixe pv-pv-ok) ; pulsation ajoutée au palier warn (10–25%) via pulserWarn ; pvColorClass() retourne suffixe nu. Dégradé PV 5 paliers — pvColorClass() helper ; .pv-ok/.pv-ok-low/.pv-blesse/.pv-warn/.pv-crit ; 5 @keyframes sphère ; [EX-M-F05] mis à jour. PV actuels Monture — couleur dynamique verte/orange/rouge selon seuils [EX-M-F05] ; oninput appelle updateMonture() au lieu de sauvegarder(). Fix icône "Tout replier" — ra-angle-right (RPG Awesome, invisible dans di-icon) remplacé par ▸ (Unicode, cohérent avec ▾ de "Tout déplier"). Audit complet des call sites — updateAllLists() helper créé (regroupe les 5 appels de rendu) ; reinitialiser() corrigé (manquait les 5 appels) ; bouton Rafraîchir ajouté au menu ⚙ ; [EX-T-F38] mis à jour. Fix import JSON — confirmerImport() appelle désormais updateArmors/Items/Weapons/Grimoire/Feats après updateAll() ; listes vides après import car ces 5 fonctions sont hors périmètre updateAll(). [EX-T-F34] mis à jour. Fix renderDiceIcons() — img.width/height sont des propriétés entières DOM, pas des strings CSS ; remplacé par img.style.cssText incluant width:2.83em;height:2.83em. Les icônes dés Châtiment sont maintenant visibles. Fix oninput updateSmite() dans template — les handlers slot/dice utilisaient \'+n+\' au lieu de '+n+' dans l'attribut HTML, produisant du JS invalide au runtime. \\n → \n dans le template smite-fields (les \\n causaient du texte littéral au lieu de nouvelles lignes HTML). — icônes dés dynamiques (type×niveau×crit) ; Divin : note undead avec icône vampire-cape + Nd8 ; Fournaise : note Nd6 dynamique or+gras ; hint supprimé ; finDuRound nettoyage mis à jour. — crit-label texte seul (icônes supprimées) ; #dmgN-die-icons et #mnt-dmg-die-icons : N icônes dynamiques selon diceCount weapon (×2 si crit D20=20) ; updateMonture() gère mnt-dmg-die-icons et mnt-dmg-crit-label ; injection D8_DATA_URI initApp() supprimée ; critDiceIcons() inutilisé mais conservé. — suppression ligne info redondante PV Max (5×niveau) ; label Max (auto) renommé PV Max (5 × niv). — sous-titres convertis en H3 section-title collapsible (Tests de Caractéristique, Jets de Sauvegarde) ; placeholder 1–20 supprimé des champs d20 ; CSS .subsection-header retiré. Caractéristiques monture — suppression classe mnt-stats-title (bordeaux) du H4 collapsible, section-title seul suffit (or). — (1) Caractéristiques collapsible (H4 + panel-body) ; (2) Coup d'outremonde déplacé dans Capacités spéciales ; (3) Lien vital ajouté dans Capacités spéciales ; Coup d'outremonde et Lien vital indépendants du type. ; weapon/armor edit now refreshes Attaque Rapide — updateCombat() added to enregistrerArme, enregistrerArmure, supprimerArme, supprimerArmure, toggleArmorEquipped. — removed Node.prototype.textContent intercept (caused silent WebKit exceptions during createElement/appendChild in overlay construction, aborting afficherOverlayExport mid-execution). + overlay fix — guard now covers ALL arrow keys (fixes number input up/down) ; window._scrollGuardClear() exposed publicly ; creerOverlay() calls it to ensure overlays never blocked ; guard 400ms ; clears itself after first cancel. — replaced continuous lock with targeted 300ms guard window on input/Shift+Arrow ; cancels only single jumps >50px (WKWebView spurious) ; trackpad and touch scroll free at all times ; overlays unaffected. — _lockY/_lockX promoted to module-level globals ; creerOverlay() releases lock (overlay positioning fix) ; touchstart releases lock (intentional swipe) ; >2px threshold on scroll restore ; overlay-backdrop check removed from blur (was preventing lock release on overlay input blur). — missing closing brace on attachListeners() causing uncaught JS error and app loading as v12.17 fallback. — scroll lock continu pendant focus input : _onFocusLock mémorise lockY/X, _onScrollLock restaure si scroll parasite détecté, _onBlurUnlock libère ; couvre typing ET Shift+Arrow ET mutations DOM ; overlays exclus. — intercept textContent (Node.prototype) et localStorage.setItem pour identifier le vrai déclencheur scroll après confirmation que les .value SKIP n'ont pas résolu le problème. — IIFE defineProperty HTMLInputElement.value bloque les écritures sans changement de valeur (no-op) ; actif en permanence indépendamment du diagnostic ; coupable identifié : .val[ca] 2e écriture déclenchait le scroll. — .value loggué sur toutes les écritures (même sans changement) avec sY courant ; timestamps relatifs +Xms depuis start ; maxLogs 200 ; bouton Copy (textarea execCommand) ; diagCopy() exposé sur window. — timestamps relatifs (+Xms depuis start), FOCUS/FOCUS-RESTORE/FOCUS-16ms/FOCUS-SCROLLTO loggés ; test double délai 0ms+16ms dans focus fix pour identifier si scrollTo fonctionne. — cause identifiée (focus déclenche scroll WKWebView via vpH=-32) ; attachListeners() ajoute listener focus capture-phase sur navigator.standalone : mémorise scrollY/X avant, restaure via setTimeout(0) si WKWebView a scrollé ; overlays exclus. : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
 ====================================================== */
 </script>
 
