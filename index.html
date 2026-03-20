@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.25 — 2026-03-19 -->
+<!-- dnd-sheet-v13 | version complète : 13.29 — 2026-03-20 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -544,8 +544,8 @@ CHANGELOG entry format:
        <h3 class="section-title collapsible">  ← icône gi-icon stag-head (lorc) [EX-G-F48]
        <div class="panel-body">
          ... configuration + PV + table de stats ...
-         <h4 class="mnt-stats-title">Caractéristiques</h4>        ← table statique
-         <h5 class="mnt-ability-title">Coup d'outremonde</h5>     ← dans .mnt-ability-block
+         <h4 class="section-title collapsible">✦ Caractéristiques</h4>  ← collapsible, gold via .section-title
+         <h5 class="mnt-ability-title">Coup d'outremonde</h5>     ← dans .mnt-ability-block (dans Capacités spéciales)
          <h4 class="section-title collapsible">✦ Capacités spéciales</h4>  ← collapsible
          <div class="panel-body">... mnt-ability-celeste/fee/fielon ...</div>
        </div>
@@ -3460,16 +3460,7 @@ select.field-input optgroup {
 .panel-body > .section-title.inv-section-header {
   margin-top: 1.2rem !important;
 }
-/* Pattern 3: .subsection-header — inline-div subheaders (Aide aux Tests) */
-/* Font size matches other subsection titles                            */
-.subsection-header {
-  font-size: 0.69rem;
-}
-/* Spacing only for the second wrapper (Jets de Sauvegarde);            */
-/* first wrapper (Tests de Caractéristique) gets no top margin          */
-.panel-body > div + div > .subsection-header {
-  margin-top: 1.2rem;
-}
+/* Pattern 3: .subsection-header — removed v13.28 (converted to section-title collapsible H3) */
 .inv-armor-detail {
   padding:4px 6px 6px 10px;
   border-left:2px solid rgba(201,168,76,0.2);
@@ -3770,8 +3761,8 @@ select.field-input optgroup {
         <div class="panel-body">
 
           <!-- Tests de Caractéristique -->
-          <div style="margin-bottom:10px;">
-            <div class="subsection-header" style="font-family:var(--font-sub);color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Tests de Caractéristique</div>
+          <h3 class="section-title collapsible">✦ Tests de Caractéristique</h3>
+          <div class="panel-body">
             <div class="field-group">
               <label class="field-label">Caractéristique ou Compétence</label>
               <select class="field-input" id="aide-test-target" style="cursor:pointer;" onchange="updateAideTests()">
@@ -3780,7 +3771,7 @@ select.field-input optgroup {
             <div class="field-row" style="margin-top:5px;">
               <div class="field-group">
                 <label class="field-label">Jet d20</label>
-                <input class="field-input" type="number" id="aide-test-d20" min="1" max="20" placeholder="1–20" oninput="updateAideTests()">
+                <input class="field-input" type="number" id="aide-test-d20" min="1" max="20" oninput="updateAideTests()">
               </div>
               <div class="field-group">
                 <label class="field-label">Modificateur</label>
@@ -3791,15 +3782,15 @@ select.field-input optgroup {
                 <div class="combat-total" id="aide-test-total" style="font-size:0.92rem;padding:4px 8px;">—</div>
               </div>
             </div>
-          <!-- Avertissement Discrétion armure — visible si Discrétion sélectionnée -->
-          <div id="armor-stealth-warning" class="armor-stealth-warning hidden">
-            ⚠️ Désavantage Discrétion (armure)
-          </div>
-          </div>
+            <!-- Avertissement Discrétion armure — visible si Discrétion sélectionnée -->
+            <div id="armor-stealth-warning" class="armor-stealth-warning hidden">
+              ⚠️ Désavantage Discrétion (armure)
+            </div>
+          </div><!-- fin panel-body Tests de Caractéristique -->
 
           <!-- Jets de Sauvegarde -->
-          <div>
-            <div class="subsection-header" style="font-family:var(--font-sub);color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Jets de Sauvegarde</div>
+          <h3 class="section-title collapsible">✦ Jets de Sauvegarde</h3>
+          <div class="panel-body">
             <label class="custom-check" style="margin-bottom:6px;">
               <input type="checkbox" id="aura-protection-active" onchange="updateAuraProtection()">
               <span class="chk-box"></span>
@@ -3813,7 +3804,7 @@ select.field-input optgroup {
             <div class="field-row" style="margin-top:5px;">
               <div class="field-group">
                 <label class="field-label">Jet d20</label>
-                <input class="field-input" type="number" id="aide-save-d20" min="1" max="20" placeholder="1–20" oninput="updateAideTests()">
+                <input class="field-input" type="number" id="aide-save-d20" min="1" max="20" oninput="updateAideTests()">
               </div>
               <div class="field-group">
                 <label class="field-label">Modificateur</label>
@@ -3827,7 +3818,7 @@ select.field-input optgroup {
             <p id="aura-protection-note" class="feature-note" style="display:none;">
               ✦ Aura de Protection : modificateur de Charisme ajouté aux jets de sauvegarde.
             </p>
-          </div>
+          </div><!-- fin panel-body Jets de Sauvegarde -->
         </div><!-- fin panel-body -->
       </div><!-- fin panel-aide-tests -->
 
@@ -3900,17 +3891,13 @@ select.field-input optgroup {
         <!-- Imposition des mains -->
         <h3 class="section-title collapsible"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/glowing-hands.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Imposition des mains</h3>
         <div class="panel-body">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:0.7rem;color:var(--parchemin-s);">
-            <span>PV Max (5 × niveau) :</span>
-            <span id="hm-max-display" style="color:#2aaccc;font-weight:700;font-size:0.85rem;">25</span>
-          </div>
           <div class="field-row">
             <div class="field-group">
               <label class="field-label">PV Actuels</label>
               <input class="field-input" type="number" id="hm-cur" min="0" value="25">
             </div>
             <div class="field-group">
-              <label class="field-label">Max (auto)</label>
+              <label class="field-label">PV Max (5 × niv)</label>
               <input class="field-input" type="text" id="hm-max" readonly>
             </div>
           </div>
@@ -3973,8 +3960,9 @@ select.field-input optgroup {
 
             <div class="sep"></div>
 
-            <!-- Table de stats -->
-            <h4 class="mnt-stats-title">Caractéristiques</h4>
+            <!-- Table de stats — collapsible -->
+            <h4 class="section-title collapsible" style="margin-top:2px;">✦ Caractéristiques</h4>
+            <div class="panel-body">
             <table class="mnt-stats-table">
               <thead>
                 <tr>
@@ -3995,25 +3983,14 @@ select.field-input optgroup {
 
             <!-- Infos fixes -->
             <div class="mnt-info-row">
-              <span class="mnt-info-label">Perception passive :</span>
+              <span class="mnt-info-label">Perception passive :</span>
               <span class="mnt-info-val">11</span>
             </div>
             <div class="mnt-info-row">
-              <span class="mnt-info-label">Langue :</span>
-              <span class="mnt-info-val">Télépathie 1,5 km</span>
+              <span class="mnt-info-label">Langue :</span>
+              <span class="mnt-info-val">Télépathie 1,5 km</span>
             </div>
-
-            <div class="sep"></div>
-
-            <!-- Coup d'outremonde -->
-            <div class="mnt-ability-block">
-              <h5 class="mnt-ability-title">Coup d&#39;outremonde</h5>
-              <div class="mnt-ability-text">
-                Corps à corps : bonus égal à votre modificateur de sort (CHA), allonge 1,5 m.<br>
-                Touché : 1d8 + niveau du sort de dégâts
-                <span id="mnt-dmg-type-lbl">radiants</span>.
-              </div>
-            </div>
+            </div><!-- fin panel-body Caractéristiques -->
 
             <div class="sep"></div>
 
@@ -4021,11 +3998,32 @@ select.field-input optgroup {
             <h4 class="section-title collapsible" style="margin-top:2px;">✦ Capacités spéciales</h4>
             <div class="panel-body">
 
+              <!-- Coup d'outremonde — indépendant du type -->
+              <div class="mnt-ability-block">
+                <h5 class="mnt-ability-title">Coup d&#39;outremonde</h5>
+                <div class="mnt-ability-text">
+                  Corps à corps : bonus égal à votre modificateur de sort (CHA), allonge 1,5 m.<br>
+                  Touché : 1d8 + niveau du sort de dégâts
+                  <span id="mnt-dmg-type-lbl">radiants</span>.
+                </div>
+              </div>
+
+              <!-- Lien vital — indépendant du type -->
+              <div class="mnt-ability-block">
+                <h5 class="mnt-ability-title">Lien vital</h5>
+                <div class="mnt-ability-text">
+                  Lorsque vous récupérez des points de vie par un sort du 1er niveau ou supérieur,
+                  la monture en récupère autant si vous vous trouvez à 1,50 m ou moins d'elle.
+                </div>
+              </div>
+
+              <div class="sep"></div>
+
               <div class="mnt-ability-block" id="mnt-ability-celeste">
                 <div class="mnt-ability-title">Contact guérisseur <span class="mnt-ability-tag">Céleste</span></div>
                 <div class="mnt-ability-text">
-                  Une fois par repos long, une créature dans un rayon de 1,5 m de la monture
-                  récupère PV = 2d8 + niveau du sort.
+                  Une fois par repos long, une créature dans un rayon de 1,5 m de la monture
+                  récupère PV = 2d8 + niveau du sort.
                 </div>
               </div>
 
@@ -4033,7 +4031,7 @@ select.field-input optgroup {
                 <div class="mnt-ability-title">Foulée féerique <span class="mnt-ability-tag">Fée</span></div>
                 <div class="mnt-ability-text">
                   Une fois par repos long, la monture se téléporte avec son cavalier en un
-                  espace inoccupé de votre choix dans un rayon de 18 m.
+                  espace inoccupé de votre choix dans un rayon de 18 m.
                 </div>
               </div>
 
@@ -4041,8 +4039,8 @@ select.field-input optgroup {
                 <div class="mnt-ability-title">Regard fiélon <span class="mnt-ability-tag">Fielon</span></div>
                 <div class="mnt-ability-text">
                   Une fois par repos long, JS Sagesse contre votre DD de sauvegarde des sorts
-                  sur une créature dans un rayon de 18 m que la monture voit.
-                  Échec : la cible subit l’état Effrayé jusqu’à la fin de votre tour suivant.
+                  sur une créature dans un rayon de 18 m que la monture voit.
+                  Échec : la cible subit l'état Effrayé jusqu'à la fin de votre tour suivant.
                 </div>
               </div>
 
@@ -4859,7 +4857,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.25';
+var FILE_VERSION = '13.29';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -9376,7 +9374,11 @@ v13.21 — 2026-03-19 : Fix scroll lock v2
 v13.22 — 2026-03-19 : Fix scroll guard v3
 v13.23 — 2026-03-19 : Fix scroll guard v4
 v13.24 — 2026-03-19 : Fix export overlay broken
-v13.25 — 2026-03-19 : Remove all diagnostic code ; weapon/armor edit now refreshes Attaque Rapide — updateCombat() added to enregistrerArme, enregistrerArmure, supprimerArme, supprimerArmure, toggleArmorEquipped. — removed Node.prototype.textContent intercept (caused silent WebKit exceptions during createElement/appendChild in overlay construction, aborting afficherOverlayExport mid-execution). + overlay fix — guard now covers ALL arrow keys (fixes number input up/down) ; window._scrollGuardClear() exposed publicly ; creerOverlay() calls it to ensure overlays never blocked ; guard 400ms ; clears itself after first cancel. — replaced continuous lock with targeted 300ms guard window on input/Shift+Arrow ; cancels only single jumps >50px (WKWebView spurious) ; trackpad and touch scroll free at all times ; overlays unaffected. — _lockY/_lockX promoted to module-level globals ; creerOverlay() releases lock (overlay positioning fix) ; touchstart releases lock (intentional swipe) ; >2px threshold on scroll restore ; overlay-backdrop check removed from blur (was preventing lock release on overlay input blur). — missing closing brace on attachListeners() causing uncaught JS error and app loading as v12.17 fallback. — scroll lock continu pendant focus input : _onFocusLock mémorise lockY/X, _onScrollLock restaure si scroll parasite détecté, _onBlurUnlock libère ; couvre typing ET Shift+Arrow ET mutations DOM ; overlays exclus. — intercept textContent (Node.prototype) et localStorage.setItem pour identifier le vrai déclencheur scroll après confirmation que les .value SKIP n'ont pas résolu le problème. — IIFE defineProperty HTMLInputElement.value bloque les écritures sans changement de valeur (no-op) ; actif en permanence indépendamment du diagnostic ; coupable identifié : .val[ca] 2e écriture déclenchait le scroll. — .value loggué sur toutes les écritures (même sans changement) avec sY courant ; timestamps relatifs +Xms depuis start ; maxLogs 200 ; bouton Copy (textarea execCommand) ; diagCopy() exposé sur window. — timestamps relatifs (+Xms depuis start), FOCUS/FOCUS-RESTORE/FOCUS-16ms/FOCUS-SCROLLTO loggés ; test double délai 0ms+16ms dans focus fix pour identifier si scrollTo fonctionne. — cause identifiée (focus déclenche scroll WKWebView via vpH=-32) ; attachListeners() ajoute listener focus capture-phase sur navigator.standalone : mémorise scrollY/X avant, restaure via setTimeout(0) si WKWebView a scrollé ; overlays exclus. : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
+v13.25 — 2026-03-19 : Remove all diagnostic code ; weapon/armor edit now refreshes Attaque Rapide.
+v13.26 — 2026-03-20 : Monture — (1) Caractéristiques collapsible ; (2) Coup d'outremonde déplacé dans Capacités spéciales ; (3) Lien vital ajouté.
+v13.27 — 2026-03-20 : Fix couleur titre Caractéristiques monture.
+v13.28 — 2026-03-20 : Aide aux Tests — sous-titres collapsibles H3 ; placeholder 1–20 supprimé.
+v13.29 — 2026-03-20 : Imposition des mains — suppression ligne info redondante PV Max (5×niveau) ; label Max (auto) renommé PV Max (5 × niv). — sous-titres convertis en H3 section-title collapsible (Tests de Caractéristique, Jets de Sauvegarde) ; placeholder 1–20 supprimé des champs d20 ; CSS .subsection-header retiré. Caractéristiques monture — suppression classe mnt-stats-title (bordeaux) du H4 collapsible, section-title seul suffit (or). — (1) Caractéristiques collapsible (H4 + panel-body) ; (2) Coup d'outremonde déplacé dans Capacités spéciales ; (3) Lien vital ajouté dans Capacités spéciales ; Coup d'outremonde et Lien vital indépendants du type. ; weapon/armor edit now refreshes Attaque Rapide — updateCombat() added to enregistrerArme, enregistrerArmure, supprimerArme, supprimerArmure, toggleArmorEquipped. — removed Node.prototype.textContent intercept (caused silent WebKit exceptions during createElement/appendChild in overlay construction, aborting afficherOverlayExport mid-execution). + overlay fix — guard now covers ALL arrow keys (fixes number input up/down) ; window._scrollGuardClear() exposed publicly ; creerOverlay() calls it to ensure overlays never blocked ; guard 400ms ; clears itself after first cancel. — replaced continuous lock with targeted 300ms guard window on input/Shift+Arrow ; cancels only single jumps >50px (WKWebView spurious) ; trackpad and touch scroll free at all times ; overlays unaffected. — _lockY/_lockX promoted to module-level globals ; creerOverlay() releases lock (overlay positioning fix) ; touchstart releases lock (intentional swipe) ; >2px threshold on scroll restore ; overlay-backdrop check removed from blur (was preventing lock release on overlay input blur). — missing closing brace on attachListeners() causing uncaught JS error and app loading as v12.17 fallback. — scroll lock continu pendant focus input : _onFocusLock mémorise lockY/X, _onScrollLock restaure si scroll parasite détecté, _onBlurUnlock libère ; couvre typing ET Shift+Arrow ET mutations DOM ; overlays exclus. — intercept textContent (Node.prototype) et localStorage.setItem pour identifier le vrai déclencheur scroll après confirmation que les .value SKIP n'ont pas résolu le problème. — IIFE defineProperty HTMLInputElement.value bloque les écritures sans changement de valeur (no-op) ; actif en permanence indépendamment du diagnostic ; coupable identifié : .val[ca] 2e écriture déclenchait le scroll. — .value loggué sur toutes les écritures (même sans changement) avec sY courant ; timestamps relatifs +Xms depuis start ; maxLogs 200 ; bouton Copy (textarea execCommand) ; diagCopy() exposé sur window. — timestamps relatifs (+Xms depuis start), FOCUS/FOCUS-RESTORE/FOCUS-16ms/FOCUS-SCROLLTO loggés ; test double délai 0ms+16ms dans focus fix pour identifier si scrollTo fonctionne. — cause identifiée (focus déclenche scroll WKWebView via vpH=-32) ; attachListeners() ajoute listener focus capture-phase sur navigator.standalone : mémorise scrollY/X avant, restaure via setTimeout(0) si WKWebView a scrollé ; overlays exclus. : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
 ====================================================== */
 </script>
 
