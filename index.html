@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.51 — 2026-03-20 -->
+<!-- dnd-sheet-v14 | version complète : 14.2 — 2026-03-21 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -960,7 +960,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '13.10'
+       · Valeur courante : '14.2'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -1696,7 +1696,7 @@ body {
 .panel {
   background:linear-gradient(150deg,rgba(22,18,32,0.97) 0%,rgba(12,10,20,0.99) 100%);
   border:1px solid rgba(201,168,76,0.18); border-radius:4px;
-  padding:9px 10px; position:relative;
+  padding:12px 14px; position:relative;
   box-shadow:0 4px 20px rgba(0,0,0,0.55),inset 0 1px 0 rgba(201,168,76,0.08);
   margin-bottom:8px;
 }
@@ -1712,10 +1712,10 @@ body {
 /* ============================================================
    INPUTS
    ============================================================ */
-.field-group { margin-bottom:6px; }
+.field-group { margin-bottom:10px; }
 .field-label {
   display:block; font-family:var(--font-sub); font-size:0.57rem;
-  color:var(--parchemin-s); letter-spacing:1px; text-transform:uppercase; margin-bottom:2px;
+  color:var(--parchemin-s); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;
 }
 .field-input {
   width:100%; background:rgba(10,10,22,0.85);
@@ -1738,7 +1738,7 @@ body {
 @keyframes pulserCrit { 0%,100%{box-shadow:0 0 4px rgba(204,34,34,0.2);}50%{box-shadow:0 0 14px rgba(204,34,34,0.7),0 0 28px rgba(204,34,34,0.25);} }
 @keyframes pulserWarn { 0%,100%{box-shadow:0 0 4px rgba(210,60,10,0.15);}50%{box-shadow:0 0 12px rgba(210,60,10,0.55),0 0 22px rgba(210,60,10,0.20);} }
 
-.field-row { display:flex; gap:6px; align-items:flex-end; }
+.field-row { display:flex; gap:10px; align-items:flex-end; }
 .field-row .field-group { flex:1; margin-bottom:0; }
 
 /* ============================================================
@@ -1746,7 +1746,7 @@ body {
    ============================================================ */
 .custom-check {
   display:flex; align-items:center; gap:7px; cursor:pointer;
-  margin-bottom:3px; font-family:var(--font-corps); font-size:0.78rem;
+  margin-bottom:6px; font-family:var(--font-corps); font-size:0.78rem;
   color:var(--parchemin); user-select:none;
 }
 .custom-check input[type="checkbox"] { display:none; }
@@ -1764,7 +1764,7 @@ body {
    UTILITAIRES
    ============================================================ */
 .stat-info { font-family:var(--font-corps); font-size:0.7rem; color:var(--parchemin-s); font-style:italic; }
-.sep { height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.18),transparent); margin:6px 0; }
+.sep { height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.18),transparent); margin:10px 0; }
 .hidden { display:none !important; }
 
 
@@ -1880,7 +1880,7 @@ body {
 .spell-toggle { background:rgba(139,26,26,0.08); border:1px solid rgba(139,26,26,0.25); border-radius:3px; padding:4px 7px; transition:all 0.25s; }
 .spell-toggle:has(input:checked) { background:rgba(139,26,26,0.22); border-color:var(--bordeaux-clair); box-shadow:0 0 8px rgba(139,26,26,0.25); }
 .combat-block { margin-bottom:7px; }
-.combat-title { font-family:var(--font-sub); font-size:0.57rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--bordeaux-clair); margin-bottom:4px; display:flex; align-items:center; gap:5px; }
+.combat-title { font-family:var(--font-sub); font-size:0.57rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--bordeaux-clair); margin-top:8px; margin-bottom:4px; display:flex; align-items:center; gap:5px; }
 .combat-title::after { content:''; flex:1; height:1px; background:rgba(139,26,26,0.35); }
 .atk-dmg-pair { display:flex; gap:6px; }
 .atk-half, .dmg-half { flex:1; background:rgba(10,10,22,0.45); border:1px solid rgba(201,168,76,0.1); border-radius:3px; padding:5px 6px; }
@@ -2693,6 +2693,7 @@ select.field-input optgroup {
   cursor:pointer;
   padding:3px 2px;
   border-bottom:1px solid rgba(201,168,76,0.2);
+  margin-top:8px;
   margin-bottom:2px;
   user-select:none;
   -webkit-user-select:none;
@@ -2996,6 +2997,7 @@ select.field-input optgroup {
   color:var(--or);
   letter-spacing:0.08em;
   text-transform:uppercase;
+  margin-top:8px;
   margin-bottom:2px;
   display:flex;
   align-items:center;
@@ -3060,7 +3062,7 @@ select.field-input optgroup {
   gap:5px;
   padding:4px 2px 3px;
   border-bottom:1px solid rgba(201,168,76,0.22);
-  margin-top:6px;
+  margin-top:12px;
   font-family:var(--font-sub);
   font-size:0.63rem;
   color:var(--or);
@@ -3504,14 +3506,14 @@ select.field-input optgroup {
 /* Vertical spacing before subsections — skip genuine first children    */
 /* Pattern 1: plain .section-title.collapsible inside a .panel-body    */
 .panel-body > .section-title.collapsible:not(.section-title-rapide):not(.inv-section-header):not(:first-child) {
-  margin-top: 1.2rem;
+  margin-top: 2.4rem;
 }
 /* Pattern 2: .inv-section-header inside a .panel-body                 */
 /* !important required to override per-element inline margin-top values */
 /* Covers all instances; first-child (Inventaire "Objets") is           */
 /* intentionally included per user request                              */
 .panel-body > .section-title.inv-section-header {
-  margin-top: 1.2rem !important;
+  margin-top: 2.4rem !important;
 }
 /* Pattern 3: .subsection-header — removed v13.28 (converted to section-title collapsible H3) */
 .inv-armor-detail {
@@ -3632,7 +3634,7 @@ select.field-input optgroup {
 
     <!-- Version label — miroir symétrique du menu-wrapper, voir [EX-T-F41] -->
     <div class="version-wrapper">
-      <span id="version-label">v12.17</span>
+      <span id="version-label">v14.2</span>
     </div>
   </div>
 
@@ -3678,7 +3680,7 @@ select.field-input optgroup {
         </div>
 
           <!-- ─ Aptitudes, Traits et Dons ─ -->
-          <h3 class="section-title collapsible inv-section-header" style="margin-top:4px;">
+          <h3 class="section-title collapsible inv-section-header" style="margin-top:8px;">
             <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/dna2.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Aptitudes, Traits et Dons</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormTyped()" title="Ajouter">+</button>
           </h3>
@@ -3724,7 +3726,7 @@ select.field-input optgroup {
           </div><!-- fin panel-body Points de Vie (contenu seul, titre supprimé v12.7) -->
 
           <!-- Sous-section 2 : Des de Vie -->
-          <h3 class="section-title collapsible" style="margin-top:4px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-fire.svg" class="gi-icon gi-icon-lg gi-icon-dice-lg gi-icon-gold" alt="" aria-hidden="true" width="3.08em" height="3.08em" style="vertical-align:middle;">Dés de Vie</h3>
+          <h3 class="section-title collapsible" style="margin-top:8px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-fire.svg" class="gi-icon gi-icon-lg gi-icon-dice-lg gi-icon-gold" alt="" aria-hidden="true" width="3.08em" height="3.08em" style="vertical-align:middle;">Dés de Vie</h3>
           <div class="panel-body">
           <div class="field-row" style="margin-bottom:5px;">
             <div class="field-group">
@@ -3743,7 +3745,7 @@ select.field-input optgroup {
           </div><!-- fin panel-body Des de Vie -->
 
           <!-- Sous-section 3 : Jets de Sauvegarde Mort -->
-          <h3 class="section-title collapsible" style="margin-top:4px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/reaper-scythe.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Jets de Sauvegarde Mort</h3>
+          <h3 class="section-title collapsible" style="margin-top:8px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/reaper-scythe.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Jets de Sauvegarde Mort</h3>
           <div class="panel-body">
           <div class="death-saves">
             <div class="death-group">
@@ -3911,7 +3913,7 @@ select.field-input optgroup {
         </div>
         <div class="sep"></div>
         <!-- Emplacements &amp; Conduit Divin -->
-        <h3 class="section-title collapsible" style="margin-top:6px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/scroll-quill.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Emplacements &amp; Conduit Divin</h3>
+        <h3 class="section-title collapsible" style="margin-top:12px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/scroll-quill.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Emplacements &amp; Conduit Divin</h3>
         <div class="panel-body">
           <div id="conduit-cur-row" style="display:flex;align-items:center;gap:6px;margin-bottom:3px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.18);border-radius:3px;padding:4px 7px;">
             <span style="font-family:var(--font-sub);font-size:0.6rem;color:var(--or);letter-spacing:1px;text-transform:uppercase;flex:1;">Conduit Divin</span>
@@ -4018,7 +4020,7 @@ select.field-input optgroup {
             <div class="sep"></div>
 
             <!-- Table de stats — collapsible -->
-            <h4 class="section-title collapsible" style="margin-top:2px;">✦ Caractéristiques</h4>
+            <h4 class="section-title collapsible" style="margin-top:8px;">✦ Caractéristiques</h4>
             <div class="panel-body">
             <table class="mnt-stats-table">
               <thead>
@@ -4052,7 +4054,7 @@ select.field-input optgroup {
             <div class="sep"></div>
 
             <!-- Capacités spéciales (sous-section collapsible) -->
-            <h4 class="section-title collapsible" style="margin-top:2px;">✦ Capacités spéciales</h4>
+            <h4 class="section-title collapsible" style="margin-top:8px;">✦ Capacités spéciales</h4>
             <div class="panel-body">
 
               <!-- Coup d'outremonde — indépendant du type -->
@@ -4115,7 +4117,7 @@ select.field-input optgroup {
         <div class="panel-body">
 
           <!-- ─ Objets ─ -->
-          <h3 class="section-title collapsible inv-section-header" style="margin-top:0;">
+          <h3 class="section-title collapsible inv-section-header" style="margin-top:8px;">
             <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/magic-potion.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Objets</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormObjet()" title="Ajouter un objet">+</button>
           </h3>
@@ -4126,7 +4128,7 @@ select.field-input optgroup {
           </div>
 
           <!-- ─ Armes ─ -->
-          <h3 class="section-title collapsible inv-section-header" style="margin-top:4px;">
+          <h3 class="section-title collapsible inv-section-header" style="margin-top:8px;">
             <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/diamond-hilt.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Armes</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormArme()" title="Ajouter une arme">+</button>
           </h3>
@@ -4137,7 +4139,7 @@ select.field-input optgroup {
           </div>
 
           <!-- ─ Armures ─ -->
-          <h3 class="section-title collapsible inv-section-header" style="margin-top:4px;">
+          <h3 class="section-title collapsible inv-section-header" style="margin-top:8px;">
             <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/breastplate.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Armures</span>
             <button class="inv-add-btn" onclick="event.stopPropagation();ouvrirFormArmure()" title="Ajouter une armure">+</button>
           </h3>
@@ -4163,7 +4165,7 @@ select.field-input optgroup {
         <div class="panel-body" id="panel-body-attaque-rapide">
 
         <!-- Sous-titre 1 : Sorts Actifs -->
-        <h3 class="section-title collapsible" style="margin-top:4px;">✦ Sorts Actifs</h3>
+        <h3 class="section-title collapsible" style="margin-top:8px;">✦ Sorts Actifs</h3>
         <div class="panel-body">
         <div class="spells-actifs">
           <div class="spell-toggle"><label class="custom-check"><input type="checkbox" id="sort-arme-sacree"><span class="chk-box"></span><span>Arme Sacrée (+MOD CHA toucher)</span></label></div>
@@ -4173,7 +4175,7 @@ select.field-input optgroup {
         </div><!-- fin panel-body sorts actifs -->
 
         <!-- Sous-titre 2 : Initiative -->
-        <h3 class="section-title collapsible" style="margin-top:6px;">✦ Initiative</h3>
+        <h3 class="section-title collapsible" style="margin-top:12px;">✦ Initiative</h3>
         <div class="panel-body">
         <div class="combat-block">
           <!-- combat-title "Initiative" supprimé (v12.7 R5 — redondant avec H3) -->
@@ -4184,7 +4186,7 @@ select.field-input optgroup {
         </div><!-- fin panel-body initiative -->
 
         <!-- Sous-titre 3 : Round — encadré visuel -->
-        <h3 class="section-title collapsible" style="margin-top:6px;">✦ Round</h3>
+        <h3 class="section-title collapsible" style="margin-top:12px;">✦ Round</h3>
         <div class="panel-body">
         <div class="round-zone">
 
@@ -4914,7 +4916,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.51';
+var FILE_VERSION = '14.2';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -9636,6 +9638,9 @@ v13.48 — 2026-03-20 : Bouton gras doré + renderDesc() dans tous les formulair
 v13.49 — 2026-03-20 : Fix SyntaxError toolbar escaping.
 v13.50 — 2026-03-20 : Fix Script error — double var descInput.
 v13.51 — 2026-03-20 : Fix renderDesc() — les regex utilisaient &quot; mais escapeHtml ne double-encode pas les guillemets ; remplacé par une approche sentinel \x00LT\x00/\x00GT\x00 permettant de distinguer < > balisantes des < > à échapper. Fix Script error — double déclaration 'var descInput' dans ouvrirFormSort (remplacement regex avait conservé le token original + inséré un nouveau) ; syntaxe JS vérifiée via node --check. Fix SyntaxError toolbar — ouvrirFormSort converti en createElement (évite backslash-quote dans onclick) ; &apos; corrigés dans ouvrirFormTyped/Arme/Armure ; ouvrirFormTyped not defined était une cascade du SyntaxError. Formatage descriptions — bouton Gras doré dans tous les formulaires ; renderDesc() pour affichage HTML sûr (<b> + <span style=color>) ; insertBoldGold() insère les balises autour de la sélection. Grimoire — toggleSpellGroup() corrigé : chevron ▼▶ (variantes emoji) remplacés par ▾▸ (U+25BE/U+25B8, identiques aux autres titres collapsibles). Icône glowing-hands Reliquaire — suppression du span wrapper (font-size/color sans effet sur img) ; gi-icon-gold appliqué directement. Fix crimson — brightness(0.4) avant sepia évite le clamping R/G (blanc→sepia clip à 1.0 fausse la teinte à 60° jaune) ; pipeline brightness(0.4)+sepia(1)+saturate(10)+hue-rotate(320deg)+brightness(1.4) donne H≈359° rouge. Fix crimson — pipeline brightness(0)→invert(1)→sepia(1)→saturate(20)→hue-rotate(320deg)→brightness(0.75) ; sepia sur blanc donne H≈50° puis rotation 320° = H≈10° (rouge vif). Fix filtres icônes crimson/green — sepia(1) sur blanc produit quasi-blanc (L=0.97) rendant hue-rotate inefficace ; remplacé par invert()+sepia()+saturate()+hue-rotate() pour un rouge et vert vivaces. Icônes Reliquaire — ragged-wound → gi-icon-crimson (rouge vif) ; apothecary → gi-icon-green (vert) ; deux nouvelles classes CSS filter ajoutées. Reliquaire — titre section-title-rapide ; icône Blessure → ragged-wound (rouge) ; icône Soins → apothecary (or) ; placeholder "Dégâts" → "Blessure". Fix sphère PV sans glow (double préfixe pv-pv-ok) ; pulsation ajoutée au palier warn (10–25%) via pulserWarn ; pvColorClass() retourne suffixe nu. Dégradé PV 5 paliers — pvColorClass() helper ; .pv-ok/.pv-ok-low/.pv-blesse/.pv-warn/.pv-crit ; 5 @keyframes sphère ; [EX-M-F05] mis à jour. PV actuels Monture — couleur dynamique verte/orange/rouge selon seuils [EX-M-F05] ; oninput appelle updateMonture() au lieu de sauvegarder(). Fix icône "Tout replier" — ra-angle-right (RPG Awesome, invisible dans di-icon) remplacé par ▸ (Unicode, cohérent avec ▾ de "Tout déplier"). Audit complet des call sites — updateAllLists() helper créé (regroupe les 5 appels de rendu) ; reinitialiser() corrigé (manquait les 5 appels) ; bouton Rafraîchir ajouté au menu ⚙ ; [EX-T-F38] mis à jour. Fix import JSON — confirmerImport() appelle désormais updateArmors/Items/Weapons/Grimoire/Feats après updateAll() ; listes vides après import car ces 5 fonctions sont hors périmètre updateAll(). [EX-T-F34] mis à jour. Fix renderDiceIcons() — img.width/height sont des propriétés entières DOM, pas des strings CSS ; remplacé par img.style.cssText incluant width:2.83em;height:2.83em. Les icônes dés Châtiment sont maintenant visibles. Fix oninput updateSmite() dans template — les handlers slot/dice utilisaient \'+n+\' au lieu de '+n+' dans l'attribut HTML, produisant du JS invalide au runtime. \\n → \n dans le template smite-fields (les \\n causaient du texte littéral au lieu de nouvelles lignes HTML). — icônes dés dynamiques (type×niveau×crit) ; Divin : note undead avec icône vampire-cape + Nd8 ; Fournaise : note Nd6 dynamique or+gras ; hint supprimé ; finDuRound nettoyage mis à jour. — crit-label texte seul (icônes supprimées) ; #dmgN-die-icons et #mnt-dmg-die-icons : N icônes dynamiques selon diceCount weapon (×2 si crit D20=20) ; updateMonture() gère mnt-dmg-die-icons et mnt-dmg-crit-label ; injection D8_DATA_URI initApp() supprimée ; critDiceIcons() inutilisé mais conservé. — suppression ligne info redondante PV Max (5×niveau) ; label Max (auto) renommé PV Max (5 × niv). — sous-titres convertis en H3 section-title collapsible (Tests de Caractéristique, Jets de Sauvegarde) ; placeholder 1–20 supprimé des champs d20 ; CSS .subsection-header retiré. Caractéristiques monture — suppression classe mnt-stats-title (bordeaux) du H4 collapsible, section-title seul suffit (or). — (1) Caractéristiques collapsible (H4 + panel-body) ; (2) Coup d'outremonde déplacé dans Capacités spéciales ; (3) Lien vital ajouté dans Capacités spéciales ; Coup d'outremonde et Lien vital indépendants du type. ; weapon/armor edit now refreshes Attaque Rapide — updateCombat() added to enregistrerArme, enregistrerArmure, supprimerArme, supprimerArmure, toggleArmorEquipped. — removed Node.prototype.textContent intercept (caused silent WebKit exceptions during createElement/appendChild in overlay construction, aborting afficherOverlayExport mid-execution). + overlay fix — guard now covers ALL arrow keys (fixes number input up/down) ; window._scrollGuardClear() exposed publicly ; creerOverlay() calls it to ensure overlays never blocked ; guard 400ms ; clears itself after first cancel. — replaced continuous lock with targeted 300ms guard window on input/Shift+Arrow ; cancels only single jumps >50px (WKWebView spurious) ; trackpad and touch scroll free at all times ; overlays unaffected. — _lockY/_lockX promoted to module-level globals ; creerOverlay() releases lock (overlay positioning fix) ; touchstart releases lock (intentional swipe) ; >2px threshold on scroll restore ; overlay-backdrop check removed from blur (was preventing lock release on overlay input blur). — missing closing brace on attachListeners() causing uncaught JS error and app loading as v12.17 fallback. — scroll lock continu pendant focus input : _onFocusLock mémorise lockY/X, _onScrollLock restaure si scroll parasite détecté, _onBlurUnlock libère ; couvre typing ET Shift+Arrow ET mutations DOM ; overlays exclus. — intercept textContent (Node.prototype) et localStorage.setItem pour identifier le vrai déclencheur scroll après confirmation que les .value SKIP n'ont pas résolu le problème. — IIFE defineProperty HTMLInputElement.value bloque les écritures sans changement de valeur (no-op) ; actif en permanence indépendamment du diagnostic ; coupable identifié : .val[ca] 2e écriture déclenchait le scroll. — .value loggué sur toutes les écritures (même sans changement) avec sY courant ; timestamps relatifs +Xms depuis start ; maxLogs 200 ; bouton Copy (textarea execCommand) ; diagCopy() exposé sur window. — timestamps relatifs (+Xms depuis start), FOCUS/FOCUS-RESTORE/FOCUS-16ms/FOCUS-SCROLLTO loggés ; test double délai 0ms+16ms dans focus fix pour identifier si scrollTo fonctionne. — cause identifiée (focus déclenche scroll WKWebView via vpH=-32) ; attachListeners() ajoute listener focus capture-phase sur navigator.standalone : mémorise scrollY/X avant, restaure via setTimeout(0) si WKWebView a scrollé ; overlays exclus. : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
+v14.0 — 2026-03-21 : Version majeure — passage v13.51 → 14.0 ; aucun changement fonctionnel.
+v14.1 — 2026-03-21 : Espacement accru avant tous les titres H3/H4/H5 imbriqués dans les panneaux — valeurs doublées (1.2rem→2.4rem, 6px→12px) ou portées au minimum 8px (0/2/4px→8px) ; CSS et styles inline mis à jour ; .mnt-ability-title, .combat-title, .spell-level-header : margin-top:8px ajouté.
+v14.2 — 2026-03-21 : Sprint N1 espacement global — .field-label margin-bottom 2→4px ; .field-group margin-bottom 6→10px ; .panel padding 9px 10px→12px 14px ; .sep margin 6→10px ; .custom-check margin-bottom 3→6px ; .field-row gap 6→10px.
 ====================================================== */
 </script>
 
