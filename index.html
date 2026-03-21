@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v14 | version complète : 14.2 — 2026-03-21 -->
+<!-- dnd-sheet-v14 | version complète : 14.3 — 2026-03-21 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -960,7 +960,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '14.2'
+       · Valeur courante : '14.3'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -1813,7 +1813,7 @@ body {
    FIOLE DÉS DE VIE — voir [EX-M-F42]
    ============================================================ */
 .hd-vial-zone {
-  margin-top:8px;
+  margin-top:12px;
   width:100%;
   display:flex;
   flex-direction:column;
@@ -1831,8 +1831,8 @@ body {
 }
 
 /* Jets de mort */
-.death-saves { display:flex; gap:14px; justify-content:center; margin-top:5px; }
-.death-group { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.death-saves { display:flex; gap:14px; justify-content:center; margin-top:10px; }
+.death-group { display:flex; flex-direction:column; align-items:center; gap:6px; }
 .death-label { font-family:var(--font-sub); font-size:0.53rem; letter-spacing:1px; text-transform:uppercase; color:var(--parchemin-s); }
 .death-boxes { display:flex; gap:4px; }
 .death-box { width:17px; height:17px; border-radius:50%; border:1px solid rgba(201,168,76,0.28); background:rgba(10,10,22,0.85); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:8px; transition:all 0.2s; }
@@ -1855,21 +1855,21 @@ body {
 /* ============================================================
    COLONNE CENTRALE — STATS
    ============================================================ */
-.stat-block { background:rgba(10,10,22,0.55); border:1px solid rgba(201,168,76,0.13); border-radius:3px; padding:6px 7px; margin-bottom:6px; }
+.stat-block { background:rgba(10,10,22,0.55); border:1px solid rgba(201,168,76,0.13); border-radius:3px; padding:8px 10px; margin-bottom:10px; }
 .stat-header { display:flex; align-items:center; justify-content:space-between; gap:6px; }
 .stat-name { font-family:var(--font-sub); font-size:0.61rem; letter-spacing:1px; text-transform:uppercase; color:var(--or); flex:1; }
 .stat-values { display:flex; gap:4px; align-items:center; }
 .stat-input { width:40px; text-align:center; background:rgba(10,10,22,0.85); border:1px solid rgba(201,168,76,0.28); border-radius:3px; color:var(--parchemin); font-family:var(--font-corps); font-size:0.88rem; font-weight:600; padding:2px; outline:none; transition:all 0.25s; -webkit-appearance:none; }
 .stat-input:focus { border-color:var(--or); box-shadow:0 0 8px rgba(201,168,76,0.28); }
 .stat-mod { width:34px; text-align:center; background:rgba(32,26,45,0.6); border:1px solid rgba(201,168,76,0.1); border-radius:3px; color:var(--or-clair); font-family:var(--font-corps); font-size:0.82rem; font-weight:600; padding:2px; cursor:default; }
-.save-row { display:flex; align-items:center; gap:5px; margin-top:4px; font-size:0.62rem; color:var(--parchemin-s); }
+.save-row { display:flex; align-items:center; gap:5px; margin-top:7px; font-size:0.62rem; color:var(--parchemin-s); }
 .save-val { margin-left:auto; color:var(--or-clair); font-weight:600; font-size:0.67rem; min-width:24px; text-align:right; }
 .collapse-btn { background:none; border:none; color:var(--parchemin-s); cursor:pointer; font-size:0.68rem; padding:2px 4px; transition:color 0.2s; display:flex; align-items:center; gap:3px; font-family:var(--font-sub); }
 .collapse-btn:hover { color:var(--or); }
 .collapse-btn .arrow { display:inline-block; transition:transform 0.25s; font-size:0.58rem; }
 .collapse-btn.open .arrow { transform:rotate(90deg); }
-.skills-list { margin-top:4px; padding-top:4px; border-top:1px solid rgba(201,168,76,0.1); }
-.skill-row { display:flex; align-items:center; gap:5px; padding:1px 0; font-family:var(--font-corps); font-size:0.7rem; color:var(--parchemin); transition:color 0.15s; }
+.skills-list { margin-top:7px; padding-top:7px; border-top:1px solid rgba(201,168,76,0.1); }
+.skill-row { display:flex; align-items:center; gap:5px; padding:3px 0; font-family:var(--font-corps); font-size:0.7rem; color:var(--parchemin); transition:color 0.15s; }
 .skill-row:hover { color:var(--or); }
 .skill-val { margin-left:auto; color:var(--or-clair); font-weight:600; font-size:0.7rem; min-width:24px; text-align:right; }
 
@@ -3634,7 +3634,7 @@ select.field-input optgroup {
 
     <!-- Version label — miroir symétrique du menu-wrapper, voir [EX-T-F41] -->
     <div class="version-wrapper">
-      <span id="version-label">v14.2</span>
+      <span id="version-label">v14.3</span>
     </div>
   </div>
 
@@ -4916,7 +4916,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '14.2';
+var FILE_VERSION = '14.3';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -9641,6 +9641,7 @@ v13.51 — 2026-03-20 : Fix renderDesc() — les regex utilisaient &quot; mais e
 v14.0 — 2026-03-21 : Version majeure — passage v13.51 → 14.0 ; aucun changement fonctionnel.
 v14.1 — 2026-03-21 : Espacement accru avant tous les titres H3/H4/H5 imbriqués dans les panneaux — valeurs doublées (1.2rem→2.4rem, 6px→12px) ou portées au minimum 8px (0/2/4px→8px) ; CSS et styles inline mis à jour ; .mnt-ability-title, .combat-title, .spell-level-header : margin-top:8px ajouté.
 v14.2 — 2026-03-21 : Sprint N1 espacement global — .field-label margin-bottom 2→4px ; .field-group margin-bottom 6→10px ; .panel padding 9px 10px→12px 14px ; .sep margin 6→10px ; .custom-check margin-bottom 3→6px ; .field-row gap 6→10px.
+v14.3 — 2026-03-21 : Sprint N2 Col. Gauche + Stats — .death-group gap 3→6px ; .death-saves margin-top 5→10px ; .hd-vial-zone margin-top 8→12px ; .stat-block padding 6px 7px→8px 10px + margin-bottom 6→10px ; .save-row margin-top 4→7px ; .skills-list margin-top+padding-top 4→7px ; .skill-row padding 1px→3px 0.
 ====================================================== */
 </script>
 
