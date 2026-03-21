@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v13 | version complète : 13.12 — 2026-03-19 -->
+<!-- dnd-sheet-v13 | version complète : 13.46 — 2026-03-20 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -110,11 +110,16 @@ CHANGELOG entry format:
 -->
 
 <!-- [EX-M-F05] PV ACTUELS — SEUILS VISUELS
-     Champ pv-actuels borné : [0, PV Max]
-     Seuils CSS appliqués dynamiquement par updateSpherePV() :
-       · > 50% PV Max  → classe .pv-ok     (vert)
-       · 25–50% PV Max → classe .pv-blesse (orange)
-       · < 25% PV Max  → classe .pv-crit   (rouge pulsant, animation pulserCrit)
+     Champs concernés : #pv-actuels (Vie) et #mnt-pv-cur (Monture).
+     Seuils CSS appliqués par pvColorClass(pct) — 5 paliers :
+       · ≥ 75%  → .pv-ok     (vert vif)
+       · 50–75% → .pv-ok-low (vert-jaune)
+       · 25–50% → .pv-blesse (orange)
+       · 10–25% → .pv-warn   (orange-rouge pulsant, animation pulserWarn)
+       · < 10%  → .pv-crit   (rouge pulsant intense, animation pulserCrit)
+     pvColorClass(pct) retourne le suffixe nu ('ok','ok-low','blesse','warn','crit').
+     Appelants : préfixent 'pv-' pour les champs, 'sphere-pv-' pour la sphère.
+     Sphère PV : classe .sphere-pv-{suffix} avec @keyframes sphereGlow* correspondants.
 -->
 
 <!-- [EX-M-F06] PV TEMPORAIRES
@@ -544,8 +549,8 @@ CHANGELOG entry format:
        <h3 class="section-title collapsible">  ← icône gi-icon stag-head (lorc) [EX-G-F48]
        <div class="panel-body">
          ... configuration + PV + table de stats ...
-         <h4 class="mnt-stats-title">Caractéristiques</h4>        ← table statique
-         <h5 class="mnt-ability-title">Coup d'outremonde</h5>     ← dans .mnt-ability-block
+         <h4 class="section-title collapsible">✦ Caractéristiques</h4>  ← collapsible, gold via .section-title
+         <h5 class="mnt-ability-title">Coup d'outremonde</h5>     ← dans .mnt-ability-block (dans Capacités spéciales)
          <h4 class="section-title collapsible">✦ Capacités spéciales</h4>  ← collapsible
          <div class="panel-body">... mnt-ability-celeste/fee/fielon ...</div>
        </div>
@@ -888,6 +893,8 @@ CHANGELOG entry format:
            1. JSON.parse(textarea.value) — erreur → div#import-error.visible
            2. sanitiserDonnees(data) → dataPropre (voir [EX-T-F40])
            3. charger() → genererStats() → syncInputs() → restoreDeathBoxes() → updateAll()
+              → updateArmors() → updateItems() → updateWeapons() → updateGrimoire() → updateFeats()
+              (ces 5 fonctions sont hors périmètre de updateAll() [EX-T-F38])
            4. fermerOverlayImport()
            5. showNotification('↑ Importé : …', 'success')
               + si fallbacks > 0 : showNotification('⚠ N champ(s) manquants…', 'warning')
@@ -1097,8 +1104,9 @@ CHANGELOG entry format:
        · updateWeapons()  → enregistrerArme / supprimerArme (inclut updateWeaponDropdowns)
        · updateGrimoire() → toutes les actions Grimoire (add/edit/delete/toggle)
        · updateFeats()    → enregistrerTyped / supprimerTypedItem
-     Ces 5 fonctions sont appelées une fois au démarrage dans initApp() après updateAll(),
-     pour le rendu initial des tables (données chargées depuis localStorage).
+     Ces 5 fonctions sont regroupées dans updateAllLists() — appelée depuis initApp(),
+     reinitialiser() et confirmerImport() après updateAll(). Aussi accessible via le bouton
+     "Rafraîchir" du menu ⚙ pour forcer un re-rendu complet.
 
      Listeners attachés par attachListeners() lors de initApp() :
        · input  → updateAll() sur tous les inputs (sauf checkbox)
@@ -1288,8 +1296,8 @@ CHANGELOG entry format:
      Mapping emoji → ra-class (actifs) :
        ⚙  → ra-cog              ✨ → ra-burning-embers
        🤲 → ra-hand              ⚅ → ra-perspective-dice-six
-       ⚗ → ra-fizzing-flask     🗡 → ra-plain-dagger
-       ❤ → ra-health             ☽ → ra-moon-sun
+       ⚗ → ra-fizzing-flask     ☽ → ra-moon-sun
+     Retirés (remplacés par gi-icon) : ra-plain-dagger (→ ragged-wound), ra-health (→ apothecary)
        ⏱ → ra-stopwatch         ✏ → ra-quill-ink
        🗑 → ra-x-mark            📦 → ra-hourglass
      Remplacés par gi-icon game-icons.net (v11.23) :
@@ -1356,6 +1364,8 @@ CHANGELOG entry format:
        shield-bash (delapouite)          — Combat panel (gold)
        finger-print (delapouite)         — Identité panel (gold, ✦ conservé)
        potion-ball (lorc)                — Reliquaire panel (gold)
+       ragged-wound (lorc)              — Blessure input icon (crimson)
+       apothecary (darkzaitzev)         — Soins input icon (green)
        glowing-hands (lorc)              — Imposition des mains + sphère soins (gold)
        spinning-sword (lorc)             — Attaque 1 & 2 combat-title (red, gi-icon-md)
      Dés critique (data URI, display:none) : voir critDiceIcons() + CRIT_DICE_ICON_MAP [EX-G-DICE].
@@ -1374,8 +1384,8 @@ CHANGELOG entry format:
        · const D8_DATA_URI (déclarée en tête de <script>) — SVG octaèdre 3D inline base64
        · Utilisée dans : CRIT_DICE_ICON_MAP['d8'], getDiceIconUrl()['d8'],
          makeCombatBlock() template (src=\"'+D8_DATA_URI+'\"),
-         et injectée au runtime par initApp() dans #mnt-dmg-die-icon
-         et #mnt-dmg-crit-label img (éléments HTML statiques sans accès aux constantes JS).
+         Utilisée par renderDiceIcons() et getDiceIconUrl() pour le d8.
+         initApp() n'injecte plus D8_DATA_URI dans des éléments statiques (éléments convertis en spans).
        · Aucun CDN game-icons.net disponible pour le slug dice-eight-faces-eight (Delapouite).
      TAILLES ICÔNES DÉS (v12.12) :
        · .gi-icon-dice-lg : 3.08em×3.08em — dice-fire (Dés de Vie, hd-vial-label)
@@ -1396,8 +1406,10 @@ CHANGELOG entry format:
      Icône spéciale :
        dice-fire (delapouite) — Dés de Vie section + hd-vial-label Reliquaire
      Damage input icons (v11.27) :
-       · dmg1/dmg2-die-icon : <img> after damage input, src mis à jour par updateCombat()
-       · mnt-dmg-die-icon   : <img> statique injectée par initApp() via D8_DATA_URI
+       · dmg1/dmg2-die-icons : <span> container, N <img> rendus par renderDiceIcons() dans updateCombat()
+         N = diceCount du weapon sélectionné (1 ou 2) ; ×2 si D20 = 20 (crit)
+       · mnt-dmg-die-icons  : <span> container, mis à jour par updateMonture()
+         N = 1 (monture toujours 1d8) ; ×2 si mnt-atk-d20 = 20
        · smite icon         : <img> dans template makeCombatBlock() via D8_DATA_URI
 -->
 
@@ -1515,6 +1527,8 @@ h1,h2,h3,h4,h5 { font-weight:inherit; font-size:inherit; line-height:inherit; fo
 /* Colour via CSS filter on white SVG — sepia base + tuned hue/saturation/brightness */
 .gi-icon-gold   { filter:sepia(1) saturate(2.2) hue-rotate(6deg) brightness(0.92); }
 .gi-icon-red    { filter:sepia(1) saturate(8) hue-rotate(315deg) brightness(0.75); }
+.gi-icon-crimson{ filter:brightness(0.4) sepia(1) saturate(10) hue-rotate(320deg) brightness(1.4); }
+.gi-icon-green  { filter:invert(40%) sepia(100%) saturate(1500%) hue-rotate(100deg) brightness(0.82); }
 
 body {
   background-color: var(--noir);
@@ -1715,11 +1729,14 @@ body {
 .field-input.auto-calc { background:rgba(28,22,40,0.75); border-color:rgba(201,168,76,0.15); color:var(--or-clair); }
 .field-input[readonly] { background:rgba(32,26,45,0.6); border-color:rgba(201,168,76,0.1); color:var(--or-clair); cursor:default; font-weight:600; }
 
-/* Seuils PV */
-.pv-ok    { border-color:rgba(45,122,45,0.5)  !important; color:#6fca6f !important; }
-.pv-blesse{ border-color:rgba(210,80,10,0.5) !important; color:#e05510 !important; }
-.pv-crit  { border-color:rgba(204,34,34,0.7)  !important; color:var(--rouge-crit) !important; animation:pulserCrit 1.4s infinite; }
+/* Seuils PV — 5 paliers : >75% vert / 50-75% vert-jaune / 25-50% orange / 10-25% orange-rouge / <10% rouge */
+.pv-ok      { border-color:rgba(45,122,45,0.5)   !important; color:#6fca6f !important; }
+.pv-ok-low  { border-color:rgba(120,160,20,0.55)  !important; color:#a8c832 !important; }
+.pv-blesse  { border-color:rgba(210,140,10,0.55)  !important; color:#d4920a !important; }
+.pv-warn    { border-color:rgba(210,60,10,0.6)    !important; color:#e05510 !important; animation:pulserWarn 1.4s infinite; }
+.pv-crit    { border-color:rgba(204,34,34,0.7)    !important; color:var(--rouge-crit) !important; animation:pulserCrit 1.4s infinite; }
 @keyframes pulserCrit { 0%,100%{box-shadow:0 0 4px rgba(204,34,34,0.2);}50%{box-shadow:0 0 14px rgba(204,34,34,0.7),0 0 28px rgba(204,34,34,0.25);} }
+@keyframes pulserWarn { 0%,100%{box-shadow:0 0 4px rgba(210,60,10,0.15);}50%{box-shadow:0 0 12px rgba(210,60,10,0.55),0 0 22px rgba(210,60,10,0.20);} }
 
 .field-row { display:flex; gap:6px; align-items:flex-end; }
 .field-row .field-group { flex:1; margin-bottom:0; }
@@ -1954,16 +1971,26 @@ body {
   50%     { filter: blur(3px)    drop-shadow(0 0 12px rgba(255,230,80,0.95)) drop-shadow(0 0 22px rgba(210,160,20,0.55)); }
 }
 /* Glow PV — 3 états selon seuils [EX-M-F05] */
-.sphere-pv.sphere-pv-ok     { animation:sphereGlowGreen  4.0s ease-in-out infinite; }
-.sphere-pv.sphere-pv-blesse { animation:sphereGlowYellow 4.0s ease-in-out infinite; }
-.sphere-pv.sphere-pv-crit   { animation:sphereGlowRed    4.0s ease-in-out infinite; }
+.sphere-pv.sphere-pv-ok      { animation:sphereGlowGreen    4.0s ease-in-out infinite; }
+.sphere-pv.sphere-pv-ok-low  { animation:sphereGlowGreenLow  4.0s ease-in-out infinite; }
+.sphere-pv.sphere-pv-blesse  { animation:sphereGlowYellow    4.0s ease-in-out infinite; }
+.sphere-pv.sphere-pv-warn    { animation:sphereGlowOrangeRed 4.0s ease-in-out infinite; }
+.sphere-pv.sphere-pv-crit    { animation:sphereGlowRed       4.0s ease-in-out infinite; }
 @keyframes sphereGlowGreen {
   0%,100% { filter:drop-shadow(0 0 6px rgba(20,100,20,0.45)); }
   50%     { filter:drop-shadow(0 0 24px rgba(50,200,50,0.88)) drop-shadow(0 0 48px rgba(20,140,20,0.45)); }
 }
+@keyframes sphereGlowGreenLow {
+  0%,100% { filter:drop-shadow(0 0 6px rgba(80,130,10,0.45)); }
+  50%     { filter:drop-shadow(0 0 22px rgba(140,200,20,0.85)) drop-shadow(0 0 44px rgba(90,150,10,0.40)); }
+}
 @keyframes sphereGlowYellow {
-  0%,100% { filter:drop-shadow(0 0 6px rgba(200,70,10,0.50)); }
-  50%     { filter:drop-shadow(0 0 24px rgba(230,90,12,0.92)) drop-shadow(0 0 48px rgba(200,60,8,0.50)); }
+  0%,100% { filter:drop-shadow(0 0 6px rgba(180,120,5,0.50)); }
+  50%     { filter:drop-shadow(0 0 24px rgba(215,165,10,0.90)) drop-shadow(0 0 48px rgba(180,120,5,0.45)); }
+}
+@keyframes sphereGlowOrangeRed {
+  0%,100% { filter:drop-shadow(0 0 6px rgba(200,60,8,0.50)); }
+  50%     { filter:drop-shadow(0 0 24px rgba(230,85,10,0.92)) drop-shadow(0 0 48px rgba(200,50,8,0.50)); }
 }
 @keyframes sphereGlowRed {
   0%,100% { filter:drop-shadow(0 0 6px rgba(160,20,20,0.45)); }
@@ -3460,16 +3487,7 @@ select.field-input optgroup {
 .panel-body > .section-title.inv-section-header {
   margin-top: 1.2rem !important;
 }
-/* Pattern 3: .subsection-header — inline-div subheaders (Aide aux Tests) */
-/* Font size matches other subsection titles                            */
-.subsection-header {
-  font-size: 0.69rem;
-}
-/* Spacing only for the second wrapper (Jets de Sauvegarde);            */
-/* first wrapper (Tests de Caractéristique) gets no top margin          */
-.panel-body > div + div > .subsection-header {
-  margin-top: 1.2rem;
-}
+/* Pattern 3: .subsection-header — removed v13.28 (converted to section-title collapsible H3) */
 .inv-armor-detail {
   padding:4px 6px 6px 10px;
   border-left:2px solid rgba(201,168,76,0.2);
@@ -3539,8 +3557,12 @@ select.field-input optgroup {
           <span class="di-icon">↓</span> Exporter
         </button>
         <div class="dropdown-sep"></div>
+        <button class="dropdown-item" onclick="menuRafraichir()">
+          <span class="di-icon">↺</span> Rafraîchir
+        </button>
+        <div class="dropdown-sep"></div>
         <button class="dropdown-item" onclick="menuToutReplier()">
-          <span class="di-icon"><i class="ra ra-angle-right rpa-icon" aria-hidden="true"></i></span> Tout replier
+          <span class="di-icon">▸</span> Tout replier
         </button>
         <button class="dropdown-item" onclick="menuToutDeployer()">
           <span class="di-icon">▾</span> Tout déplier
@@ -3770,8 +3792,8 @@ select.field-input optgroup {
         <div class="panel-body">
 
           <!-- Tests de Caractéristique -->
-          <div style="margin-bottom:10px;">
-            <div class="subsection-header" style="font-family:var(--font-sub);color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Tests de Caractéristique</div>
+          <h3 class="section-title collapsible">✦ Tests de Caractéristique</h3>
+          <div class="panel-body">
             <div class="field-group">
               <label class="field-label">Caractéristique ou Compétence</label>
               <select class="field-input" id="aide-test-target" style="cursor:pointer;" onchange="updateAideTests()">
@@ -3780,7 +3802,7 @@ select.field-input optgroup {
             <div class="field-row" style="margin-top:5px;">
               <div class="field-group">
                 <label class="field-label">Jet d20</label>
-                <input class="field-input" type="number" id="aide-test-d20" min="1" max="20" placeholder="1–20" oninput="updateAideTests()">
+                <input class="field-input" type="number" id="aide-test-d20" min="1" max="20" oninput="updateAideTests()">
               </div>
               <div class="field-group">
                 <label class="field-label">Modificateur</label>
@@ -3791,15 +3813,15 @@ select.field-input optgroup {
                 <div class="combat-total" id="aide-test-total" style="font-size:0.92rem;padding:4px 8px;">—</div>
               </div>
             </div>
-          <!-- Avertissement Discrétion armure — visible si Discrétion sélectionnée -->
-          <div id="armor-stealth-warning" class="armor-stealth-warning hidden">
-            ⚠️ Désavantage Discrétion (armure)
-          </div>
-          </div>
+            <!-- Avertissement Discrétion armure — visible si Discrétion sélectionnée -->
+            <div id="armor-stealth-warning" class="armor-stealth-warning hidden">
+              ⚠️ Désavantage Discrétion (armure)
+            </div>
+          </div><!-- fin panel-body Tests de Caractéristique -->
 
           <!-- Jets de Sauvegarde -->
-          <div>
-            <div class="subsection-header" style="font-family:var(--font-sub);color:var(--bordeaux-clair);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid rgba(139,26,26,0.3);padding-bottom:3px;">Jets de Sauvegarde</div>
+          <h3 class="section-title collapsible">✦ Jets de Sauvegarde</h3>
+          <div class="panel-body">
             <label class="custom-check" style="margin-bottom:6px;">
               <input type="checkbox" id="aura-protection-active" onchange="updateAuraProtection()">
               <span class="chk-box"></span>
@@ -3813,7 +3835,7 @@ select.field-input optgroup {
             <div class="field-row" style="margin-top:5px;">
               <div class="field-group">
                 <label class="field-label">Jet d20</label>
-                <input class="field-input" type="number" id="aide-save-d20" min="1" max="20" placeholder="1–20" oninput="updateAideTests()">
+                <input class="field-input" type="number" id="aide-save-d20" min="1" max="20" oninput="updateAideTests()">
               </div>
               <div class="field-group">
                 <label class="field-label">Modificateur</label>
@@ -3827,7 +3849,7 @@ select.field-input optgroup {
             <p id="aura-protection-note" class="feature-note" style="display:none;">
               ✦ Aura de Protection : modificateur de Charisme ajouté aux jets de sauvegarde.
             </p>
-          </div>
+          </div><!-- fin panel-body Jets de Sauvegarde -->
         </div><!-- fin panel-body -->
       </div><!-- fin panel-aide-tests -->
 
@@ -3900,17 +3922,13 @@ select.field-input optgroup {
         <!-- Imposition des mains -->
         <h3 class="section-title collapsible"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/glowing-hands.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Imposition des mains</h3>
         <div class="panel-body">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:0.7rem;color:var(--parchemin-s);">
-            <span>PV Max (5 × niveau) :</span>
-            <span id="hm-max-display" style="color:#2aaccc;font-weight:700;font-size:0.85rem;">25</span>
-          </div>
           <div class="field-row">
             <div class="field-group">
               <label class="field-label">PV Actuels</label>
               <input class="field-input" type="number" id="hm-cur" min="0" value="25">
             </div>
             <div class="field-group">
-              <label class="field-label">Max (auto)</label>
+              <label class="field-label">PV Max (5 × niv)</label>
               <input class="field-input" type="text" id="hm-max" readonly>
             </div>
           </div>
@@ -3968,13 +3986,14 @@ select.field-input optgroup {
               <label class="field-label">PV actuels</label>
               <input class="field-input" type="number" id="mnt-pv-cur"
                 min="0" max="25" value="25"
-                oninput="sauvegarder()">
+                oninput="updateMonture()">
             </div>
 
             <div class="sep"></div>
 
-            <!-- Table de stats -->
-            <h4 class="mnt-stats-title">Caractéristiques</h4>
+            <!-- Table de stats — collapsible -->
+            <h4 class="section-title collapsible" style="margin-top:2px;">✦ Caractéristiques</h4>
+            <div class="panel-body">
             <table class="mnt-stats-table">
               <thead>
                 <tr>
@@ -3995,25 +4014,14 @@ select.field-input optgroup {
 
             <!-- Infos fixes -->
             <div class="mnt-info-row">
-              <span class="mnt-info-label">Perception passive :</span>
+              <span class="mnt-info-label">Perception passive :</span>
               <span class="mnt-info-val">11</span>
             </div>
             <div class="mnt-info-row">
-              <span class="mnt-info-label">Langue :</span>
-              <span class="mnt-info-val">Télépathie 1,5 km</span>
+              <span class="mnt-info-label">Langue :</span>
+              <span class="mnt-info-val">Télépathie 1,5 km</span>
             </div>
-
-            <div class="sep"></div>
-
-            <!-- Coup d'outremonde -->
-            <div class="mnt-ability-block">
-              <h5 class="mnt-ability-title">Coup d&#39;outremonde</h5>
-              <div class="mnt-ability-text">
-                Corps à corps : bonus égal à votre modificateur de sort (CHA), allonge 1,5 m.<br>
-                Touché : 1d8 + niveau du sort de dégâts
-                <span id="mnt-dmg-type-lbl">radiants</span>.
-              </div>
-            </div>
+            </div><!-- fin panel-body Caractéristiques -->
 
             <div class="sep"></div>
 
@@ -4021,11 +4029,32 @@ select.field-input optgroup {
             <h4 class="section-title collapsible" style="margin-top:2px;">✦ Capacités spéciales</h4>
             <div class="panel-body">
 
+              <!-- Coup d'outremonde — indépendant du type -->
+              <div class="mnt-ability-block">
+                <h5 class="mnt-ability-title">Coup d&#39;outremonde</h5>
+                <div class="mnt-ability-text">
+                  Corps à corps : bonus égal à votre modificateur de sort (CHA), allonge 1,5 m.<br>
+                  Touché : 1d8 + niveau du sort de dégâts
+                  <span id="mnt-dmg-type-lbl">radiants</span>.
+                </div>
+              </div>
+
+              <!-- Lien vital — indépendant du type -->
+              <div class="mnt-ability-block">
+                <h5 class="mnt-ability-title">Lien vital</h5>
+                <div class="mnt-ability-text">
+                  Lorsque vous récupérez des points de vie par un sort du 1er niveau ou supérieur,
+                  la monture en récupère autant si vous vous trouvez à 1,50 m ou moins d'elle.
+                </div>
+              </div>
+
+              <div class="sep"></div>
+
               <div class="mnt-ability-block" id="mnt-ability-celeste">
                 <div class="mnt-ability-title">Contact guérisseur <span class="mnt-ability-tag">Céleste</span></div>
                 <div class="mnt-ability-text">
-                  Une fois par repos long, une créature dans un rayon de 1,5 m de la monture
-                  récupère PV = 2d8 + niveau du sort.
+                  Une fois par repos long, une créature dans un rayon de 1,5 m de la monture
+                  récupère PV = 2d8 + niveau du sort.
                 </div>
               </div>
 
@@ -4033,7 +4062,7 @@ select.field-input optgroup {
                 <div class="mnt-ability-title">Foulée féerique <span class="mnt-ability-tag">Fée</span></div>
                 <div class="mnt-ability-text">
                   Une fois par repos long, la monture se téléporte avec son cavalier en un
-                  espace inoccupé de votre choix dans un rayon de 18 m.
+                  espace inoccupé de votre choix dans un rayon de 18 m.
                 </div>
               </div>
 
@@ -4041,8 +4070,8 @@ select.field-input optgroup {
                 <div class="mnt-ability-title">Regard fiélon <span class="mnt-ability-tag">Fielon</span></div>
                 <div class="mnt-ability-text">
                   Une fois par repos long, JS Sagesse contre votre DD de sauvegarde des sorts
-                  sur une créature dans un rayon de 18 m que la monture voit.
-                  Échec : la cible subit l’état Effrayé jusqu’à la fin de votre tour suivant.
+                  sur une créature dans un rayon de 18 m que la monture voit.
+                  Échec : la cible subit l'état Effrayé jusqu'à la fin de votre tour suivant.
                 </div>
               </div>
 
@@ -4148,8 +4177,8 @@ select.field-input optgroup {
               </div>
               <div class="dmg-half">
                 <div class="half-title">Dégâts</div>
-                <div class="combat-row"><span class="lbl">D8</span><input class="combat-input" type="number" id="mnt-dmg-d8" min="1" max="8"><img id="mnt-dmg-die-icon" src="" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-left:4px;"></div>
-                <div class="crit-label" id="mnt-dmg-crit-label">Critique : saisir la somme de 2d8 <img src="" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-right:0.15em;"><img src="" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-right:0.15em;"></div>
+                <div class="combat-row"><span class="lbl">D8</span><input class="combat-input" type="number" id="mnt-dmg-d8" min="1" max="8"><span id="mnt-dmg-die-icons" style="display:inline-flex;gap:2px;vertical-align:middle;margin-left:2px;"></span></div>
+                <div class="crit-label" id="mnt-dmg-crit-label">Critique : saisir la somme de 2d8</div>
                 <div class="combat-row"><span class="lbl">Mod</span><span class="val" id="mnt-dmg-mod">+2</span></div>
                 <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="mnt-dmg-total">—</span><span class="dmg-type-lbl" id="mnt-dmg-type-atk"></span></div>
               </div>
@@ -4198,7 +4227,7 @@ select.field-input optgroup {
 
       <!-- ══ RELIQUAIRE ══ -->
       <div class="panel" id="panel-reliquaire">
-        <h2 class="section-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/potion-ball.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Reliquaire</h2>
+        <h2 class="section-title collapsible section-title-rapide"><span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/potion-ball.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Reliquaire</span></h2>
         <div class="panel-body">
 
       <!-- Sphère Gauche — PV -->
@@ -4207,12 +4236,12 @@ select.field-input optgroup {
           <!-- Colonne gauche : saisie blessure + soin -->
           <div class="sphere-controls">
             <div class="sphere-ctrl-row">
-              <span style="font-size:1.1rem;color:var(--or);"><i class="ra ra-plain-dagger rpa-icon" aria-hidden="true"></i></span>
-              <input class="sphere-ctrl-input sphere-ctrl-input-narrow" type="number" id="blessure-input" min="0" placeholder="Dégâts">
+              <img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/ragged-wound.svg" class="gi-icon gi-icon-lg gi-icon-crimson" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">
+              <input class="sphere-ctrl-input sphere-ctrl-input-narrow" type="number" id="blessure-input" min="0" placeholder="Blessure">
               <button class="btn" onclick="appliquerBlessure()">✓</button>
             </div>
             <div class="sphere-ctrl-row">
-              <span style="font-size:1.1rem;color:var(--or);"><i class="ra ra-health rpa-icon" aria-hidden="true"></i></span>
+              <img src="https://game-icons.net/icons/ffffff/transparent/1x1/darkzaitzev/apothecary.svg" class="gi-icon gi-icon-lg gi-icon-green" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">
               <input class="sphere-ctrl-input sphere-ctrl-input-narrow" type="number" id="soin-input" min="0" placeholder="Soins">
               <button class="btn btn-or" onclick="appliquerSoin()">✓</button>
             </div>
@@ -4667,7 +4696,7 @@ select.field-input optgroup {
       <div class="sphere-zone">
         <div class="sphere-controls">
           <div class="sphere-ctrl-row">
-            <span style="font-size:1.1rem;color:var(--or);"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/glowing-hands.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;"></span>
+            <img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/glowing-hands.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">
             <input class="sphere-ctrl-input" type="number" id="soin-mains-input" min="0" placeholder="Soin">
             <button class="btn btn-bleu" onclick="appliquerSoinMains()">✓</button>
           </div>
@@ -4859,7 +4888,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '13.12';
+var FILE_VERSION = '13.46';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -5268,6 +5297,19 @@ function setWave(animId, topY, botY) {
 /* ============================================================
    MISE À JOUR SPHÈRE PV
    ============================================================ */
+/* ============================================================
+   PV COLOUR HELPER — 5-step gradient
+   Returns the CSS class suffix for a given pct [0..1].
+   >75% ok | 50-75% ok-low | 25-50% blesse | 10-25% warn | <10% crit
+   ============================================================ */
+function pvColorClass(pct) {
+  if      (pct < 0.10) return 'crit';
+  else if (pct < 0.25) return 'warn';
+  else if (pct < 0.50) return 'blesse';
+  else if (pct < 0.75) return 'ok-low';
+  else                 return 'ok';
+}
+
 function updateSpherePV() {
   var pvM = lireInt('pv-max', 1);   if (pvM < 1) pvM = 1;
   var pvC = lireInt('pv-actuels', 0);
@@ -5311,20 +5353,15 @@ function updateSpherePV() {
   }
   var pvInp = document.getElementById('pv-actuels');
   if (pvInp) {
-    pvInp.className = 'field-input';
     var pct = pvM > 0 ? pvC / pvM : 0;
-    if      (pct < 0.25) pvInp.classList.add('pv-crit');
-    else if (pct < 0.50) pvInp.classList.add('pv-blesse');
-    else                 pvInp.classList.add('pv-ok');
+    pvInp.className = 'field-input pv-' + pvColorClass(pct);
   }
-  /* Task 3: sync glow color on .sphere-pv to match HP threshold */
+  /* Sync glow color on .sphere-pv to match HP threshold — 5 steps */
   var sphereEl = document.querySelector('.sphere-pv');
   if (sphereEl) {
-    sphereEl.classList.remove('sphere-pv-ok','sphere-pv-blesse','sphere-pv-crit');
+    sphereEl.classList.remove('sphere-pv-ok','sphere-pv-ok-low','sphere-pv-blesse','sphere-pv-warn','sphere-pv-crit');
     var pctPv = pvM > 0 ? pvC / pvM : 0;
-    if      (pctPv < 0.25) sphereEl.classList.add('sphere-pv-crit');
-    else if (pctPv < 0.50) sphereEl.classList.add('sphere-pv-blesse');
-    else                   sphereEl.classList.add('sphere-pv-ok');
+    sphereEl.classList.add('sphere-pv-' + pvColorClass(pctPv));
   }
 }
 
@@ -5447,6 +5484,26 @@ function updateFioles() {
 /* ============================================================
    MISE À JOUR DES TOTAUX COMBAT
    ============================================================ */
+
+/* renderDiceIcons(containerId, diceType, count)
+   Clears the container span and appends `count` die <img> elements.
+   Uses CDN URLs (container is always visible — no data URI needed). */
+function renderDiceIcons(containerId, diceType, count) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  var url = getDiceIconUrl(diceType);
+  for (var i = 0; i < count; i++) {
+    var img = document.createElement('img');
+    img.src = url;
+    img.className = 'gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold';
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    img.style.cssText = 'width:2.83em;height:2.83em;vertical-align:middle;margin-left:2px;';
+    el.appendChild(img);
+  }
+}
+
 function getDiceIconUrl(diceType) {
   var map = {
     'd4':  'https://game-icons.net/icons/ffffff/transparent/1x1/skoll/d4.svg',
@@ -5524,9 +5581,16 @@ function updateCombat() {
     if (dieLbl) {
       dieLbl.textContent = weapon ? (weapon.diceCount + weapon.diceType) : 'D8';
     }
-    var dieType = weapon ? weapon.diceType : 'd8';
-    var dieIconEl = document.getElementById(dmgP + '-die-icon');
-    if (dieIconEl) dieIconEl.src = getDiceIconUrl(dieType);
+    var dieType  = weapon ? weapon.diceType  : 'd8';
+    var diceCount = weapon ? weapon.diceCount : 1;
+
+    /* Detect crit for icon count: d20 input value === 20 */
+    var d20ElForCrit = document.getElementById(atkP + '-d20');
+    var isCritNow = d20ElForCrit && parseInt(d20ElForCrit.value) === 20;
+    var iconCount = isCritNow ? diceCount * 2 : diceCount;
+
+    /* Render N die icons next to damage input (always visible → CDN OK) */
+    renderDiceIcons(dmgP + '-die-icons', dieType, iconCount);
 
     /* Update atk total */
     var d20  = parseInt(document.getElementById(atkP + '-d20') && document.getElementById(atkP + '-d20').value);
@@ -5587,12 +5651,12 @@ function updateCombat() {
       mastNote.classList.toggle('hidden', !mastDesc);
     }
 
-    /* Crit-label: dynamic dice text based on selected weapon */
+    /* Crit-label: text only — icons shown on damage input row (count = diceCount or ×2 on crit) */
     var critLbl = document.getElementById(dmgP + '-crit-label');
     if (critLbl) {
       var critDiceCount = weapon ? (weapon.diceCount * 2) : 2;
       var critDiceType  = weapon ? weapon.diceType : 'd8';
-      critLbl.innerHTML = 'Critique : saisir la somme de ' + critDiceCount + critDiceType + ' ' + critDiceIcons(critDiceCount, critDiceType);
+      critLbl.textContent = 'Critique : saisir la somme de ' + critDiceCount + critDiceType;
     }
   });
 
@@ -5796,6 +5860,23 @@ function updateMonture() {
       atkTypeLbl.style.fontStyle  = '';
       atkTypeLbl.style.fontWeight = '';
     }
+  }
+
+  /* Die icons next to damage input — always 1d8 for Monture, ×2 on crit */
+  var mntD20El = document.getElementById('mnt-atk-d20');
+  var mntIsCrit = mntD20El && parseInt(mntD20El.value) === 20;
+  renderDiceIcons('mnt-dmg-die-icons', 'd8', mntIsCrit ? 2 : 1);
+
+  /* Crit-label — text only, dynamic count */
+  var mntCritLbl = document.getElementById('mnt-dmg-crit-label');
+  if (mntCritLbl) mntCritLbl.textContent = 'Critique : saisir la somme de 2d8';
+
+  /* Mount PV colour — same 5-step thresholds as main pv-actuels [EX-M-F05] */
+  var mntPvInp = document.getElementById('mnt-pv-cur');
+  if (mntPvInp) {
+    var mntCur = parseInt(mntPvInp.value) || 0;
+    var mntPct = pvMax > 0 ? mntCur / pvMax : 0;
+    mntPvInp.className = 'field-input pv-' + pvColorClass(mntPct);
   }
 
   /* Persist */
@@ -6327,6 +6408,8 @@ function toggleSpellAlwaysReady(id) {
    ============================================================ */
 function creerOverlay(opts) {
   fermerOverlayById(opts.id);
+  /* Ensure the scroll guard does not block overlay positioning */
+  if (typeof window._scrollGuardClear === 'function') window._scrollGuardClear();
   var backdrop = document.createElement('div');
   backdrop.id = opts.id;
   backdrop.className = 'overlay-backdrop';
@@ -6704,16 +6787,7 @@ var _hdRestoreToMax = false;
 /* ============================================================
    FONCTION CENTRALE updateAll()
    ============================================================ */
-function updateAll(sourceEl) {
-  /* ── Skip .value writes on the element that triggered this call.
-     In WKWebView standalone (iPad + hardware keyboard), programmatic .value
-     writes on the focused input trigger a scroll-into-view recalculation
-     that miscalculates because no on-screen keyboard is present.
-     document.activeElement is unreliable in WKWebView standalone;
-     event.target (passed as sourceEl from attachListeners) is used instead. ── */
-  var _activeEl = sourceEl || null;
-  function setVal(el, v) { if (el && el !== _activeEl) el.value = v; }
-
+function updateAll() {
   var niv     = Math.max(1, Math.min(20, lireInt('niveau', 1)));
   var robuste = lireChk('check-robuste');
   var maîtBns = calcMaitrise(niv);
@@ -6729,19 +6803,19 @@ function updateAll(sourceEl) {
   var pvM = calcPvMax(niv, robuste, valCon);
   if (pvM < 1) pvM = 1;
   var _pvMaxEl = document.getElementById('pv-max');
-  setVal(_pvMaxEl, pvM);
+  if (_pvMaxEl) _pvMaxEl.value = pvM;
 
   var pvAEl = document.getElementById('pv-actuels');
   if (pvAEl) {
-    if (_nivChanged) { setVal(pvAEl, pvM); }  /* restore to max on level change */
+    if (_nivChanged) { pvAEl.value = pvM; }  /* restore to max on level change */
     var va = parseInt(pvAEl.value) || 0;
-    if (va > pvM) { setVal(pvAEl, pvM); }
-    if (va < 0)   { setVal(pvAEl, 0);   }
+    if (va > pvM) { pvAEl.value = pvM; }
+    if (va < 0)   { pvAEl.value = 0;   }
   }
   var pvTEl = document.getElementById('pv-temp');
-  if (pvTEl && (parseInt(pvTEl.value)||0) < 0) setVal(pvTEl, 0);
+  if (pvTEl && (parseInt(pvTEl.value)||0) < 0) pvTEl.value = 0;
   var bm = document.getElementById('bonus-maitrise');
-  setVal(bm, sgn(maîtBns));
+  if (bm) bm.value = sgn(maîtBns);
   STATS_DEF.forEach(function(stat) {
     var el = document.getElementById('stat-' + stat.id);
     if (!el) return;
@@ -6762,14 +6836,14 @@ function updateAll(sourceEl) {
   updateDDSorts(); /* sync DD when stats or proficiency change [EX-M-F57] */
   var hmM = 5 * niv;
   var hmx = document.getElementById('hm-max');
-  setVal(hmx, hmM);
+  if (hmx) hmx.value = hmM;
   var hmd = document.getElementById('hm-max-display');
   if (hmd) hmd.textContent = hmM;
   var hmC = document.getElementById('hm-cur');
   if (hmC) {
-    if (_nivChanged) { setVal(hmC, hmM); }  /* restore to max on level change */
-    if ((parseInt(hmC.value)||0) > hmM) setVal(hmC, hmM);
-    if ((parseInt(hmC.value)||0) < 0)   setVal(hmC, 0);
+    if (_nivChanged) { hmC.value = hmM; }  /* restore to max on level change */
+    if ((parseInt(hmC.value)||0) > hmM) hmC.value = hmM;
+    if ((parseInt(hmC.value)||0) < 0)   hmC.value = 0;
   }
   _hdRestoreToMax = _nivChanged;  /* signal updateHD to restore hd-cur to max */
   updateHD();
@@ -6781,16 +6855,16 @@ function updateAll(sourceEl) {
     if (!inp) return;
     /* slot cur restore on niveau change is handled inside updateSpellSlots */
     var c = parseInt(inp.value) || 0;
-    if (c > mx) setVal(inp, mx);
-    if (c < 0)  setVal(inp, 0);
+    if (c > mx) inp.value = mx;
+    if (c < 0)  inp.value = 0;
   });
   var ci = document.getElementById('conduit-cur');
   if (ci) {
     var ciMax = parseInt(ci.max) || 2;
-    if (_nivChanged) { setVal(ci, ciMax); }  /* restore to max on level change */
+    if (_nivChanged) { ci.value = ciMax; }  /* restore to max on level change */
     var cc    = parseInt(ci.value) || 0;
-    if (cc > ciMax) setVal(ci, ciMax);
-    if (cc < 0)     setVal(ci, 0);
+    if (cc > ciMax) ci.value = ciMax;
+    if (cc < 0)     ci.value = 0;
   }
   updateSpellSlots(lireInt('niveau', 1), _nivChanged);
   updateConduitDivin(lireInt('niveau', 1));
@@ -6960,6 +7034,12 @@ function menuExporter() {
   closeMenu();
   exporterJSON();
 }
+function menuRafraichir() {
+  closeMenu();
+  updateAll();
+  updateAllLists();
+  showNotification('↺ Affichage rafraîchi', 'success');
+}
 function menuToutReplier() {
   closeMenu();
   document.querySelectorAll('.section-title.collapsible').forEach(function(titleEl) {
@@ -7077,6 +7157,20 @@ function toggleVfxFlask(chk) {
 /* ============================================================
    RÉINITIALISATION
    ============================================================ */
+/* ============================================================
+   HELPER — RENDER ALL LIST TABLES
+   Calls the 5 render functions excluded from updateAll() scope.
+   Must be called after any full data load: initApp, import, reinit.
+   See [EX-T-F38] for scope rationale.
+   ============================================================ */
+function updateAllLists() {
+  updateArmors();
+  updateItems();
+  updateWeapons();   /* also calls updateWeaponDropdowns() */
+  updateGrimoire();
+  updateFeats();
+}
+
 function reinitialiser() {
   ouvrirConfirmation({
     title:    '⚠️ Réinitialiser',
@@ -7091,6 +7185,7 @@ function reinitialiser() {
       syncInputs();
       document.querySelectorAll('.death-box').forEach(function(b) { b.classList.remove('filled'); });
       updateAll();
+      updateAllLists(); /* render tables not covered by updateAll() [EX-T-F38] */
       showNotification('✦ Feuille réinitialisée', 'warning');
     }
   });
@@ -7273,6 +7368,7 @@ function confirmerImport(textarea, errDiv) {
     syncInputs();
     restoreDeathBoxes(dataPropre);
     updateAll();
+    updateAllLists(); /* render tables not covered by updateAll() [EX-T-F38] */
     fermerOverlayImport();
 
     /* Notification principale */
@@ -7789,10 +7885,6 @@ function flashMsg(msg) {
   document.body.appendChild(el);
   setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 2200);
 }
-
-/* ============================================================
-   ATTACHER LES LISTENERS
-   ============================================================ */
 function clampNiveau(el) {
   var v = parseInt(el.value);
   if (isNaN(v) || v < 1)  { el.value = 1; }
@@ -7803,13 +7895,80 @@ function attachListeners() {
   /* Exclure les checkboxes — déjà gérées séparément */
   var inputs = document.querySelectorAll('input:not([type="checkbox"])');
   inputs.forEach(function(el) {
-    el.addEventListener('input', function(e) { updateAll(e.target); });
+    el.addEventListener('input', updateAll);
   });
   var checks = document.querySelectorAll('input[type="checkbox"]');
   checks.forEach(function(el) {
-    el.addEventListener('change', function(e) { updateAll(e.target); });
+    el.addEventListener('change', updateAll);
   });
-}
+
+  /* ── WKWebView standalone scroll lock ─────────────────────────────────
+     In standalone mode + hardware keyboard, WKWebView fires spurious
+     scroll events whenever an input is focused (on first keypress, on
+     Shift+Arrow selection, on any DOM mutation while focused).
+     Root cause: WKWebView miscalculates visualViewport.height as -32px,
+     thinks the focused element is off-screen, and scrolls to reveal it.
+
+     Fix: while a main-page input is focused, lock scrollY to the value
+     it had at focus time. Any scroll event while the lock is active is
+     immediately cancelled by restoring the saved position.
+     Lock released on blur so intentional touch-scroll works normally.
+     Overlays excluded — they scroll independently. ── */
+  if (window.navigator.standalone) {
+    /* ── Spurious-scroll guard ───────────────────────────────────────────
+       On each input/keydown event in a main-page field, we snapshot scrollY
+       and open a 400ms guard. Any scroll jump >50px during that window is
+       cancelled — that is the WKWebView vpH=-32 bug.
+       Outside the guard, all scrolling (trackpad, touch) is free.
+       The guard is also manually closed by creerOverlay() so overlays
+       are never affected. ── */
+
+    var _guardY  = null;
+    var _guardX  = null;
+    var _guardTm = null;
+
+    /* Public: called by creerOverlay() to ensure overlays are never blocked */
+    window._scrollGuardClear = function() {
+      _guardY = null; _guardX = null;
+      if (_guardTm) { clearTimeout(_guardTm); _guardTm = null; }
+    };
+
+    function _openGuard() {
+      _guardY = window.scrollY;
+      _guardX = window.scrollX;
+      if (_guardTm) clearTimeout(_guardTm);
+      _guardTm = setTimeout(window._scrollGuardClear, 400);
+    }
+
+    function _onInputGuard(e) {
+      if (e.target.closest && e.target.closest('.overlay-backdrop')) return;
+      _openGuard();
+    }
+
+    function _onKeyGuard(e) {
+      /* Arrow keys on number inputs + Shift+Arrow selection both cause spurious scroll */
+      var k = e.key;
+      var isArrow = (k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight');
+      if (!isArrow) return;
+      if (e.target.closest && e.target.closest('.overlay-backdrop')) return;
+      _openGuard();
+    }
+
+    function _onScrollGuard() {
+      if (_guardY === null) return;
+      var dy = Math.abs(window.scrollY - _guardY);
+      var dx = Math.abs(window.scrollX - _guardX);
+      if (dy > 50 || dx > 50) {
+        window.scrollTo(_guardX, _guardY);
+        window._scrollGuardClear();
+      }
+    }
+
+    document.addEventListener('input',   _onInputGuard,  true);
+    document.addEventListener('keydown',  _onKeyGuard,    true);
+    window.addEventListener('scroll',     _onScrollGuard, { passive: true });
+  }
+} /* end attachListeners */
 
 /* ============================================================
    BOUTONS FIOLES
@@ -7843,14 +8002,14 @@ function modifierSlot(niv, delta) {
    Total = parsedDmgTotal + smiteDiceInput
    ============================================================ */
 function updateSmite(n) {
-  var typeEl  = document.getElementById('smite' + n + '-type');
-  var slotEl  = document.getElementById('smite' + n + '-slot');
-  var diceEl  = document.getElementById('smite' + n + '-dice');
-  var hintEl  = document.getElementById('smite' + n + '-hint');
-  var fieldsEl= document.getElementById('smite' + n + '-fields');
-  var noteEl  = document.getElementById('smite' + n + '-fournaise-note');
-  var totEl   = document.getElementById('smite' + n + '-total');
-  var lblEl   = document.getElementById('smite' + n + '-type-label');
+  var typeEl    = document.getElementById('smite' + n + '-type');
+  var slotEl    = document.getElementById('smite' + n + '-slot');
+  var diceEl    = document.getElementById('smite' + n + '-dice');
+  var fieldsEl  = document.getElementById('smite' + n + '-fields');
+  var divinNoteEl    = document.getElementById('smite' + n + '-divin-note');
+  var fournNoteEl    = document.getElementById('smite' + n + '-fournaise-note');
+  var totEl     = document.getElementById('smite' + n + '-total');
+  var lblEl     = document.getElementById('smite' + n + '-type-label');
   if (!typeEl) return;
 
   var smiteType = typeEl.value;
@@ -7859,40 +8018,73 @@ function updateSmite(n) {
   if (fieldsEl) fieldsEl.style.display = smiteType ? 'block' : 'none';
   if (!smiteType) { if (totEl) totEl.textContent = '—'; return; }
 
-  /* Clamp: write back only if out of range, preserving mid-range typing (2,3,4) */
+  /* Clamp slot level */
   var slotRaw   = parseInt((slotEl && slotEl.value) || 1) || 1;
   var slotLevel = Math.max(1, Math.min(5, slotRaw));
   if (slotEl && slotRaw !== slotLevel) slotEl.value = slotLevel;
 
-  /* Detect crit from the d20 input of this attack */
-  var d20El = document.getElementById('atk' + n + '-d20');
+  /* Detect crit from d20 of this attack */
+  var d20El  = document.getElementById('atk' + n + '-d20');
   var isCrit = d20El && parseInt(d20El.value) === 20;
 
-  /* Compute dice count */
-  var numDice;
-  var dieLabel;
-  var typeLabelText;
-  if (smiteType === 'divin') {
-    numDice    = 1 + slotLevel; /* 2d8 at slot 1, +1d8 per level */
-    if (isCrit) numDice *= 2;
-    dieLabel   = numDice + 'd8' + (isCrit ? ' (critique)' : '') + ' (+ 1d8 si Fiélon/Mort-vivant)';
-    typeLabelText = 'radiant';
-    if (noteEl) noteEl.style.display = 'none';
-  } else { /* fournaise */
-    numDice    = slotLevel; /* 1d6 at slot 1, +1d6 per level */
-    if (isCrit) numDice *= 2;
-    dieLabel   = numDice + 'd6' + (isCrit ? ' (critique)' : '');
-    typeLabelText = 'feu';
-    if (noteEl) noteEl.style.display = 'block';
+  /* Vampire-cape icon URL — always visible container, CDN OK */
+  var VAMPIRE_URL = 'https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/vampire-cape.svg';
+  var CRIT_IMG_STYLE = 'vertical-align:middle;margin-left:2px;';
+
+  /* Helper: build N inline die <img> tags as HTML string */
+  function diceImgsHTML(count, diceType) {
+    var url = getDiceIconUrl(diceType);
+    var img = '<img src="' + url + '" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="' + CRIT_IMG_STYLE + '">';
+    var out = '';
+    for (var i = 0; i < count; i++) out += img;
+    return out;
   }
 
-  if (hintEl) hintEl.textContent = dieLabel;
-  if (lblEl)  lblEl.textContent  = typeLabelText;
-  /* Update smite dice icon to match smite type */
-  var smiteDieIconEl = document.getElementById('smite' + n + '-die-icon');
-  if (smiteDieIconEl) {
-    smiteDieIconEl.src = getDiceIconUrl(smiteType === 'divin' ? 'd8' : 'd6');
+  var typeLabelText;
+
+  if (smiteType === 'divin') {
+    /* Base dice: 1+slot (×2 if crit) */
+    var numBase  = 1 + slotLevel;
+    if (isCrit) numBase *= 2;
+    /* Extra undead dice: always 1 (×2 if crit) */
+    var numExtra = isCrit ? 2 : 1;
+
+    typeLabelText = 'radiant';
+
+    /* Die icons row: base d8 icons */
+    renderDiceIcons('smite' + n + '-die-icons', 'd8', numBase);
+
+    /* Divin note: vampire icon + extra d8 icons */
+    if (divinNoteEl) {
+      var vampImg = '<img src="' + VAMPIRE_URL + '" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="Fiélon/Mort-vivant" aria-hidden="true" width="2.83em" height="2.83em" style="' + CRIT_IMG_STYLE + '">';
+      divinNoteEl.innerHTML =
+        '( ' + vampImg + ' + ' + diceImgsHTML(numExtra, 'd8') +
+        ' <span style="font-size:0.60rem;color:var(--bordeaux-clair);font-style:italic;">si Fiélon/Mort-vivant</span> )';
+      divinNoteEl.style.display = 'block';
+    }
+    if (fournNoteEl) fournNoteEl.style.display = 'none';
+
+  } else { /* fournaise */
+    var numDice = slotLevel;
+    if (isCrit) numDice *= 2;
+
+    typeLabelText = 'feu';
+
+    /* Die icons row: d6 icons */
+    renderDiceIcons('smite' + n + '-die-icons', 'd6', numDice);
+
+    /* Fournaise note: dynamic Nd6 gold + description */
+    if (fournNoteEl) {
+      var goldDice = '<strong style="color:var(--or);">' + numDice + 'd6</strong>';
+      fournNoteEl.innerHTML =
+        goldDice + ' — Au début de chacun de ses tours, la cible subit ' +
+        goldDice + ' feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.';
+      fournNoteEl.style.display = 'block';
+    }
+    if (divinNoteEl) divinNoteEl.style.display = 'none';
   }
+
+  if (lblEl) lblEl.textContent = typeLabelText;
 
   /* Compute total: base weapon dmg + smite dice input */
   var dmgTotalEl = document.getElementById('dmg' + n + '-total');
@@ -7972,8 +8164,13 @@ function finDuRound() {
     if (fields) fields.style.display = 'none';
     var tot = document.getElementById('smite' + n + '-total');
     if (tot) tot.textContent = '—';
-    var hint = document.getElementById('smite' + n + '-hint');
-    if (hint) hint.textContent = '';
+    /* Clear die icons and notes */
+    var dieIcons = document.getElementById('smite' + n + '-die-icons');
+    if (dieIcons) dieIcons.innerHTML = '';
+    var divinNote = document.getElementById('smite' + n + '-divin-note');
+    if (divinNote) { divinNote.innerHTML = ''; divinNote.style.display = 'none'; }
+    var fournNote = document.getElementById('smite' + n + '-fournaise-note');
+    if (fournNote) { fournNote.innerHTML = ''; fournNote.style.display = 'none'; }
   });
   showNotification('⏱ Fin du round — jets réinitialisés.', 'warning');
 }
@@ -7986,6 +8183,7 @@ window.closeMenu             = closeMenu;
 window.menuReinitialiser     = menuReinitialiser;
 window.menuImporter          = menuImporter;
 window.menuExporter          = menuExporter;
+window.menuRafraichir        = menuRafraichir;
 window.menuToutReplier       = menuToutReplier;
 window.menuToutDeployer      = menuToutDeployer;
 window.toggleVfxSubmenu      = toggleVfxSubmenu;
@@ -8017,7 +8215,9 @@ window.toggleSkills          = toggleSkills;
 window.togglePanel           = togglePanel;
 window.getPanelBody          = getPanelBody;
 window.initPanels            = initPanels;
+window.pvColorClass          = pvColorClass;
 window.updateAll             = updateAll;
+window.updateAllLists        = updateAllLists;
 window.updateCaShield        = updateCaShield;
 window.updateVersionLabel    = updateVersionLabel;
 window.updateTestRoll        = updateAideTests;
@@ -8315,6 +8515,7 @@ function supprimerArme(id) {
     onOui: function() {
       S.weapons = (S.weapons || []).filter(function(w) { return w.id !== id; });
       updateWeapons();
+      updateCombat();
       sauvegarder();
       showNotification('🗑️ Arme supprimée', 'warning');
     }
@@ -8598,7 +8799,8 @@ function enregistrerArme() {
     S.weapons.push(newWeapon);
   }
   fermerFormArme();
-  updateWeapons();
+  updateWeapons();       /* refreshes inventory list + dropdowns */
+  updateCombat();        /* refreshes Attaque Rapide totals and die icons */
   sauvegarder();
   showNotification(editId ? '\u270f\ufe0f Arme modifiée' : '\u2694\ufe0f Arme ajoutée', 'success');
 }
@@ -8817,6 +9019,7 @@ function toggleArmorEquipped(id, checked) {
   }
   updateArmors();
   updateCA();
+  updateCombat();
   sauvegarder();
 }
 
@@ -8836,6 +9039,7 @@ function supprimerArmure(id) {
       S.armors = (S.armors || []).filter(function(a) { return a.id !== id; });
       updateArmors();
       updateCA();
+      updateCombat();
       sauvegarder();
       showNotification('\ud83d\uddd1\ufe0f Armure supprim\u00e9e', 'warning');
     }
@@ -9060,10 +9264,11 @@ function enregistrerArmure() {
   }
 
   fermerFormArmure();
-  updateArmors();
-  updateCA();
+  updateArmors();        /* refreshes inventory list */
+  updateCA();            /* recalculates CA from equipped armors */
+  updateCombat();        /* refreshes Attaque Rapide (CA displayed there) */
   sauvegarder();
-  showNotification(editId ? '\u270f\ufe0f Armure modifi\u00e9e' : '\ud83d\udee1\ufe0f Armure ajout\u00e9e', 'success');
+  showNotification(editId ? '\u270f\ufe0f Armure modifiée' : '\ud83d\udee1\ufe0f Armure ajoutée', 'success');
 }
 
 window.checkCritique         = checkCritique;
@@ -9137,6 +9342,31 @@ window.genTypedId            = genTypedId;
 window.FILE_VERSION          = FILE_VERSION;
 
 /* ============================================================
+   DIAGNOSTIC SCROLL — temporaire, à retirer après investigation
+   Objectif : comparer le comportement Safari vs Standalone iPad
+   + clavier externe pour identifier la cause du scroll parasite.
+   ============================================================ */
+
+/* ── WKWebView scroll fix — always active ──────────────────────────────
+   Blocks no-op .value writes on inputs. In WKWebView standalone with a
+   hardware keyboard, writing .value on an input with the same value can
+   trigger scroll-to-element due to vpH=-32 miscalculation. ── */
+(function() {
+  var _origSet = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+  var _origGet = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').get;
+  Object.defineProperty(HTMLInputElement.prototype, 'value', {
+    set: function(v) {
+      if (String(_origGet.call(this)) === String(v)) return;
+      _origSet.call(this, v);
+    },
+    get: _origGet,
+    configurable: true
+  });
+})();
+
+
+
+/* ============================================================
    initApp() — voir [EX-T-F37]
    Appelé directement, JAMAIS via DOMContentLoaded
    ============================================================ */
@@ -9201,7 +9431,7 @@ function injectDefaults() {
 }
 
 function makeCombatBlock(n){
-  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <h4 class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/spinning-sword.svg" class="gi-icon gi-icon-md gi-icon-red" alt="" aria-hidden="true" width="1.68em" height="1.68em" style="vertical-align:middle;">Attaque '+n+'</h4>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"><img src=\"https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg\" class=\"gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold\" alt=\"\" aria-hidden=\"true\" width=\"2.83em\" height=\"2.83em\" style=\"vertical-align:middle;margin-left:4px;\"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"><img id="dmg'+n+'-die-icon" src="'+D8_DATA_URI+'" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-left:4px;"></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">Critique : saisir la somme de 2d8 <img src="'+D8_DATA_URI+'" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-right:0.15em;"><img src="'+D8_DATA_URI+'" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-right:0.15em;"></div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')"><img id="smite'+n+'-die-icon" src="'+D8_DATA_URI+'" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-left:4px;">\n                  <span class="smite-hint" id="smite'+n+'-hint"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;">Au début de chacun de ses tours, la cible subit 1d6 feu et effectue un jet de sauvegarde de Constitution. Réussite : fin du sort.</div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
+  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <h4 class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/spinning-sword.svg" class="gi-icon gi-icon-md gi-icon-red" alt="" aria-hidden="true" width="1.68em" height="1.68em" style="vertical-align:middle;">Attaque '+n+'</h4>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"><img src=\"https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg\" class=\"gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold\" alt=\"\" aria-hidden=\"true\" width=\"2.83em\" height=\"2.83em\" style=\"vertical-align:middle;margin-left:4px;\"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"><span id="dmg'+n+'-die-icons" style="display:inline-flex;gap:2px;vertical-align:middle;margin-left:2px;"></span></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">Critique : saisir la somme de 2d8 </div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')"><span id="smite'+n+'-die-icons" style="display:inline-flex;gap:2px;align-items:center;vertical-align:middle;margin-left:4px;flex-wrap:wrap;"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-divin-note" style="display:none;"></div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;"></div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
 }
 var HM_STARS=[
   [[98.3,55.3,1.21,320,0.52],[49.4,54.3,1,209,0.9],[94.4,133,1.05,60,0.38],[93.2,49.4,0.89,230,0.7],[97.3,42.5,1.49,260,0.54],[113,99.5,1.07,286,0.29],[105.2,63.9,0.79,123,0.68],[49.5,79.9,1.27,242,0.6],[110.9,87,1.49,163,0.59],[126.3,103.6,1.06,312,0.63],[70,58.2,1.54,286,0.54],[113.7,84,0.77,83,0.67],[125.3,55.6,1.15,121,0.75],[37.2,115.1,1.49,93,0.87],[84.3,97.5,1.15,228,0.57],[76.6,51.4,1.28,158,0.52],[59,105,1.48,340,0.86],[56.5,66.7,0.84,62,0.46],[88.2,114.5,1.18,51,0.54],[120.9,113.4,1.52,347,0.87],[94.6,29.5,1,2,0.49],[118.6,54.7,0.81,86,0.57],[82.7,29.1,1.13,295,0.33],[82.9,79.5,0.79,105,0.45],[59.9,32.2,1.12,324,0.67],[124.5,49.9,0.88,283,0.56],[31.5,58.1,1.34,168,0.62],[47.3,31.4,0.97,3,0.41]],
@@ -9226,13 +9456,6 @@ function initApp() {
   })();
   document.getElementById('combat-blocks-container').innerHTML=
     makeCombatBlock(1)+makeCombatBlock(2);
-  // Inject D8_DATA_URI into static HTML img elements (src cannot reference JS constants)
-  (function() {
-    var el = document.getElementById('mnt-dmg-die-icon');
-    if (el) el.src = D8_DATA_URI;
-    var critImgs = document.querySelectorAll('#mnt-dmg-crit-label img');
-    for (var i = 0; i < critImgs.length; i++) critImgs[i].src = D8_DATA_URI;
-  })();
   var data;
   try {
     var raw = localStorage.getItem('paladin_strahd_v3');
@@ -9252,12 +9475,8 @@ function initApp() {
   applyPanelStates();        /* Restaure l'état collapse/expand des panels [EX-G-F44] */
   updateVersionLabel();      /* Affiche FILE_VERSION dans #version-label [EX-T-F41] */
   updateAll();
-  /* Initial render of tables not covered by updateAll() [EX-T-F38] */
-  updateArmors();
-  updateItems();
-  updateWeapons();   /* also calls updateWeaponDropdowns() */
-  updateGrimoire();
-  updateFeats();
+  updateAllLists(); /* initial render of tables not covered by updateAll() [EX-T-F38] */
+
 }
 
 /* Appel direct, sans event listener */
@@ -9277,6 +9496,40 @@ v13.9 — 2026-03-19 : Retrait de 5 appels redondants de updateAll() — updateA
 v13.10 — 2026-03-19 : Fix régression v13.9 — tables vides au chargement : ajout de 5 appels initiaux dans initApp() après updateAll() (updateArmors, updateItems, updateWeapons, updateGrimoire, updateFeats) pour le rendu initial depuis localStorage.
 v13.11 — 2026-03-19 : Fix scroll bug iPad standalone + clavier externe — updateAll() ne réécrit plus .value sur l'élément actuellement focalisé ; helper local setVal(el,v) avec garde _activeEl ajouté.
 v13.12 — 2026-03-19 : Fix scroll bug v2 — document.activeElement non fiable dans WKWebView standalone ; updateAll(sourceEl) accepte maintenant event.target ; attachListeners() passe e.target explicitement.
+v13.13 — 2026-03-19 : Revert v13.11/v13.12 + diagnostic scroll complet
+v13.14 — 2026-03-19 : Fix scroll iPad standalone clavier externe
+v13.15 — 2026-03-19 : Diag enrichi
+v13.16 — 2026-03-19 : Diag v3
+v13.17 — 2026-03-19 : Fix scroll WKWebView standalone
+v13.18 — 2026-03-19 : Diag v4
+v13.19 — 2026-03-19 : Fix scroll WKWebView v3
+v13.20 — 2026-03-19 : Fix syntax error v13.19
+v13.21 — 2026-03-19 : Fix scroll lock v2
+v13.22 — 2026-03-19 : Fix scroll guard v3
+v13.23 — 2026-03-19 : Fix scroll guard v4
+v13.24 — 2026-03-19 : Fix export overlay broken
+v13.25 — 2026-03-19 : Remove all diagnostic code ; weapon/armor edit now refreshes Attaque Rapide.
+v13.26 — 2026-03-20 : Monture — (1) Caractéristiques collapsible ; (2) Coup d'outremonde déplacé dans Capacités spéciales ; (3) Lien vital ajouté.
+v13.27 — 2026-03-20 : Fix couleur titre Caractéristiques monture.
+v13.28 — 2026-03-20 : Aide aux Tests — sous-titres collapsibles H3 ; placeholder 1–20 supprimé.
+v13.29 — 2026-03-20 : Imposition des mains — suppression ligne info redondante.
+v13.30 — 2026-03-20 : Attaque Rapide dice icons — crit-label texte seul ; N icônes dynamiques selon diceCount.
+v13.31 — 2026-03-20 : Châtiment — icônes dés dynamiques, note undead divin, note fournaise dynamique.
+v13.32 — 2026-03-20 : Fix \\n dans template smite-fields.
+v13.33 — 2026-03-20 : Fix oninput updateSmite() dans template.
+v13.34 — 2026-03-20 : Fix renderDiceIcons() — img.width/height via style.cssText.
+v13.35 — 2026-03-20 : Fix import JSON — 5 fonctions de rendu appelées après updateAll().
+v13.36 — 2026-03-20 : updateAllLists() helper + reinitialiser() fix + bouton Rafraîchir.
+v13.37 — 2026-03-20 : Fix icône Tout replier — ▸ Unicode.
+v13.38 — 2026-03-20 : PV Monture — couleur dynamique 3 paliers.
+v13.39 — 2026-03-20 : Dégradé PV 5 paliers — pvColorClass() helper.
+v13.40 — 2026-03-20 : Fix sphère glow + pulsation warn.
+v13.41 — 2026-03-20 : Reliquaire UI — titre, icônes, placeholder.
+v13.42 — 2026-03-20 : Icônes Reliquaire crimson/green ajoutées.
+v13.43 — 2026-03-20 : Fix filtres crimson/green — invert() approach.
+v13.44 — 2026-03-20 : Fix crimson invert pipeline.
+v13.45 — 2026-03-20 : Fix crimson filter — brightness(0.4) avant sepia.
+v13.46 — 2026-03-20 : Icône glowing-hands Reliquaire — suppression du span wrapper (font-size/color sans effet sur img) ; gi-icon-gold appliqué directement. Fix crimson — brightness(0.4) avant sepia évite le clamping R/G (blanc→sepia clip à 1.0 fausse la teinte à 60° jaune) ; pipeline brightness(0.4)+sepia(1)+saturate(10)+hue-rotate(320deg)+brightness(1.4) donne H≈359° rouge. Fix crimson — pipeline brightness(0)→invert(1)→sepia(1)→saturate(20)→hue-rotate(320deg)→brightness(0.75) ; sepia sur blanc donne H≈50° puis rotation 320° = H≈10° (rouge vif). Fix filtres icônes crimson/green — sepia(1) sur blanc produit quasi-blanc (L=0.97) rendant hue-rotate inefficace ; remplacé par invert()+sepia()+saturate()+hue-rotate() pour un rouge et vert vivaces. Icônes Reliquaire — ragged-wound → gi-icon-crimson (rouge vif) ; apothecary → gi-icon-green (vert) ; deux nouvelles classes CSS filter ajoutées. Reliquaire — titre section-title-rapide ; icône Blessure → ragged-wound (rouge) ; icône Soins → apothecary (or) ; placeholder "Dégâts" → "Blessure". Fix sphère PV sans glow (double préfixe pv-pv-ok) ; pulsation ajoutée au palier warn (10–25%) via pulserWarn ; pvColorClass() retourne suffixe nu. Dégradé PV 5 paliers — pvColorClass() helper ; .pv-ok/.pv-ok-low/.pv-blesse/.pv-warn/.pv-crit ; 5 @keyframes sphère ; [EX-M-F05] mis à jour. PV actuels Monture — couleur dynamique verte/orange/rouge selon seuils [EX-M-F05] ; oninput appelle updateMonture() au lieu de sauvegarder(). Fix icône "Tout replier" — ra-angle-right (RPG Awesome, invisible dans di-icon) remplacé par ▸ (Unicode, cohérent avec ▾ de "Tout déplier"). Audit complet des call sites — updateAllLists() helper créé (regroupe les 5 appels de rendu) ; reinitialiser() corrigé (manquait les 5 appels) ; bouton Rafraîchir ajouté au menu ⚙ ; [EX-T-F38] mis à jour. Fix import JSON — confirmerImport() appelle désormais updateArmors/Items/Weapons/Grimoire/Feats après updateAll() ; listes vides après import car ces 5 fonctions sont hors périmètre updateAll(). [EX-T-F34] mis à jour. Fix renderDiceIcons() — img.width/height sont des propriétés entières DOM, pas des strings CSS ; remplacé par img.style.cssText incluant width:2.83em;height:2.83em. Les icônes dés Châtiment sont maintenant visibles. Fix oninput updateSmite() dans template — les handlers slot/dice utilisaient \'+n+\' au lieu de '+n+' dans l'attribut HTML, produisant du JS invalide au runtime. \\n → \n dans le template smite-fields (les \\n causaient du texte littéral au lieu de nouvelles lignes HTML). — icônes dés dynamiques (type×niveau×crit) ; Divin : note undead avec icône vampire-cape + Nd8 ; Fournaise : note Nd6 dynamique or+gras ; hint supprimé ; finDuRound nettoyage mis à jour. — crit-label texte seul (icônes supprimées) ; #dmgN-die-icons et #mnt-dmg-die-icons : N icônes dynamiques selon diceCount weapon (×2 si crit D20=20) ; updateMonture() gère mnt-dmg-die-icons et mnt-dmg-crit-label ; injection D8_DATA_URI initApp() supprimée ; critDiceIcons() inutilisé mais conservé. — suppression ligne info redondante PV Max (5×niveau) ; label Max (auto) renommé PV Max (5 × niv). — sous-titres convertis en H3 section-title collapsible (Tests de Caractéristique, Jets de Sauvegarde) ; placeholder 1–20 supprimé des champs d20 ; CSS .subsection-header retiré. Caractéristiques monture — suppression classe mnt-stats-title (bordeaux) du H4 collapsible, section-title seul suffit (or). — (1) Caractéristiques collapsible (H4 + panel-body) ; (2) Coup d'outremonde déplacé dans Capacités spéciales ; (3) Lien vital ajouté dans Capacités spéciales ; Coup d'outremonde et Lien vital indépendants du type. ; weapon/armor edit now refreshes Attaque Rapide — updateCombat() added to enregistrerArme, enregistrerArmure, supprimerArme, supprimerArmure, toggleArmorEquipped. — removed Node.prototype.textContent intercept (caused silent WebKit exceptions during createElement/appendChild in overlay construction, aborting afficherOverlayExport mid-execution). + overlay fix — guard now covers ALL arrow keys (fixes number input up/down) ; window._scrollGuardClear() exposed publicly ; creerOverlay() calls it to ensure overlays never blocked ; guard 400ms ; clears itself after first cancel. — replaced continuous lock with targeted 300ms guard window on input/Shift+Arrow ; cancels only single jumps >50px (WKWebView spurious) ; trackpad and touch scroll free at all times ; overlays unaffected. — _lockY/_lockX promoted to module-level globals ; creerOverlay() releases lock (overlay positioning fix) ; touchstart releases lock (intentional swipe) ; >2px threshold on scroll restore ; overlay-backdrop check removed from blur (was preventing lock release on overlay input blur). — missing closing brace on attachListeners() causing uncaught JS error and app loading as v12.17 fallback. — scroll lock continu pendant focus input : _onFocusLock mémorise lockY/X, _onScrollLock restaure si scroll parasite détecté, _onBlurUnlock libère ; couvre typing ET Shift+Arrow ET mutations DOM ; overlays exclus. — intercept textContent (Node.prototype) et localStorage.setItem pour identifier le vrai déclencheur scroll après confirmation que les .value SKIP n'ont pas résolu le problème. — IIFE defineProperty HTMLInputElement.value bloque les écritures sans changement de valeur (no-op) ; actif en permanence indépendamment du diagnostic ; coupable identifié : .val[ca] 2e écriture déclenchait le scroll. — .value loggué sur toutes les écritures (même sans changement) avec sY courant ; timestamps relatifs +Xms depuis start ; maxLogs 200 ; bouton Copy (textarea execCommand) ; diagCopy() exposé sur window. — timestamps relatifs (+Xms depuis start), FOCUS/FOCUS-RESTORE/FOCUS-16ms/FOCUS-SCROLLTO loggés ; test double délai 0ms+16ms dans focus fix pour identifier si scrollTo fonctionne. — cause identifiée (focus déclenche scroll WKWebView via vpH=-32) ; attachListeners() ajoute listener focus capture-phase sur navigator.standalone : mémorise scrollY/X avant, restaure via setTimeout(0) si WKWebView a scrollé ; overlays exclus. : diagInit() au lancement crée bouton flottant + panel ; diagToggle() via menu ⚙ ; wrapping updateAll() (PRE/POST scrollY, focus id) ; defineProperty HTMLInputElement.value (intercepte chaque écriture .value avec id) ; listeners VP-RESIZE et SCROLL-EVT ; mode standalone détecté via navigator.standalone.
 ====================================================== */
 </script>
 
