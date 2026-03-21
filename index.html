@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v14 | version complète : 14.4 — 2026-03-21 -->
+<!-- dnd-sheet-v14 | version complète : 14.7 — 2026-03-21 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -960,7 +960,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '14.4'
+       · Valeur courante : '14.7'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -1738,7 +1738,7 @@ body {
 @keyframes pulserCrit { 0%,100%{box-shadow:0 0 4px rgba(204,34,34,0.2);}50%{box-shadow:0 0 14px rgba(204,34,34,0.7),0 0 28px rgba(204,34,34,0.25);} }
 @keyframes pulserWarn { 0%,100%{box-shadow:0 0 4px rgba(210,60,10,0.15);}50%{box-shadow:0 0 12px rgba(210,60,10,0.55),0 0 22px rgba(210,60,10,0.20);} }
 
-.field-row { display:flex; gap:10px; align-items:flex-end; }
+.field-row { display:flex; gap:10px; align-items:flex-end; margin-bottom:10px; }
 .field-row .field-group { flex:1; margin-bottom:0; }
 
 /* ============================================================
@@ -1879,13 +1879,13 @@ body {
 .spells-actifs { display:flex; flex-direction:column; gap:3px; margin-bottom:8px; }
 .spell-toggle { background:rgba(139,26,26,0.08); border:1px solid rgba(139,26,26,0.25); border-radius:3px; padding:4px 7px; transition:all 0.25s; }
 .spell-toggle:has(input:checked) { background:rgba(139,26,26,0.22); border-color:var(--bordeaux-clair); box-shadow:0 0 8px rgba(139,26,26,0.25); }
-.combat-block { margin-bottom:7px; }
+.combat-block { margin-bottom:12px; }
 .combat-title { font-family:var(--font-sub); font-size:0.57rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--bordeaux-clair); margin-top:8px; margin-bottom:4px; display:flex; align-items:center; gap:5px; }
 .combat-title::after { content:''; flex:1; height:1px; background:rgba(139,26,26,0.35); }
 .atk-dmg-pair { display:flex; gap:6px; }
-.atk-half, .dmg-half { flex:1; background:rgba(10,10,22,0.45); border:1px solid rgba(201,168,76,0.1); border-radius:3px; padding:5px 6px; }
-.half-title { font-family:var(--font-sub); font-size:0.53rem; letter-spacing:1px; text-transform:uppercase; color:var(--parchemin-s); margin-bottom:3px; }
-.combat-row { display:flex; align-items:center; gap:5px; margin-bottom:3px; font-size:0.7rem; color:var(--parchemin-s); }
+.atk-half, .dmg-half { flex:1; background:rgba(10,10,22,0.45); border:1px solid rgba(201,168,76,0.1); border-radius:3px; padding:7px 8px; }
+.half-title { font-family:var(--font-sub); font-size:0.53rem; letter-spacing:1px; text-transform:uppercase; color:var(--parchemin-s); margin-bottom:6px; }
+.combat-row { display:flex; align-items:center; gap:5px; margin-bottom:5px; font-size:0.7rem; color:var(--parchemin-s); }
 .combat-row .lbl { flex-shrink:0; min-width:55px; font-size:0.64rem; }
 .combat-row .val { color:var(--or-clair); font-weight:600; font-size:0.72rem; }
 .combat-total { background:rgba(201,168,76,0.1); border:1px solid rgba(201,168,76,0.28); border-radius:3px; color:var(--or); font-weight:700; font-size:0.82rem; padding:2px 7px; text-align:center; min-width:36px; cursor:default; }
@@ -2116,7 +2116,7 @@ body {
   border-radius:4px;
   padding:8px 6px 6px;
   background:rgba(139,26,26,0.04);
-  margin-top:2px;
+  margin-top:6px;
 }
 
 /* ============================================================
@@ -2584,7 +2584,7 @@ select.field-input optgroup {
   flex-wrap:wrap;
   align-items:center;
   gap:4px 0;
-  padding:6px 4px 8px;
+  padding:8px 4px 10px;
   border-bottom:1px solid rgba(201,168,76,0.15);
   margin-bottom:6px;
   user-select:none;
@@ -2684,14 +2684,14 @@ select.field-input optgroup {
 
 /* ── Grimoire Spell Table (Sprint 2) ─────────────────────── */
 .spell-level-group {
-  margin-bottom:4px;
+  margin-bottom:10px;
 }
 .spell-level-header {
   display:flex;
   align-items:center;
   gap:5px;
   cursor:pointer;
-  padding:3px 2px;
+  padding:6px 4px;
   border-bottom:1px solid rgba(201,168,76,0.2);
   margin-top:8px;
   margin-bottom:2px;
@@ -2722,13 +2722,13 @@ select.field-input optgroup {
   color:rgba(196,180,154,0.5);
 }
 .spell-level-body {
-  padding-left:4px;
+  padding-left:8px;
 }
 .spell-row {
   display:flex;
   align-items:center;
   gap:4px;
-  padding:3px 2px;
+  padding:6px 4px;
   border-bottom:1px solid rgba(255,255,255,0.04);
   min-height:28px;
 }
@@ -2765,7 +2765,7 @@ select.field-input optgroup {
   align-items:center;
   gap:2px;
   cursor:pointer;
-  padding:1px 3px;
+  padding:3px 4px;
 }
 .spell-check-cell input[type="checkbox"] {
   width:14px;
@@ -3078,13 +3078,13 @@ select.field-input optgroup {
   background:rgba(201,168,76,0.07);
   border:1px solid rgba(201,168,76,0.18);
   border-radius:3px;
-  padding:1px 5px;
+  padding:3px 7px;
   white-space:nowrap;
   flex-shrink:0;
 }
 .feats-form-area {
   margin-top:8px;
-  padding-top:8px;
+  padding-top:12px;
   border-top:1px solid rgba(201,168,76,0.18);
 }
 .feats-type-row {
@@ -3100,7 +3100,7 @@ select.field-input optgroup {
   border:1px solid rgba(201,168,76,0.28);
   color:var(--parchemin-s);
   border-radius:3px;
-  padding:3px 9px;
+  padding:6px 12px;
   cursor:pointer;
   min-height:28px;
   transition:background 0.12s,color 0.12s,border-color 0.12s;
@@ -3151,7 +3151,7 @@ select.field-input optgroup {
   display:flex;
   align-items:center;
   gap:4px;
-  padding:3px 0;
+  padding:6px 0;
   border-bottom:1px solid rgba(201,168,76,0.10);
 }
 .inv-item-row:last-of-type { border-bottom:none; }
@@ -3216,7 +3216,7 @@ select.field-input optgroup {
   font-size:0.82rem;
   text-align:left;
   cursor:pointer;
-  padding:2px 0;
+  padding:5px 0;
   min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -3237,7 +3237,7 @@ select.field-input optgroup {
 .inv-item-action-btn .ra-quill-ink { color:var(--or); }
 .inv-item-action-btn .ra-x-mark { color:#c0392b; }
 .inv-desc-row {
-  padding:0 6px 5px 10px;
+  padding:4px 6px 6px 10px;
 }
 .inv-desc-row.hidden { display:none; }
 .inv-desc-text {
@@ -3262,7 +3262,7 @@ select.field-input optgroup {
    INVENTAIRE — Armes detail row & form
    ============================================================ */
 .inv-weapon-detail {
-  padding:4px 6px 6px 10px;
+  padding:7px 6px 8px 10px;
   border-left:2px solid rgba(201,168,76,0.2);
   margin:0 0 2px 0;
 }
@@ -3270,7 +3270,7 @@ select.field-input optgroup {
 .inv-weapon-detail-grid {
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:2px 10px;
+  gap:5px 10px;
   font-size:0.73rem;
   color:var(--parchemin-s);
   font-family:var(--font-corps);
@@ -3528,7 +3528,7 @@ select.field-input optgroup {
 .inv-armor-detail-grid {
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:2px 10px;
+  gap:5px 10px;
 }
 .inv-armor-detail-full {
   grid-column:1/-1;
@@ -3634,7 +3634,7 @@ select.field-input optgroup {
 
     <!-- Version label — miroir symétrique du menu-wrapper, voir [EX-T-F41] -->
     <div class="version-wrapper">
-      <span id="version-label">v14.4</span>
+      <span id="version-label">v14.7</span>
     </div>
   </div>
 
@@ -3696,7 +3696,7 @@ select.field-input optgroup {
         <h2 class="section-title collapsible section-title-rapide">
           <span style="flex:1;min-width:0;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/heart-organ.svg" class="gi-icon gi-icon-lg gi-icon-gold" alt="" aria-hidden="true" width="1.82em" height="1.82em" style="vertical-align:middle;">Vie</span>
         </h2>
-        <div class="panel-body" style="padding-top:4px;">
+        <div class="panel-body" style="padding-top:8px;">
 
           <!-- Sous-section 1 : Points de Vie — titre supprimé (R5), contenu conservé -->
           <div class="panel-body">
@@ -3706,7 +3706,7 @@ select.field-input optgroup {
             <span>Robuste (+2 PV / niveau)</span>
           </label>
           <!-- C1b — PV Max editable + C1c — bouton Reset PV Max -->
-          <div class="field-row" style="margin-bottom:5px;">
+          <div class="field-row" style="margin-bottom:10px;">
             <div class="field-group">
               <label class="field-label">PV Max</label>
               <div style="display:flex;gap:4px;align-items:center;">
@@ -3728,7 +3728,7 @@ select.field-input optgroup {
           <!-- Sous-section 2 : Des de Vie -->
           <h3 class="section-title collapsible" style="margin-top:8px;"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-fire.svg" class="gi-icon gi-icon-lg gi-icon-dice-lg gi-icon-gold" alt="" aria-hidden="true" width="3.08em" height="3.08em" style="vertical-align:middle;">Dés de Vie</h3>
           <div class="panel-body">
-          <div class="field-row" style="margin-bottom:5px;">
+          <div class="field-row" style="margin-bottom:10px;">
             <div class="field-group">
               <label class="field-label">Type de de</label>
               <input class="field-input" type="text" value="d10" readonly style="text-align:center;font-weight:700;color:var(--or-clair);">
@@ -3827,7 +3827,7 @@ select.field-input optgroup {
               <select class="field-input" id="aide-test-target" style="cursor:pointer;" onchange="updateAideTests()">
               </select>
             </div>
-            <div class="field-row" style="margin-top:5px;">
+            <div class="field-row" style="margin-top:10px;">
               <div class="field-group">
                 <label class="field-label">Jet d20</label>
                 <input class="field-input" type="number" id="aide-test-d20" min="1" max="20" oninput="updateAideTests()">
@@ -3862,7 +3862,7 @@ select.field-input optgroup {
               <select class="field-input" id="aide-save-target" style="cursor:pointer;" onchange="updateAideTests()">
               </select>
             </div>
-            <div class="field-row" style="margin-top:5px;">
+            <div class="field-row" style="margin-top:10px;">
               <div class="field-group">
                 <label class="field-label">Jet d20</label>
                 <input class="field-input" type="number" id="aide-save-d20" min="1" max="20" oninput="updateAideTests()">
@@ -3895,7 +3895,7 @@ select.field-input optgroup {
         </h2>
         <div class="panel-body panel-magie-body">
         <!-- Caractéristique d'incantation [EX-M-F57] -->
-        <div class="field-row" style="margin-top:4px;margin-bottom:4px;">
+        <div class="field-row" style="margin-top:8px;margin-bottom:8px;">
           <div class="field-group">
             <label class="field-label">Carac. d'incantation</label>
             <select class="field-input" id="carac-incantation" onchange="updateDDSorts()">
@@ -3977,7 +3977,7 @@ select.field-input optgroup {
         <div class="panel-body">
 
             <!-- Configuration -->
-            <div class="field-row" style="margin-bottom:6px;">
+            <div class="field-row" style="margin-bottom:10px;">
               <div class="field-group">
                 <label class="field-label">Niveau du sort</label>
                 <input class="field-input" type="number" id="mnt-spell-level"
@@ -4012,7 +4012,7 @@ select.field-input optgroup {
             </div>
 
             <!-- PV actuels -->
-            <div class="field-group" style="margin-top:5px;">
+            <div class="field-group" style="margin-top:10px;">
               <label class="field-label">PV actuels</label>
               <input class="field-input" type="number" id="mnt-pv-cur"
                 min="0" max="25" value="25"
@@ -4918,7 +4918,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '14.4';
+var FILE_VERSION = '14.7';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -9645,6 +9645,9 @@ v14.1 — 2026-03-21 : Espacement accru avant tous les titres H3/H4/H5 imbriqué
 v14.2 — 2026-03-21 : Sprint N1 espacement global — .field-label margin-bottom 2→4px ; .field-group margin-bottom 6→10px ; .panel padding 9px 10px→12px 14px ; .sep margin 6→10px ; .custom-check margin-bottom 3→6px ; .field-row gap 6→10px.
 v14.3 — 2026-03-21 : Sprint N2 Col. Gauche + Stats — .death-group gap 3→6px ; .death-saves margin-top 5→10px ; .hd-vial-zone margin-top 8→12px ; .stat-block padding 6px 7px→8px 10px + margin-bottom 6→10px ; .save-row margin-top 4→7px ; .skills-list margin-top+padding-top 4→7px ; .skill-row padding 1px→3px 0.
 v14.4 — 2026-03-21 : Sprint N3 Magie + Monture + Aide aux Tests — .panel-magie-body padding-top 2→8px ; sep ajouté entre Tests et Jets de Sauvegarde ; slot rows margin 5→8px ; .mnt-calc-row margin-bottom 4→8px ; .mnt-calc-item padding 4px 6px→6px 10px ; .mnt-stats-table th/td padding 2px 4px→4px 6px ; .mnt-info-row margin-bottom 3→6px ; .mnt-ability-block margin-bottom 7→10px.
+v14.5 — 2026-03-21 : Sprint N4 Inventaire + Attaque Rapide — .inv-item-row padding 3→6px ; .inv-item-name-btn padding 2→5px ; .inv-desc-row padding top 0→4px ; .inv-weapon-detail-grid gap 2→5px ; .inv-weapon-detail padding 4px→7px top ; .inv-armor-detail-grid gap 2→5px ; .combat-row margin-bottom 3→5px ; .half-title margin-bottom 3→6px ; .round-zone margin-top 2→6px ; .atk-half/.dmg-half padding 5px 6px→7px 8px ; .combat-block margin-bottom 7→12px.
+v14.6 — 2026-03-21 : Sprint N5 Grimoire + Aptitudes — .spell-level-group margin-bottom 4→10px ; .spell-level-header padding 3px 2px→6px 4px ; .spell-row padding 3px 2px→6px 4px ; .spell-check-cell padding 1px 3px→3px 4px ; .spell-level-body padding-left 4→8px ; .grimoire-filter-bar padding 6px 4px 8px→8px 4px 10px ; .feats-badge padding 1px 5px→3px 7px ; .feats-type-btn padding 3px 9px→6px 12px ; .feats-form-area padding-top 8→12px.
+v14.7 — 2026-03-21 : Espacement inter-lignes — .field-row margin-bottom 0→10px (fix principal) ; Vie panel-body padding-top 4→8px ; PV Max row 5→10px ; Dés de Vie row 5→10px ; Aide aux Tests D20 rows 5→10px ; Magie carac row 4→8px ; Monture config row 6→10px ; Monture PV actuels 5→10px.
 ====================================================== */
 </script>
 
