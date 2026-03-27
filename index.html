@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v14 | version complète : 14.14 — 2026-03-26 -->
+<!-- dnd-sheet-v14 | version complète : 14.15 — 2026-03-26 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -101,10 +101,11 @@ CHANGELOG entry format:
      ─────────────────────────────────────────────────────────────── -->
 
 <!-- [EX-M-F04] PV MAX
-     Formule : (10 + modCON) + (niveau-1) × (6 + modCON) + (Robuste ? niveau×2 : 0)
+     Formule : (10 + modCON) + (niveau-1) × (6 + modCON) + (Robuste ? niveau×2 : 0) + pvBonus
      Champ pv-max : éditable manuellement (classe .auto-calc)
-     Bouton ↺ resetPvMax() : recalcule et écrase la valeur manuelle
-     Implémentation : calcPvMax(niv, robuste, valCon) → appelée par
+     Champ pv-bonus : bonus externe ≥ 0, non réinitialisé automatiquement, défaut 0
+     Bouton ↺ resetPvMax() : recalcule et écrase la valeur manuelle (inclut pvBonus)
+     Implémentation : calcPvMax(niv, robuste, valCon, bonusPV) → appelée par
        resetPvMax() et disponible dans updateAll()
 -->
 
@@ -856,7 +857,7 @@ CHANGELOG entry format:
      Fallback en cas d'échec lecture : objet DEFAULTS
      Données persistées (collecterDonnees() — liste exhaustive v12.17) :
        Identité     : nom, classe, espece, historique
-       Combat       : niveau, robuste, pvMax, pvActuels, pvTemp, deplacement, ca
+       Combat       : niveau, robuste, pvMax, pvActuels, pvTemp, pvBonus, deplacement, ca, caBonus
        Stats        : stats{}, sauvegardes{}, competences{}, skillsOpen{}, panelsOpen{}
        Ressources   : conduitCur, slot1Cur, slot2Cur, slot3Cur, hmCur, hdCur
                       (slot max non persistés — recalculés par updateSpellSlots())
@@ -959,7 +960,7 @@ CHANGELOG entry format:
 
      Variable : FILE_VERSION (string) déclarée en tête de <script>
        · Forme : '{MAJOR}.{MINOR}' — ex : '9.0', '9.1'
-       · Valeur courante : '14.14'
+       · Valeur courante : '14.15'
      Affichage UI : #version-label dans .header (à droite du titre)
        · Texte : 'v' + FILE_VERSION
        · Style : petit, discret, couleur rgba(196,180,154,0.45), police --font-sub
@@ -1119,7 +1120,8 @@ CHANGELOG entry format:
      calcMaitrise(niv) : niv 1-4→+2, 5-8→+3, 9-12→+4, 13-16→+5, 17-20→+6
      initiative-stat : sgn(modDEX) — readonly, mis à jour par updateCombat()
      deplacement     : éditable, valeur par défaut 9 (mètres)
-     ca              : éditable, valeur par défaut 19
+     ca              : calculé par updateCA() = base armure + bouclier + acBonus armure + caBonus
+     ca-bonus        : bonus externe ≥ 0 (sorts, capacités), non réinitialisé, défaut 0
      ca-bouclier     : CA + 2, champ readonly, visible si sort-bouclier coché
      ca-bouclier-grp : conteneur conditionnel (.hidden toggle via updateCaBouclier())
 -->
@@ -3767,7 +3769,7 @@ select.field-input optgroup {
 
     <!-- Version label — miroir symétrique du menu-wrapper, voir [EX-T-F41] -->
     <div class="version-wrapper">
-      <span id="version-label">v14.14</span>
+      <span id="version-label">v14.15</span>
     </div>
   </div>
 
@@ -3852,9 +3854,15 @@ select.field-input optgroup {
               <input class="field-input" type="number" id="pv-actuels" min="0">
             </div>
           </div>
-          <div class="field-group">
-            <label class="field-label">PV Temporaires</label>
-            <input class="field-input" type="number" id="pv-temp" min="0" value="0">
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">PV Temporaires</label>
+              <input class="field-input" type="number" id="pv-temp" min="0" value="0">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Bonus PV</label>
+              <input class="field-input" type="number" id="pv-bonus" min="0" value="0" style="text-align:center;">
+            </div>
           </div>
           </div><!-- fin panel-body Points de Vie (contenu seul, titre supprimé v12.7) -->
 
@@ -3923,6 +3931,10 @@ select.field-input optgroup {
           <div class="field-group">
             <label class="field-label">Classe d'Armure</label>
             <input class="field-input" type="number" id="ca" value="19" oninput="S.caManualOverride=true;updateAll()">
+          </div>
+          <div class="field-group" style="flex:0 0 auto;">
+            <label class="field-label">Bonus CA</label>
+            <input class="field-input" type="number" id="ca-bonus" min="0" value="0" style="width:52px;text-align:center;">
           </div>
           <div class="field-group" id="ca-bouclier-grp">
             <label class="field-label">CA + Bouclier</label>
@@ -5034,7 +5046,7 @@ select.field-input optgroup {
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '14.14';
+var FILE_VERSION = '14.15';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -5069,8 +5081,8 @@ var STATS_DEF = [
    ============================================================ */
 var DEFAULTS = {
   nom:'Valeria Dawnbringer', classe:'Paladin', espece:'Aasimar', historique:'Fermier', niveau:5, robuste:true,
-  pvMax:59, pvActuels:59, pvTemp:0,
-  deplacement:9, ca:19,
+  pvMax:59, pvActuels:59, pvTemp:0, pvBonus:0,
+  deplacement:9, ca:19, caBonus:0,
   stats:{con:16,for:16,cha:17,dex:12,sag:11,int:10},
   sauvegardes:{con:false,for:true,cha:true,dex:false,sag:false,int:false},
   competences:{
@@ -5120,10 +5132,10 @@ function calcMaitrise(niv) {
   if (niv <= 16) return 5;
   return 6;
 }
-function calcPvMax(niv, robuste, valCon) {
+function calcPvMax(niv, robuste, valCon, bonusPV) {
   var mc = modDnd(valCon);
   var base = (10 + mc) + (niv - 1) * (6 + mc);
-  return base + (robuste ? niv * 2 : 0);
+  return base + (robuste ? niv * 2 : 0) + (bonusPV || 0);
 }
 function lireInt(id, def) {
   var el = document.getElementById(id);
@@ -5902,7 +5914,8 @@ function resetPvMax() {
   var niv     = Math.max(1, Math.min(20, lireInt('niveau', 1)));
   var robuste = lireChk('check-robuste');
   var valCon  = lireInt('stat-con', 10);
-  var pvm     = calcPvMax(niv, robuste, valCon);
+  var bonusPV = Math.max(0, lireInt('pv-bonus', 0));
+  var pvm     = calcPvMax(niv, robuste, valCon, bonusPV);
   var el      = document.getElementById('pv-max');
   if (el) el.value = pvm;
   updateAll();
@@ -7012,8 +7025,9 @@ function updateAll() {
   var _nivChanged = (_prevNiv !== niv);
   if (_nivEl) _nivEl.setAttribute('data-prev-niveau', niv);
 
-  /* ── PV Max — always recalculated from level, CON, and robuste ── */
-  var pvM = calcPvMax(niv, robuste, valCon);
+  /* ── PV Max — always recalculated from level, CON, robuste, and bonus ── */
+  var bonusPV = Math.max(0, lireInt('pv-bonus', 0));
+  var pvM = calcPvMax(niv, robuste, valCon, bonusPV);
   if (pvM < 1) pvM = 1;
   var _pvMaxEl = document.getElementById('pv-max');
   if (_pvMaxEl) _pvMaxEl.value = pvM;
@@ -7626,8 +7640,10 @@ function collecterDonnees() {
     pvMax:     lireInt('pv-max', 0),
     pvActuels: lireInt('pv-actuels', 0),
     pvTemp:    lireInt('pv-temp', 0),
+    pvBonus:   Math.max(0, lireInt('pv-bonus', 0)),
     deplacement: lireInt('deplacement', 9),
     ca:        lireInt('ca', 15),
+    caBonus:   Math.max(0, lireInt('ca-bonus', 0)),
     stats:{}, sauvegardes:{}, competences:{}, skillsOpen:{}, panelsOpen:{},
     conduitCur: lireInt('conduit-cur', 2),
     slot1Cur: lireInt('slot1-cur', 0),
@@ -7749,6 +7765,9 @@ function sanitiserDonnees(raw) {
   var pvMax = defInt(raw.pvMax, DEFAULTS.pvMax);
   if (pvMax < 1) { pvMax = DEFAULTS.pvMax; fb++; }
 
+  var pvBonus = defInt(raw.pvBonus, 0);
+  if (pvBonus < 0) pvBonus = 0;
+
   var pvActuels = defInt(raw.pvActuels, pvMax);
   pvActuels = Math.max(0, Math.min(pvMax, pvActuels));
 
@@ -7849,8 +7868,10 @@ function sanitiserDonnees(raw) {
     pvMax:        pvMax,
     pvActuels:    pvActuels,
     pvTemp:       pvTemp,
+    pvBonus:      pvBonus,
     deplacement:  defInt(raw.deplacement, DEFAULTS.deplacement),
     ca:           defInt(raw.ca, DEFAULTS.ca),
+    caBonus:      Math.max(0, defInt(raw.caBonus, 0)),
     stats:        stats,
     sauvegardes:  sauvegardes,
     competences:  competences,
@@ -8013,8 +8034,10 @@ function charger(data) {
   setVal('pv-max',       data.pvMax);
   setVal('pv-actuels',   data.pvActuels);
   setVal('pv-temp',      data.pvTemp);
+  setVal('pv-bonus',     data.pvBonus || 0);
   setVal('deplacement',  data.deplacement);
   setVal('ca',           data.ca);
+  setVal('ca-bonus',     data.caBonus || 0);
   setVal('conduit-cur',  data.conduitCur);
   /* slot max set by updateSpellSlots via updateAll — not loaded from save */
   setVal('slot1-cur',    data.slot1Cur);
@@ -9131,7 +9154,8 @@ function updateCA() {
   var shieldBonus = shield ? 2 : 0;
   var bonusAC     = (main   ? (main.acBonus   || 0) : 0)
                   + (shield ? (shield.acBonus  || 0) : 0);
-  var total = baseCA + shieldBonus + bonusAC;
+  var bonusCA     = Math.max(0, lireInt('ca-bonus', 0));
+  var total = baseCA + shieldBonus + bonusAC + bonusCA;
   var el = document.getElementById('ca');
   if (el) el.value = total;
   /* Cascade: bouclier foi + shield SVG read #ca value */
@@ -9760,6 +9784,7 @@ v14.11 — 2026-03-21 : Sprint C4 — unification classes description + champ ca
 v14.12 — 2026-03-21 : Sprint C5 — renommage .grimoire-form-* → .form-* (52 occurrences CSS+JS) ; .mnt-stats-title CSS mort retiré ; .field-row-mt ajouté ; 3 inline margin-bottom:10px redondants supprimés ; 2 inline margin-top:10px remplacés par .field-row-mt.
 v14.13 — 2026-03-21 : Suppression des 9 séparateurs .sep dans Aide aux Tests et Magie (incl. Monture) — uniformisation de l'espacement inter-sous-sections avec les autres panneaux.
 v14.14 — 2026-03-26 : Lisibilité Attaque Rapide (Option C — scoped) : 15 overrides CSS scopés à #panel-body-attaque-rapide et .round-zone — H3 0.69→0.88rem, H4/half-title 0.57→0.80rem, .lbl 0.64→0.80rem, .val 0.78→0.92rem, .combat-row 0.73→0.88rem ; zéro impact sur les autres panneaux.
+v14.15 — 2026-03-26 : Bonus PV Max et Bonus CA — champ #pv-bonus (≥0, défaut 0) dans Vie : ajouté à calcPvMax() sans réinitialisation automatique ; champ #ca-bonus (≥0, défaut 0) dans Combat : ajouté à updateCA() ; persistance, sanitisation, charger(), DEFAULTS, [EX-M-F04]/[EX-T-F11]/[EX-T-F03] mis à jour.
 ====================================================== */
 </script>
 
