@@ -1,4 +1,4 @@
-<!-- dnd-sheet-v14 | version complète : 14.15 — 2026-03-26 -->
+<!-- dnd-sheet-v15 | version complète : 15.5 — 2026-03-27 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -129,6 +129,7 @@ CHANGELOG entry format:
        1. Si pvTemp > 0 : abs = min(pvTemp, dégâts), pvTemp -= abs, reste = dégâts - abs
        2. pvActuels = max(0, pvActuels - reste)
      Affichage sphère PV si pvTemp > 0 : capacité graphique = PV Max + PV Temp
+     Repos Long : pv-temp → 0 (réinitialisation dans _executerReposLong(), étape 2 [EX-M-F08])
 -->
 
 <!-- [EX-M-F08] REPOS LONG
@@ -136,7 +137,7 @@ CHANGELOG entry format:
        1. pv-actuels  → valeur de pv-max
        2. pv-temp     → 0
        3. hm-cur      → lireInt('hm-max', 0)
-       4. conduit-cur → 2  (max fixe)
+       4. conduit-cur → parseInt(_cdEl.max) || 2  (max dynamique selon niveau)
        5. aasimar-heal.checked → false
        6. slot1-cur   → lireInt('slot1-max', 0)
        7. slot2-cur   → lireInt('slot2-max', 0)
@@ -444,7 +445,7 @@ CHANGELOG entry format:
        Surface wave : compositor-thread GPU transform (translateX) — coût négligeable.
 -->
 
-<!-- [EX-G-F23] ATTAQUE RAPIDE — STRUCTURE VISUELLE (v12.14)
+<!-- [EX-G-F23] ATTAQUE RAPIDE — STRUCTURE VISUELLE (v15.4)
 
      Structure sémantique (v12.7+) :
        <h2 class="section-title collapsible section-title-rapide">  ← collapsible, icône sword-clash
@@ -462,6 +463,22 @@ CHANGELOG entry format:
        · color var(--or), letter-spacing 0.12em, text-transform uppercase
        · border-bottom 2px solid rgba(201,168,76,0.55)
        · text-shadow : 0 0 18px rgba(201,168,76,0.5) + 0 2px 4px rgba(0,0,0,0.9)
+
+     GÉNÉRATION DES BLOCS ATTAQUE 1 & 2 (v15.4) :
+       Source HTML : <template id="tpl-combat-block"> (après </div>placé après la fermeture de #app, avant la balise script)
+         · HTML lisible et indenté, zéro escaping JS, éditable directement.
+         · Placeholder : lettre N majuscule dans tous les id/name/onclick/onchange/oninput.
+         · N n'apparaît jamais dans class, src, style, type, value ni dans les noeuds texte
+           sauf "Attaque N" (patché séparément via childNodes).
+       Fonction : makeCombatBlock(n)
+         · cloneNode(true) depuis #tpl-combat-block
+         · querySelectorAll('[attr]').forEach → setAttribute replace(/N/g, n) pour
+           chaque attr dans : id, name, onclick, onchange, oninput
+         · Patch texte "Attaque N" via childNodes du .combat-title
+         · Retourne un DocumentFragment (Node) — utiliser appendChild(), pas innerHTML.
+       Appel dans initApp() :
+         container.appendChild(makeCombatBlock(1));
+         container.appendChild(makeCombatBlock(2));
 -->
 
 <!-- [EX-G-F29] ZONE ROUND — ENCADRÉ VISUEL
@@ -652,6 +669,15 @@ CHANGELOG entry format:
        · .inv-qty-ctrl inline dans la ligne d'inventaire : bouton − | input | bouton +
        · setWeaponQuantity(id, delta) : ±1, plancher 0, sauvegarde sans re-rendu
        · setWeaponQuantityDirect(id, val) : saisie directe dans l'input, plancher 0
+       · Les deux fonctions synchronisent également les inputs #atkN-qty-input (blocs Attaque)
+         pour tout bloc dont le sélecteur pointe sur la même arme.
+     AFFICHAGE QUANTITÉ DANS ATTAQUE RAPIDE (si consommable=true) :
+       · Ligne .combat-row#atkN-qty-row (hidden si non-consommable ou aucune arme) :
+         label "Quantité" + .inv-qty-ctrl (− | input#atkN-qty-input | +)
+       · _syncQtyRow(n) : affiche/masque la ligne et synchronise la valeur depuis S.weapons.
+         Appelée par updateWeaponDropdowns(), applyWeaponToBlock(), atkQtyChange(), atkQtyDirect().
+       · atkQtyChange(n, delta) : modifie la quantité ±1, synchronise inventaire + les 2 blocs.
+       · atkQtyDirect(n, val)   : saisie directe, même synchronisation.
      Persisté dans localStorage via S.weapons — passé tel quel par collecterDonnees().
      Sanitisé par sanitiserDonnees() : whitelist stricte, champs inconnus ignorés.
 -->
@@ -1032,6 +1058,7 @@ CHANGELOG entry format:
             updateWeapons, toggleWeaponDetail, supprimerArme, editArme,
             ouvrirFormArme, fermerFormArme, toggleRangeInputs, enregistrerArme,
             updateWeaponDropdowns, applyWeaponToBlock, toggleFinesseStat,
+            atkQtyChange, atkQtyDirect,
             updateCA, updateArmors, toggleArmorDetail, toggleArmorEquipped,
             supprimerArmure, editArmure, ouvrirFormArmure, fermerFormArmure,
             toggleArmorTypeFields, enregistrerArmure,
@@ -2347,6 +2374,17 @@ input.critique {
 /* Fin du Round button */
 .round-zone .btn-fin-round {
   font-size: 0.80rem;
+}
+/* Quantity row in combat blocks */
+.round-zone .inv-qty-btn {
+  font-size: 0.80rem;
+  width: 18px;
+  height: 18px;
+}
+.round-zone .inv-qty-input {
+  width: 32px;
+  font-size: 0.80rem;
+  height: 18px;
 }
 
 /* ============================================================
@@ -3769,7 +3807,7 @@ select.field-input optgroup {
 
     <!-- Version label — miroir symétrique du menu-wrapper, voir [EX-T-F41] -->
     <div class="version-wrapper">
-      <span id="version-label">v14.15</span>
+      <span id="version-label">v15.5</span>
     </div>
   </div>
 
@@ -5041,12 +5079,102 @@ select.field-input optgroup {
 
 </div><!-- fin #app -->
 
+<template id="tpl-combat-block">
+  <div class="combat-block" id="combat-block-N">
+    <h4 class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/spinning-sword.svg" class="gi-icon gi-icon-md gi-icon-red" alt="" aria-hidden="true" width="1.68em" height="1.68em" style="vertical-align:middle;">Attaque N</h4>
+    <!-- Sélecteur arme -->
+    <div class="weapon-sel-row">
+      <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>
+      <select class="combat-input weapon-sel" id="atkN-weapon-sel" onchange="applyWeaponToBlock(N)">
+        <option value="">— Aucune —</option>
+      </select>
+      <span class="finesse-toggle hidden" id="atkN-finesse-toggle">
+        <label class="finesse-opt"><input type="radio" name="atkN-finesse" value="FOR" checked onchange="toggleFinesseStat(N)"> FOR</label>
+        <label class="finesse-opt"><input type="radio" name="atkN-finesse" value="DEX" onchange="toggleFinesseStat(N)"> DEX</label>
+      </span>
+    </div>
+    <!-- Quantité (arme consommable seulement) -->
+    <div class="combat-row hidden" id="atkN-qty-row">
+      <span class="lbl">Quantité</span>
+      <span class="inv-qty-ctrl">
+        <button class="inv-qty-btn" onclick="atkQtyChange(N,-1)" title="Retirer 1">−</button>
+        <input class="inv-qty-input" type="number" id="atkN-qty-input" min="0" value="0" onchange="atkQtyDirect(N,this.value)">
+        <button class="inv-qty-btn" onclick="atkQtyChange(N,1)" title="Ajouter 1">+</button>
+      </span>
+    </div>
+    <div class="atk-dmg-pair">
+      <!-- Toucher -->
+      <div class="atk-half">
+        <div class="half-title">Toucher</div>
+        <div class="combat-row">
+          <span class="lbl">D20</span>
+          <input class="combat-input" type="number" id="atkN-d20" min="1" max="20" oninput="checkCritique('atkN-d20','dmgN')">
+          <img src="https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg" class="gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold" alt="" aria-hidden="true" width="2.83em" height="2.83em" style="vertical-align:middle;margin-left:4px;">
+        </div>
+        <div class="crit-badge" id="atkN-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>
+        <div class="combat-row"><span class="lbl" id="atkN-for-lbl">FOR</span><span class="val" id="atkN-for">+0</span></div>
+        <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atkN-mait">+0</span></div>
+        <div class="combat-row" id="atkN-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atkN-cha">+0</span></div>
+        <div class="combat-row" id="atkN-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>
+        <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atkN-total">—</span></div>
+      </div>
+      <!-- Dégâts -->
+      <div class="dmg-half">
+        <div class="half-title">Dégâts</div>
+        <div class="combat-row">
+          <span class="lbl" id="dmgN-die-lbl">D8</span>
+          <input class="combat-input" type="number" id="dmgN-d8" min="1" max="8">
+          <span id="dmgN-die-icons" style="display:inline-flex;gap:2px;vertical-align:middle;margin-left:2px;"></span>
+        </div>
+        <div class="crit-label" id="dmgN-crit-label">Critique : saisir la somme de 2d8</div>
+        <div class="combat-row"><span class="lbl" id="dmgN-for-lbl">FOR</span><span class="val" id="dmgN-for">+0</span></div>
+        <div class="combat-row" id="dmgN-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>
+        <div class="combat-row">
+          <span class="lbl">Total</span>
+          <span class="combat-total" id="dmgN-total">—</span>
+          <span class="dmg-type-lbl" id="dmgN-type-lbl"></span>
+        </div>
+        <div class="dmg-mastery-note hidden" id="dmgN-mastery-note"></div>
+        <!-- Châtiment Divin / Fournaise [EX-M-F31] -->
+        <div class="smite-block" id="smiteN-block">
+          <div class="combat-row">
+            <span class="lbl">Châtiment</span>
+            <select class="combat-input smite-select" id="smiteN-type" style="width:auto;flex:1;" onchange="updateSmite(N)">
+              <option value="">Aucun</option>
+              <option value="divin">Châtiment Divin</option>
+              <option value="fournaise">Châtiment de la Fournaise</option>
+            </select>
+          </div>
+          <div class="smite-fields" id="smiteN-fields" style="display:none;">
+            <div class="combat-row">
+              <span class="lbl">Niv. emplacement</span>
+              <input class="combat-input" type="number" id="smiteN-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite(N)">
+            </div>
+            <div class="combat-row">
+              <span class="lbl">Dés lancés</span>
+              <input class="combat-input" type="number" id="smiteN-dice" min="0" style="width:38px;" oninput="updateSmite(N)">
+              <span id="smiteN-die-icons" style="display:inline-flex;gap:2px;align-items:center;vertical-align:middle;margin-left:4px;flex-wrap:wrap;"></span>
+            </div>
+            <div class="smite-note" id="smiteN-divin-note" style="display:none;"></div>
+            <div class="smite-note" id="smiteN-fournaise-note" style="display:none;"></div>
+            <div class="combat-row" id="smiteN-total-row">
+              <span class="lbl">Total dégâts</span>
+              <span class="combat-total" id="smiteN-total">—</span>
+              <span class="smite-type-label" id="smiteN-type-label"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script>
 /* ============================================================
    VERSION — voir [EX-T-F41] et [VERSIONING INSTRUCTIONS]
    À mettre à jour à CHAQUE modification (minor ou major).
    ============================================================ */
-var FILE_VERSION = '14.15';
+var FILE_VERSION = '15.5';
 const D8_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIj48cGF0aCBkPSJNMjU2IDM3LjE0MyA3Ny44OTYgMzQzLjg1M2gzNTYuMjA4ek0yMzAuMTU0IDQ5Ljc5IDcyIDE2NC4yMzN2MTU3Ljkxem01MS42OSAwTDQ0MCAzMjIuMTQ0VjE2NC4yMzJ6bS0xMzIuNTE2IDkwLjAydjIxLjc4NmwtOC40ODYgOS42OHYtMTYuOTQyYy0yLjc3MiAzLjI0LTUuNjkyIDYuMzY3LTguMzg1IDkuNjY0IDMuNTM2LjI5MyAyLjQ4NCA1LjQzIDIuMjA3IDcuNzUyLTEuNzQ2IDkuNTM2LTguMTU0IDE3LjU3NS0xMy40MDQgMjQuNzktMS45NDMgMi41NDQtMy45NDMgNS4wNzUtNi4wMDggNy41MDctNC42NSAzLjQtOC40OSA0LjM5LTEwLjc3NS0xLjQ2My4yOTQtNy44MDYgMy44NC0xNS4yMiA4LjA0Ni0yMC45NjdsNS4yODgtNy45MThjLS4wNDggMi40NjIuMSA0Ljk3LS4wNzIgNy40MDUtMi4zNCA0LjM0Ny02Ljc2NiA5LjQ2LTUuNzU4IDE0LjYwOCA3Ljc2Ljg3NCAxMi4yMi0xMC44NjMgMTQuNTIyLTE2LjU4LjgzMi0yLjc2IDIuMTA4LTUuNDU4LTEuNDE4LTUuNDM0di03LjI2NHptMjEyLjEzIDEuMjEgNDQuODUzIDU0LjQ2NHY3LjI2MmwtMzAuMzA0LTM2LjMxdjguNDcybC02LjA2LTcuMjYyYy0uMTU1LTQuMTUtMS40MjQtOC4zNzctMi40MjUtMTIuMTAzLTEuODYtMi45MzYtMy45Ni01LjcwNC02LjA2LTguNDd6TTI1Ni4wNyAyMDMuODZjOC4zNyAwIDE0LjczMyAxLjUzIDE5LjA4OCA0LjU4NyA0LjM1NSAzLjAyNyA2LjUzMyA3LjQ3NSA2LjUzMyAxMy4zNDQgMCAzLjkyNC0xLjA4IDcuMTk4LTMuMjQzIDkuODIzLTIuMTMgMi42MjYtNS4yOTcgNC41NzItOS40OTggNS44MzggNC42OTQgMS4yOTggOC4yMyAzLjQxNSAxMC42MSA2LjM1IDIuNDA4IDIuOTAyIDMuNjE0IDYuNTc2IDMuNjE0IDExLjAyNCAwIDYuODU3LTIuMjg2IDEyLjA0Ny02Ljg1OCAxNS41Ny00LjU0IDMuNDktMTEuMjg4IDUuMjMzLTIwLjI0NiA1LjIzMy04Ljk4OCAwLTE1Ljc4NC0xLjc0NC0yMC4zODYtNS4yMzQtNC41NzItMy41MjItNi44NTgtOC43MTItNi44NTgtMTUuNTcgMC00LjQ0NyAxLjE5LTguMTIgMy41Ny0xMS4wMjQgMi40MDgtMi45MzUgNS45Ni01LjA1MiAxMC42NTUtNi4zNS00LjItMS4yNjUtNy4zNjYtMy4yMS05LjQ5Ny01LjgzNy0yLjEzLTIuNjI1LTMuMTk4LTUuOS0zLjE5OC05LjgyMiAwLTUuODM3IDIuMTgtMTAuMjg1IDYuNTM0LTEzLjM0MyA0LjM1NC0zLjA1OCAxMC43NDgtNC41ODYgMTkuMTgtNC41ODZ6bTAgMTEuMjEyYy0yLjg0IDAtNS4wMzUuNzQyLTYuNTggMi4yMjUtMS41MTMgMS40ODItMi4yNyAzLjU4My0yLjI3IDYuMyAwIDIuNzUuNzU3IDQuODY2IDIuMjcgNi4zNDggMS41NDUgMS40ODMgMy43NCAyLjIyNSA2LjU4IDIuMjI1IDIuNzggMCA0LjkyNi0uNzQyIDYuNDQtMi4yMjUgMS41MTMtMS40ODIgMi4yNy0zLjU5OCAyLjI3LTYuMzQ3IDAtMi43NS0uNzU3LTQuODUtMi4yNy02LjMtMS41MTQtMS40ODQtMy42Ni0yLjIyNi02LjQ0LTIuMjI2em0wIDI4LjI2MmMtMy4zMzYgMC01LjkuOTEyLTcuNjkgMi43MzQtMS43OTMgMS44MjMtMi42OSA0LjQzMy0yLjY5IDcuODMgMCAzLjM5OC44OTcgNi4wMDggMi42OSA3LjgzIDEuNzkgMS43OTIgNC4zNTQgMi42ODggNy42OSAyLjY4OCAzLjMwNSAwIDUuODM3LS44OTYgNy41OTgtMi42ODcgMS43Ni0xLjgyNCAyLjY0LTQuNDM0IDIuNjQtNy44MzIgMC0zLjQyOC0uODgtNi4wMzgtMi42NC03LjgzLTEuNzYtMS44MjItNC4yOTMtMi43MzQtNy41OTgtMi43MzR6TTg4LjcgMzU5Ljg1MiAyNTYgNDgwLjkxMmwxNjcuMy0xMjEuMDZ6bTEzOS40MiAyMy4yM2g1NC41NDh2NC44NDJjLTE0LjQwNiA1Ljk0Mi0yMS41ODIgMTIuODk3LTI3Ljg4IDI1LjQxNmgtMTUuNzZjNy4xMDQtMTMuODAzIDE0LjU0Ni0xNy43MTQgMjYuNjctMjUuNDE2aC0zNy41OHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L3N2Zz4=';
 
 'use strict';
@@ -8714,6 +8842,12 @@ function setWeaponQuantity(id, delta) {
       weapons[i].quantity = Math.max(0, cur + delta);
       var inp = document.getElementById('inv-qty-' + id);
       if (inp) inp.value = weapons[i].quantity;
+      /* Sync atk block qty inputs for any block pointing at this weapon */
+      [1, 2].forEach(function(n) {
+        var sel = document.getElementById('atk' + n + '-weapon-sel');
+        var qi  = document.getElementById('atk' + n + '-qty-input');
+        if (sel && sel.value === id && qi) qi.value = weapons[i].quantity;
+      });
       sauvegarder();
       return;
     }
@@ -8730,6 +8864,12 @@ function setWeaponQuantityDirect(id, val) {
       weapons[i].quantity = q;
       var inp = document.getElementById('inv-qty-' + id);
       if (inp) inp.value = q;
+      /* Sync atk block qty inputs for any block pointing at this weapon */
+      [1, 2].forEach(function(n) {
+        var sel = document.getElementById('atk' + n + '-weapon-sel');
+        var qi  = document.getElementById('atk' + n + '-qty-input');
+        if (sel && sel.value === id && qi) qi.value = q;
+      });
       sauvegarder();
       return;
     }
@@ -9064,6 +9204,8 @@ function updateWeaponDropdowns() {
     sel.innerHTML = html;
     /* Sync finesse toggle state */
     _syncFinesseToggle(n);
+    /* Sync qty row visibility and value */
+    _syncQtyRow(n);
   });
 }
 
@@ -9085,6 +9227,7 @@ function applyWeaponToBlock(n) {
     S['atk' + n + 'FinesseStat'] = weapon ? weapon.attackStat : 'FOR';
   }
   _syncFinesseToggle(n);
+  _syncQtyRow(n);
   updateCombat();
   sauvegarder();
 }
@@ -9118,6 +9261,44 @@ function toggleFinesseStat(n) {
   if (checked) S['atk' + n + 'FinesseStat'] = checked.value;
   updateCombat();
   sauvegarder();
+}
+
+/* Shows/hides qty row for attack block n and syncs its value from S.weapons.
+   Shown only when the selected weapon has consommable=true. */
+function _syncQtyRow(n) {
+  var sel    = document.getElementById('atk' + n + '-weapon-sel');
+  var row    = document.getElementById('atk' + n + '-qty-row');
+  var input  = document.getElementById('atk' + n + '-qty-input');
+  if (!sel || !row || !input) return;
+  var weapon = null;
+  if (sel.value && S.weapons) {
+    for (var i = 0; i < S.weapons.length; i++) {
+      if (S.weapons[i].id === sel.value) { weapon = S.weapons[i]; break; }
+    }
+  }
+  var show = !!(weapon && weapon.consommable);
+  row.classList.toggle('hidden', !show);
+  if (show) input.value = (typeof weapon.quantity === 'number') ? weapon.quantity : 0;
+}
+
+/* Called by qty − / + buttons inside an attack block. */
+function atkQtyChange(n, delta) {
+  var sel = document.getElementById('atk' + n + '-weapon-sel');
+  if (!sel || !sel.value) return;
+  var id = sel.value;
+  setWeaponQuantity(id, delta);          /* updates S.weapons + #inv-qty-{id} */
+  /* Cross-sync both atk block qty inputs */
+  [1, 2].forEach(function(bn) { _syncQtyRow(bn); });
+}
+
+/* Called by qty direct-input change inside an attack block. */
+function atkQtyDirect(n, val) {
+  var sel = document.getElementById('atk' + n + '-weapon-sel');
+  if (!sel || !sel.value) return;
+  var id = sel.value;
+  setWeaponQuantityDirect(id, val);      /* updates S.weapons + #inv-qty-{id} */
+  /* Cross-sync both atk block qty inputs */
+  [1, 2].forEach(function(bn) { _syncQtyRow(bn); });
 }
 
 /* ============================================================
@@ -9543,6 +9724,8 @@ window.updateWeapons         = updateWeapons;
 window.toggleWeaponDetail    = toggleWeaponDetail;
 window.setWeaponQuantity     = setWeaponQuantity;
 window.setWeaponQuantityDirect = setWeaponQuantityDirect;
+window.atkQtyChange          = atkQtyChange;
+window.atkQtyDirect          = atkQtyDirect;
 window.supprimerArme         = supprimerArme;
 window.editArme              = editArme;
 window.ouvrirFormArme        = ouvrirFormArme;
@@ -9664,8 +9847,40 @@ function injectDefaults() {
   }
 }
 
-function makeCombatBlock(n){
-  return '          <div class="combat-block" id="combat-block-'+n+'">\n            <h4 class="combat-title"><img src="https://game-icons.net/icons/ffffff/transparent/1x1/lorc/spinning-sword.svg" class="gi-icon gi-icon-md gi-icon-red" alt="" aria-hidden="true" width="1.68em" height="1.68em" style="vertical-align:middle;">Attaque '+n+'</h4>\n            <!-- Sélecteur arme — Sprint 3 -->\n            <div class="weapon-sel-row">\n              <span class="lbl" style="font-size:0.64rem;flex-shrink:0;min-width:40px;">Arme&nbsp;:</span>\n              <select class="combat-input weapon-sel" id="atk'+n+'-weapon-sel" onchange="applyWeaponToBlock('+n+')">\n                <option value="">— Aucune —</option>\n              </select>\n              <span class="finesse-toggle hidden" id="atk'+n+'-finesse-toggle">\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="FOR" checked onchange="toggleFinesseStat('+n+')"> FOR</label>\n                <label class="finesse-opt"><input type="radio" name="atk'+n+'-finesse" value="DEX" onchange="toggleFinesseStat('+n+')"> DEX</label>\n              </span>\n            </div>\n            <div class="atk-dmg-pair">\n              <div class="atk-half">\n                <div class="half-title">Toucher</div>\n                <div class="combat-row"><span class="lbl">D20</span><input class="combat-input" type="number" id="atk'+n+'-d20" min="1" max="20" oninput="checkCritique(\'atk'+n+'-d20\',\'dmg'+n+'\')"><img src=\"https://game-icons.net/icons/ffffff/transparent/1x1/delapouite/dice-twenty-faces-twenty.svg\" class=\"gi-icon gi-icon-md gi-icon-dice-md gi-icon-gold\" alt=\"\" aria-hidden=\"true\" width=\"2.83em\" height=\"2.83em\" style=\"vertical-align:middle;margin-left:4px;\"></div>\n                <div class="crit-badge" id="atk'+n+'-crit-badge"><i class="ra ra-crossed-swords rpa-icon" aria-hidden="true"></i>CRITIQUE !</div>\n                <div class="combat-row"><span class="lbl" id="atk'+n+'-for-lbl">FOR</span><span class="val" id="atk'+n+'-for">+0</span></div>\n                <div class="combat-row"><span class="lbl">Maîtrise</span><span class="val" id="atk'+n+'-mait">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-cha-row"><span class="lbl">CHA ✦</span><span class="val" id="atk'+n+'-cha">+0</span></div>\n                <div class="combat-row" id="atk'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="atk'+n+'-total">—</span></div>\n              </div>\n              <div class="dmg-half">\n                <div class="half-title">Dégâts</div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-die-lbl">D8</span><input class="combat-input" type="number" id="dmg'+n+'-d8" min="1" max="8"><span id="dmg'+n+'-die-icons" style="display:inline-flex;gap:2px;vertical-align:middle;margin-left:2px;"></span></div>\n                <div class="crit-label" id="dmg'+n+'-crit-label">Critique : saisir la somme de 2d8 </div>\n                <div class="combat-row"><span class="lbl" id="dmg'+n+'-for-lbl">FOR</span><span class="val" id="dmg'+n+'-for">+0</span></div>\n                <div class="combat-row" id="dmg'+n+'-mag-row"><span class="lbl">+Mag</span><span class="val">+1</span></div>\n                <div class="combat-row"><span class="lbl">Total</span><span class="combat-total" id="dmg'+n+'-total">—</span><span class="dmg-type-lbl" id="dmg'+n+'-type-lbl"></span></div>\n                <div class="dmg-mastery-note hidden" id="dmg'+n+'-mastery-note"></div>\n<div class="smite-block" id="smite'+n+'-block">\n              <div class="combat-row">\n                <span class="lbl">Châtiment</span>\n                <select class="combat-input smite-select" id="smite'+n+'-type" style="width:auto;flex:1;" onchange="updateSmite('+n+')">\n                  <option value="">Aucun</option>\n                  <option value="divin">Châtiment Divin</option>\n                  <option value="fournaise">Châtiment de la Fournaise</option>\n                </select>\n              </div>\n              <div class="smite-fields" id="smite'+n+'-fields" style="display:none;">\n                <div class="combat-row">\n                  <span class="lbl">Niv. emplacement</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-slot" min="1" max="5" value="1" style="width:38px;" oninput="updateSmite('+n+')">\n                </div>\n                <div class="combat-row">\n                  <span class="lbl">Dés lancés</span>\n                  <input class="combat-input" type="number" id="smite'+n+'-dice" min="0" style="width:38px;" oninput="updateSmite('+n+')"><span id="smite'+n+'-die-icons" style="display:inline-flex;gap:2px;align-items:center;vertical-align:middle;margin-left:4px;flex-wrap:wrap;"></span>\n                </div>\n                <div class="smite-note" id="smite'+n+'-divin-note" style="display:none;"></div>\n                <div class="smite-note" id="smite'+n+'-fournaise-note" style="display:none;"></div>\n                <div class="combat-row" id="smite'+n+'-total-row">\n                  <span class="lbl">Total dégâts</span>\n                  <span class="combat-total" id="smite'+n+'-total">—</span>\n                  <span class="smite-type-label" id="smite'+n+'-type-label"></span>\n                </div>\n              </div>\n            </div>\n              </div>\n            </div>\n          </div>\n';
+function makeCombatBlock(n) {
+  /* [EX-G-F23] Clone the <template id="tpl-combat-block"> and patch the N placeholder.
+     Template contains plain readable HTML — no string escaping required.
+     Patched attributes: id, name, onclick, onchange, oninput.
+     Array.from() used for NodeList iteration (broader WKWebView compatibility). */
+  var tpl = document.getElementById('tpl-combat-block');
+  if (!tpl || !tpl.content) {
+    /* Fallback: should never happen, but prevents uncaught TypeError */
+    console.error('tpl-combat-block template not found');
+    return document.createDocumentFragment();
+  }
+  var node  = tpl.content.cloneNode(true);
+  var n_str = String(n);
+
+  /* Patch every attribute type that carries the N placeholder */
+  ['id', 'name', 'onclick', 'onchange', 'oninput'].forEach(function(attr) {
+    Array.from(node.querySelectorAll('[' + attr + ']')).forEach(function(el) {
+      el.setAttribute(attr, el.getAttribute(attr).replace(/N/g, n_str));
+    });
+  });
+
+  /* Patch "Attaque N" label inside .combat-title (text node, not an attribute) */
+  var title = node.querySelector('.combat-title');
+  if (title) {
+    var nodes = title.childNodes;
+    for (var i = nodes.length - 1; i >= 0; i--) {
+      if (nodes[i].nodeType === 3 && nodes[i].textContent.indexOf('N') >= 0) {
+        nodes[i].textContent = nodes[i].textContent.replace('N', n_str);
+        break;
+      }
+    }
+  }
+
+  return node;
 }
 var HM_STARS=[
   [[98.3,55.3,1.21,320,0.52],[49.4,54.3,1,209,0.9],[94.4,133,1.05,60,0.38],[93.2,49.4,0.89,230,0.7],[97.3,42.5,1.49,260,0.54],[113,99.5,1.07,286,0.29],[105.2,63.9,0.79,123,0.68],[49.5,79.9,1.27,242,0.6],[110.9,87,1.49,163,0.59],[126.3,103.6,1.06,312,0.63],[70,58.2,1.54,286,0.54],[113.7,84,0.77,83,0.67],[125.3,55.6,1.15,121,0.75],[37.2,115.1,1.49,93,0.87],[84.3,97.5,1.15,228,0.57],[76.6,51.4,1.28,158,0.52],[59,105,1.48,340,0.86],[56.5,66.7,0.84,62,0.46],[88.2,114.5,1.18,51,0.54],[120.9,113.4,1.52,347,0.87],[94.6,29.5,1,2,0.49],[118.6,54.7,0.81,86,0.57],[82.7,29.1,1.13,295,0.33],[82.9,79.5,0.79,105,0.45],[59.9,32.2,1.12,324,0.67],[124.5,49.9,0.88,283,0.56],[31.5,58.1,1.34,168,0.62],[47.3,31.4,0.97,3,0.41]],
@@ -9688,8 +9903,10 @@ function initApp() {
       g.innerHTML+=h;
     });
   })();
-  document.getElementById('combat-blocks-container').innerHTML=
-    makeCombatBlock(1)+makeCombatBlock(2);
+  /* [EX-G-F23] makeCombatBlock() returns a DocumentFragment (cloneNode) — use appendChild */
+  var _cbc = document.getElementById('combat-blocks-container');
+  _cbc.appendChild(makeCombatBlock(1));
+  _cbc.appendChild(makeCombatBlock(2));
   var data;
   try {
     var raw = localStorage.getItem('paladin_strahd_v3');
@@ -9785,6 +10002,12 @@ v14.12 — 2026-03-21 : Sprint C5 — renommage .grimoire-form-* → .form-* (52
 v14.13 — 2026-03-21 : Suppression des 9 séparateurs .sep dans Aide aux Tests et Magie (incl. Monture) — uniformisation de l'espacement inter-sous-sections avec les autres panneaux.
 v14.14 — 2026-03-26 : Lisibilité Attaque Rapide (Option C — scoped) : 15 overrides CSS scopés à #panel-body-attaque-rapide et .round-zone — H3 0.69→0.88rem, H4/half-title 0.57→0.80rem, .lbl 0.64→0.80rem, .val 0.78→0.92rem, .combat-row 0.73→0.88rem ; zéro impact sur les autres panneaux.
 v14.15 — 2026-03-26 : Bonus PV Max et Bonus CA — champ #pv-bonus (≥0, défaut 0) dans Vie : ajouté à calcPvMax() sans réinitialisation automatique ; champ #ca-bonus (≥0, défaut 0) dans Combat : ajouté à updateCA() ; persistance, sanitisation, charger(), DEFAULTS, [EX-M-F04]/[EX-T-F11]/[EX-T-F03] mis à jour.
+v15.0 — 2026-03-27 : Version majeure — passage v14.15 → 15.0 ; aucun changement fonctionnel.
+v15.1 — 2026-03-27 : [EX-M-F06] mis à jour — Repos Long remet pv-temp à 0 (comportement déjà implémenté, documentation manquante) ; [EX-M-F08] corrigé — conduit-cur restauré au max dynamique (parseInt(_cdEl.max)||2) et non à 2 fixe.
+v15.2 — 2026-03-27 : Quantité arme consommable dans Attaque Rapide — ligne Quantité (combat-row hidden #atkN-qty-row) avec contrôle −/input/+ ajoutée dans makeCombatBlock() ; _syncQtyRow(n) créé ; atkQtyChange() et atkQtyDirect() créés et exposés sur window.* ; setWeaponQuantity/Direct mis à jour pour synchroniser inventaire et blocs attaque ; [EX-M-F63] et BLOC 2 mis à jour.
+v15.3 — 2026-03-27 : Fix v15.2 — qty-row invisible en raison d'un sur-escapement des guillemets dans le template makeCombatBlock() (\\\" au lieu de ") ; escaping aligné sur le pattern existant des autres lignes du template.
+v15.4 — 2026-03-27 : Refactor makeCombatBlock() — remplace le template JS string 6 169 chars / 3 niveaux d’escaping par un <template id="tpl-combat-block"> HTML lisible + cloneNode(true) + querySelectorAll replace(/N/g,n) ; initApp() utilise appendChild() ; [EX-G-F23] mis à jour.
+v15.5 — 2026-03-29 : Fix "Script error / , avant <script>" — EX-G-F23 comment contained --&gt; sequence breaking HTML parser; removed inline HTML reference; Array.from() guard in makeCombatBlock().
 ====================================================== */
 </script>
 
