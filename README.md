@@ -404,7 +404,7 @@ La version courante est affichée discrètement en haut à droite de la feuille 
 
 ## Licence
 
-Ce projet est personnel et non distribué sous licence open source. Les ressources tierces (RPG Awesome, game-icons.net) sont soumises à leurs licences respectives (MIT / CC BY 3.0).
+Ce projet est  sous licence open source MIT. Les ressources tierces (RPG Awesome, game-icons.net) sont soumises à leurs licences respectives (MIT / CC BY 3.0).
 
 ---
 
